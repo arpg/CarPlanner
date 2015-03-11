@@ -8,7 +8,6 @@
 #ifndef BULLETCARMODEL_H
 #define	BULLETCARMODEL_H
 
-#include <Mvlpp/SE3.h>
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 #include "BulletDynamics/ConstraintSolver/btHingeConstraint.h"

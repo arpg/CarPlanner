@@ -7,7 +7,6 @@
 
 #include "Vicon.h"
 
-#include <Mvlpp/Mvl.h>
 #include <math.h>
 
 #include "CarPlannerCommon.h"

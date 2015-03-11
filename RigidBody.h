@@ -2,7 +2,6 @@
 #define RIGIDBODY_H
 
 #include "Eigen/Eigen"
-#include <Mvlpp/SE3.h>
 #include "CarPlannerCommon.h"
 
 struct State {

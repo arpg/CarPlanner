@@ -835,7 +835,7 @@ void LocalPlanner::CalculateTorqueCoefficients(LocalProblem& problem,MotionSampl
         //const Sophus::SO3d Rinit_dest = Rinit_w * Rw_dest;
         //angle in body frame
         const Eigen::Vector3d angles(0,
-                                     rpg::AngleWrap(mvl::R2Cart(Rw_dest.matrix())[1]-mvl::R2Cart(Rw_init.matrix())[1]),// - (problem.m_eCostMode == eCostPoint ? M_PI*2 : 0),
+                                     rpg::AngleWrap(rpg::R2Cart(Rw_dest.matrix())[1]-rpg::R2Cart(Rw_init.matrix())[1]),// - (problem.m_eCostMode == eCostPoint ? M_PI*2 : 0),
                                      0);// = Rinit_dest.log();
 
         const Eigen::Vector3d dInertia = problem.m_pFunctor->GetCarModel()->GetVehicleInertiaTensor(0);

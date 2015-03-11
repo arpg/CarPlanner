@@ -47,6 +47,17 @@ namespace rpg
         T(2, 2) =  1;
         return T;
     }
+
+    ///////////////////////////////////////////////////////////////////////
+    inline Eigen::Vector3d R2Cart( Eigen::Matrix3d R )
+    {
+        Eigen::Vector3d Cart_angles;
+
+        Cart_angles(0) = atan2(R(2,1),R(2,2));
+        Cart_angles(1) = atan2(-R(2,0),sqrt(pow(R(2,1),2)+pow(R(2,2),2)));
+        Cart_angles(2) = atan2(R(1,0),R(0,0));
+        return Cart_angles;
+    }
 }
 
 #endif
