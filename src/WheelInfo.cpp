@@ -8,7 +8,7 @@
  * of this software for any purpose.
  * It is provided "as is" without express or implied warranty.
 */
-#include "WheelInfo.h"
+#include "CarPlanner/WheelInfo.h"
 #include "BulletDynamics/Dynamics/btRigidBody.h" // for pointvelocity
 
 
