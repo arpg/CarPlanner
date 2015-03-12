@@ -1,7 +1,7 @@
-project( CarPlanner ) 
-cmake_minimum_required(VERSION 2.8) 
+project( CarPlanner )
+cmake_minimum_required(VERSION 2.8)
 
-# Add to module path, so we can find our cmake modules 
+# Add to module path, so we can find our cmake modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 include(def_library)
 include(export_package)
@@ -10,7 +10,7 @@ message( STATUS "CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}" )
 
 add_definitions(-DBT_USE_DOUBLE_PRECISION)
 add_definitions(-DBT_NO_PROFILE)
-     
+
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -DBOOST_NO_CXX11_NUMERIC_LIMITS")
 
 IF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
@@ -31,16 +31,16 @@ find_package( QUATLIB REQUIRED )
 find_package( Sophus REQUIRED )
 find_package( VRPN REQUIRED ) # requires some work!
 
-set( _LIBRARIES ${MVL_LIBRARIES} ${BULLET_LIBRARIES}  ${BOOST_LIBRARIES} ${VRPN_LIBRARY} ${Sophus_LIBRARIES} )
-set( _INCLUDE_DIRS 
-        ${CMAKE_BINARY_DIR}  
+set( _LIBRARIES  ${BULLET_LIBRARIES}  ${BOOST_LIBRARIES} ${VRPN_LIBRARY} ${Sophus_LIBRARIES} ${VRPN_SERVER_LIBRARY}) # ${MVL_LIBRARIES})
+set( _INCLUDE_DIRS
+        ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIR}
-        ${VRPN_INCLUDE_DIR}  
+        ${VRPN_INCLUDE_DIR}
         ${EIGEN3_INCLUDE_DIR}
-        ${MVL_INCLUDE_DIRS}  
-        ${CVARS_INCLUDE_DIR} 
+        #${MVL_INCLUDE_DIRS}
+        ${CVARS_INCLUDE_DIR}
         ${BULLET_INCLUDE_DIR}
-        ${SceneGraph_INCLUDE_DIRS} 
+        ${SceneGraph_INCLUDE_DIRS}
         ${Pangolin_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -51,7 +51,7 @@ include_directories( ${_INCLUDE_DIRS} )
 
 include_directories( ${CAR_PLANNER_INCLUDE_DIRS} )
 
-set( SRCS 
+set( SRCS
         src/ApplyVelocitiesFunctor.cpp
         src/BulletCarModel.cpp
         src/CarRegressor.cpp
@@ -68,12 +68,12 @@ set( SRCS
    )
 
 set( HDRS
-        include/CarPlanner/ApplyVelocitiesFunctor.h 
-        include/CarPlanner/CarPlannerCommon.h 
+        include/CarPlanner/ApplyVelocitiesFunctor.h
+        include/CarPlanner/CarPlannerCommon.h
         include/CarPlanner/BulletCarModel.h
         include/CarPlanner/Vicon.h
-        include/CarPlanner/CarWheel.h         
-        include/CarPlanner/CarRegressor.h 
+        include/CarPlanner/CarWheel.h
+        include/CarPlanner/CarRegressor.h
         include/CarPlanner/CarController.h
         include/CarPlanner/GLDebugDrawer.h
         include/CarPlanner/CarParameters.h
