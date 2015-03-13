@@ -26,7 +26,7 @@ struct ApplyCommandsThreadFunctor {
 
     void operator()()
     {
-        SetThreadName((boost::format("Bullet Simulation Thread #%d") % m_index).str().c_str());
+        //SetThreadName((boost::format("Bullet Simulation Thread #%d") % m_index).str().c_str());
         if(m_bSolveBoundary){
             m_Problem.m_pBoundarySovler->Solve(&m_Problem.m_BoundaryProblem);
         }

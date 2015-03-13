@@ -1,104 +1,63 @@
-
-# - try to find VRPN library
+# sourced from https://wiki-flowvr.imag.fr/browser/trunk/flowvr-suite/flowvr-vrpn/cmake/FindVRPN.cmake
+# No license is listed for FindVRPN.Cmake
+# - Try to find VRPN
+# Once done this will define
 #
-# Cache Variables:
-#  VRPN_LIBRARY
-#  VRPN_SERVER_LIBRARY
-#  VRPN_INCLUDE_DIR
-#
-# Non-cache variables you might use in your CMakeLists.txt:
-#  VRPN_FOUND
-#  VRPN_SERVER_LIBRARIES
-#  VRPN_LIBRARIES
-#  VRPN_INCLUDE_DIRS
-#
-# VRPN_ROOT_DIR is searched preferentially for these files
-#
-# Requires these CMake modules:
-#  FindPackageHandleStandardArgs (known included with CMake >=2.6.2)
-#
-# Original Author:
-# 2009-2010 Ryan Pavlik <rpavlik at iastate.edu> <abiryan at ryand.net>
-# http://academic.cleardefinition.com
-# Iowa State University HCI Graduate Program/VRAC
+#  VRPN_FOUND - system has VRPN and  Quat
+#  VRPN_INCLUDES - the VRPN include directory
+#  VRPN_LIBRARY - Link these to use VRPN
+#  QUAT_INCLUDES - the QUAT include directory
+#  QUAT_LIBRARY - Link these to use QUAT
 
-set(VRPN_ROOT_DIR
-     "${VRPN_ROOT_DIR}"
-     CACHE
-     PATH
-     "Root directory to search for VRPN")
+FIND_LIBRARY (VRPN_LIBRARY NAMES vrpn
+    PATHS 
+    ENV LD_LIBRARY_PATH
+    ENV LIBRARY_PATH
+    /usr/lib64
+    /usr/lib
+    /usr/local/lib64
+    /usr/local/lib
+    /opt/local/lib
+    )
+FIND_PATH (VRPN_INCLUDES vrpn_Keyboard.h
+    PATHS
+    ENV CPATH
+    /usr/include
+    /usr/local/include
+    /opt/local/include
+    PATH_SUFFIXES vrpn
+    )
+FIND_LIBRARY (QUAT_LIBRARY
+    NAMES quat
+    PATHS
+    ENV LD_LIBRARY_PATH
+    ENV LIBRARY_PATH
+    /usr/lib64
+    /usr/lib
+    /usr/local/lib64
+    /usr/local/lib
+    /opt/local/lib
+    )
+FIND_PATH (QUAT_INCLUDES quat.h
+    PATHS
+    ENV CPATH
+    /usr/include
+    /usr/local/include
+    /opt/local/include
+    PATH_SUFFIXES quat
+    )
 
-if("${CMAKE_SIZEOF_VOID_P}" MATCHES "8")
-     set(_libsuffixes lib64 lib)
-else()
-     set(_libsuffixes lib)
-endif()
+IF(VRPN_INCLUDES AND VRPN_LIBRARY AND QUAT_INCLUDES AND QUAT_LIBRARY)
+    SET(VRPN_FOUND TRUE)
+ENDIF(VRPN_INCLUDES AND VRPN_LIBRARY AND QUAT_INCLUDES AND QUAT_LIBRARY)
 
-###
-# Configure VRPN
-###
+IF(VRPN_FOUND)
+  IF(NOT VRPN_FIND_QUIETLY)
+    MESSAGE(STATUS "VRPN and QUAT Found: ${VRPN_LIBRARY}  ${QUAT_LIBRARY}")
+  ENDIF(NOT VRPN_FIND_QUIETLY)
+ELSE(VRPN_FOUND)
+  IF(VRPN_FIND_REQUIRED)
+    MESSAGE(FATAL_ERROR "Could not find VRPN and/or QUAT")
+  ENDIF(VRPN_FIND_REQUIRED)
+ENDIF(VRPN_FOUND)
 
-find_path(VRPN_INCLUDE_DIR
-     NAMES
-     vrpn_Connection.h
-     PATH_SUFFIXES
-     include
-     include/vrpn
-     HINTS
-     "${VRPN_ROOT_DIR}")
-
-find_library(VRPN_LIBRARY
-     NAMES
-     vrpn
-     PATH_SUFFIXES
-     ${_libsuffixes}
-     HINTS
-     "${VRPN_ROOT_DIR}")
-
-find_library(VRPN_SERVER_LIBRARY
-     NAMES
-     vrpnserver
-     PATH_SUFFIXES
-     ${_libsuffixes}
-     HINTS
-     "${VRPN_ROOT_DIR}")
-
-###
-# Dependencies
-###
-set(_deps_libs)
-set(_deps_includes)
-set(_deps_check)
-
-find_package(quatlib)
-list(APPEND _deps_libs ${QUATLIB_LIBRARIES})
-list(APPEND _deps_includes ${QUATLIB_INCLUDE_DIRS})
-list(APPEND _deps_check QUATLIB_FOUND)
-
-if(NOT WIN32)
-     find_package(Threads)
-     list(APPEND _deps_libs ${CMAKE_THREAD_LIBS_INIT})
-     # list(APPEND _deps_check CMAKE_HAVE_THREADS_LIBRARY)
-endif()
-
-
-# handle the QUIETLY and REQUIRED arguments and set xxx_FOUND to TRUE if
-# all listed variables are TRUE
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(VRPN
-     DEFAULT_MSG
-     VRPN_LIBRARY
-     VRPN_INCLUDE_DIR
-     ${_deps_check})
-
-if(VRPN_FOUND)
-     set(VRPN_INCLUDE_DIRS "${VRPN_INCLUDE_DIR}" ${_deps_includes})
-     set(VRPN_LIBRARIES "${VRPN_LIBRARY}" ${_deps_libs})
-     set(VRPN_SERVER_LIBRARIES "${VRPN_SERVER_LIBRARY}" ${_deps_libs})
-
-     mark_as_advanced(VRPN_ROOT_DIR)
-endif()
-
-mark_as_advanced(VRPN_LIBRARY
-     VRPN_SERVER_LIBRARY
-     VRPN_INCLUDE_DIR)

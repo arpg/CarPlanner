@@ -11,14 +11,14 @@ message( STATUS "CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}" )
 add_definitions(-DBT_USE_DOUBLE_PRECISION)
 add_definitions(-DBT_NO_PROFILE)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -DBOOST_NO_CXX11_NUMERIC_LIMITS")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall") #-DBOOST_NO_CXX11_NUMERIC_LIMITS")
 
 IF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 ENDIF()
 
 # the boost libraries that we need
-set( BOOST_LIBS thread date_time system timer )
+#set( BOOST_LIBS thread date_time system timer )
 
 find_package( Eigen3 REQUIRED )
 FIND_PACKAGE( Pangolin REQUIRED )
@@ -26,7 +26,7 @@ find_package( SceneGraph REQUIRED )
 find_package( CVARS REQUIRED )
 find_package( Protobuf REQUIRED )
 find_package( Bullet REQUIRED )
-find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED )
+#find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED )
 find_package( QUATLIB REQUIRED )
 find_package( Sophus REQUIRED )
 find_package( VRPN REQUIRED ) # requires some work!
@@ -35,7 +35,7 @@ set( _LIBRARIES  ${BULLET_LIBRARIES}  ${BOOST_LIBRARIES} ${VRPN_LIBRARY} ${Sophu
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIR}
-        ${VRPN_INCLUDE_DIR}
+        ${VRPN_INCLUDES}
         ${EIGEN3_INCLUDE_DIR}
         #${MVL_INCLUDE_DIRS}
         ${CVARS_INCLUDE_DIR}

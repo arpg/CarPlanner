@@ -145,7 +145,7 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
 
     res = true;
 
-    boost::timer::cpu_timer timer;
+    //boost::timer::cpu_timer timer; //crh
     while(1)
     {
         //make sure the plan is not fully airborne
@@ -162,8 +162,9 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
         if(m_bStopping){
             res = false;
         }
-        boost::timer::cpu_times const elapsed_times(timer.elapsed());
-        boost::timer::nanosecond_type const elapsed(elapsed_times.system+ elapsed_times.user);
+        //boost::timer::cpu_times const elapsed_times(timer.elapsed()); //crh
+        //boost::timer::nanosecond_type const elapsed(elapsed_times.system+ elapsed_times.user); //crh
+        double elapsed = 1; //crh
         //time elapsed is in nanoseconds, hence the 1e9
         if(g_bInfiniteTime){
             if(elapsed > 1e9*g_dMaxPlanTimeLimit){

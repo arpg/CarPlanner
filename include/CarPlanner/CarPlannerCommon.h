@@ -11,8 +11,8 @@
 #include <vector>
 #include <sys/time.h>
 #include <time.h>
-#include "boost/timer/timer.hpp"
-#include <boost/format.hpp>
+//#include "boost/timer/timer.hpp"
+//#include <boost/format.hpp>
 #include "sophus/se3.hpp"
 
 #ifdef __APPLE__
