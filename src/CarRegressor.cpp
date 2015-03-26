@@ -347,10 +347,10 @@ void CarRegressor::ApplyParameters(ApplyVelocitesFunctor5d f,
                       pPreviousCommands);
 
 //    dout("Starting wheel rotation:" <<
-//         mvl::T2Cart(plan.m_vStates[nStartIndex].m_dTwv.matrix())[5] <<
-//        " sim phi: " << mvl::T2Cart(vStatesOut.front().m_dTwv.matrix())[5]);
+//         T2Cart(plan.m_vStates[nStartIndex].m_dTwv.matrix())[5] <<
+//        " sim phi: " << T2Cart(vStatesOut.front().m_dTwv.matrix())[5]);
 
-    //Eigen::Vector6d error6d = mvl::T2Cart(vStatesOut.back().m_dTwv.matrix() * mvl::TInv(plan.m_vStates[nEndIndex-1].m_dTwv.matrix()));
+    //Eigen::Vector6d error6d = T2Cart(vStatesOut.back().m_dTwv.matrix() * TInv(plan.m_vStates[nEndIndex-1].m_dTwv.matrix()));
     errorOut.setZero();
     for(size_t ii = 0 ; ii < vStatesOut.size() ; ii+= 10){
 

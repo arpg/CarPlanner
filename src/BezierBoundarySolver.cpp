@@ -3,6 +3,8 @@
 
 #define CURV_MULT 1.2
 
+using namespace CarPlanner;
+
 static int& g_nAggressivenessDivisor(CVarUtils::CreateGetUnsavedCVar("debug.AggressivenessDivisor", 5,""));
 
 

@@ -6,7 +6,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/material.h>
 
-
+using namespace CarPlanner;
 
 BulletCarModel::BulletCarModel()
 {

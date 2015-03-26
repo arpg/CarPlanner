@@ -20,7 +20,7 @@ public:
         //assume max extension
         m_dExtension = m_dMaxExtension;
 
-        m_vCgOffset = mvl::Cart2T( cgOffset );
+        m_vCgOffset = Cart2T( cgOffset );
         
         m_bInContact = false;
     }
@@ -74,7 +74,7 @@ public:
         Eigen::Vector6d vExtension;
         vExtension << 0,0,m_dExtension,0,0,0;
         
-        Eigen::Matrix4d extension = mvl::Cart2T(vExtension);
+        Eigen::Matrix4d extension = Cart2T(vExtension);
         m_vRelativeOffset = pose*extension;
         return m_vRelativeOffset;
     }
