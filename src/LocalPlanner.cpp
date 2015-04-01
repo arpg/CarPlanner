@@ -76,12 +76,12 @@ inline Eigen::VectorXd GetPointLineError(const Eigen::Vector6d& line1,const Eige
 }
 
 LocalPlanner::LocalPlanner() :
+    m_ThreadPool(PLANNER_NUM_THREADS),
     m_dEps(CVarUtils::CreateUnsavedCVar("planner.Epsilon", 1e-6, "Epsilon value used in finite differences.")),
     m_dPointWeight(CVarUtils::CreateUnsavedCVar("planner.PointCostWeights",Eigen::MatrixXd(1,1))),
     m_dTrajWeight(CVarUtils::CreateUnsavedCVar("planner.TrajCostWeights",Eigen::MatrixXd(1,1))),
     m_nPlanCounter(0)
 {
-    m_ThreadPool.size_controller().resize(8);
 
     //weight matrix
     m_dPointWeight = Eigen::MatrixXd(POINT_COST_ERROR_TERMS,1);
@@ -111,7 +111,7 @@ void LocalPlanner::SamplePath(const LocalProblem& problem, Eigen::Vector3dAligne
 {
     vSamples.clear();
     BezierBoundaryProblem boundaryProblem = problem.m_BoundaryProblem;
-    Sophus::SE2d T_start(Sophus::SO2(problem.m_dStartPose[3]),problem.m_dStartPose.head(2));
+    Sophus::SE2d T_start(Sophus::SO2d(problem.m_dStartPose[3]),problem.m_dStartPose.head(2));
     vSamples.reserve(boundaryProblem.m_vPts.size());
     for(const Eigen::Vector2d& pt : boundaryProblem.m_vPts) {
         Eigen::Vector3d dPos(pt[0],pt[1],0);
@@ -367,7 +367,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
                                                                           errors[plusIdx],
                                                                           (vCubicProblems[plusIdx]->m_CurrentSolution.m_Sample),
                                                                           true);
-        m_ThreadPool.schedule(*vFunctors[plusIdx]);
+        m_ThreadPool.enqueue(*vFunctors[plusIdx]);
 
         if(g_bUseCentralDifferences == true){
             vCubicProblems[minusIdx] = std::make_shared<LocalProblem>(problem);
@@ -382,7 +382,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
                                                                                errors[minusIdx],
                                                                                (vCubicProblems[minusIdx]->m_CurrentSolution.m_Sample),
                                                                                true);
-            m_ThreadPool.schedule(*vFunctors[minusIdx]);
+            m_ThreadPool.enqueue(*vFunctors[minusIdx]);
         }
     }
 
@@ -395,11 +395,13 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
                                                      dCurrentError,
                                                      (currentProblem->m_CurrentSolution.m_Sample),
                                                      true);
-    m_ThreadPool.schedule(*currentFunctor);
+    m_ThreadPool.enqueue(*currentFunctor);
 
 
     //wait for all simulations to finish
-    m_ThreadPool.wait();
+    while(m_ThreadPool.busy_threads() > (m_ThreadPool.num_threads())){
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 
     dCurrentErrorVec = dCurrentError;
 
@@ -927,6 +929,8 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
 
     //dout(problem.m_nPlanId << ":Iteration error is" << error.transpose());
     LocalProblemSolution coordinateDescent;
+
+    std::cout << J << std::endl; //debug
     if(_CalculateJacobian(problem,error,coordinateDescent,J) == false){
         return false;
     }
@@ -1021,10 +1025,12 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
                                                                          pDampingErrors[ii],
                                                                          vCubicProblems[ii]->m_CurrentSolution.m_Sample,
                                                                          true);
-            m_ThreadPool.schedule(*vFunctors[ii]);
+            m_ThreadPool.enqueue(*vFunctors[ii]);
             damping/= DAMPING_DIVISOR;
         }
-        m_ThreadPool.wait();
+        while(m_ThreadPool.busy_threads() > (m_ThreadPool.num_threads())){
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
 
 
         if(g_bVerbose){

@@ -72,6 +72,7 @@ set( HDRS
         include/CarPlanner/CarPlannerCommon.h
         include/CarPlanner/BulletCarModel.h
         include/CarPlanner/Vicon.h
+        include/CarPlanner/LocalPlanner.h
         include/CarPlanner/CarWheel.h
         include/CarPlanner/CarRegressor.h
         include/CarPlanner/CarController.h
@@ -79,6 +80,8 @@ set( HDRS
         include/CarPlanner/CarParameters.h
         include/CarPlanner/DirectBoundarySolver.h
         include/CarPlanner/CVarHelpers.h
+        include/CarPlanner/RaycastVehicle.h
+        include/CarPlanner/ThreadPool.h
    )
 
 string( TOLOWER ${PROJECT_NAME} LIBRARY_NAME )

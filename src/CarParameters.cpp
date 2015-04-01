@@ -1,6 +1,5 @@
 #include "CarPlanner/CarParameters.h"
 #include "CarPlanner/BulletCarModel.h"
-#include "boost/lexical_cast.hpp"
 
 ////////////////////////////////////////////////////////////////
 const char * const CarParameters::Names[] = {"WheelBase", "Width", "Height", "DynamicFrictionCoef",
@@ -51,7 +50,7 @@ bool CarParameters::LoadFromFile(const std::string sFile,CarParameterMap& map)
             for(size_t ii = 0; ii < sizeof(Names) ; ii++){
                 if(vals[0].compare(std::string(Names[ii])) == 0){
                     bFound = true;
-                    double val = boost::lexical_cast<double>(vals[1]);
+                    double val = std::stod(vals[1]);
                     map[ii] = val;
                     dout("Loading parameter " << Names[ii] << " with value " << val);
                     break;

@@ -11,13 +11,15 @@
 #include <vector>
 #include <sys/time.h>
 #include <time.h>
+#include <thread>
+#include <mutex>
+#include <atomic>
 #include "sophus/se3.hpp"
 
 #ifdef __APPLE__
-#include "pthread.h"
 #include <mach/clock.h>
 #include <mach/mach.h>
-#define SetThreadName(x) pthread_setname_np(x);
+//#define SetThreadName(x) pthread_setname_np(x); //crh
 #else
 #include <sys/prctl.h>
 #define SetThreadName(x) prctl(PR_SET_NAME,x,0,0,0);

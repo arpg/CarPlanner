@@ -63,7 +63,7 @@ private:
     float& m_dMaxControlPlanTime;
     float& m_dLookaheadTime; 
 
-    boost::thread* m_pControlPlannerThread;
+    std::thread* m_pControlPlannerThread;
 
     PlanPtrList m_lControlPlans;
     std::vector<MotionSample> m_vSegmentSamples;
@@ -71,8 +71,8 @@ private:
 
     MotionSample m_MotionSample2dOnly;
 
-    boost::mutex m_PlanMutex;
-    boost::mutex m_PoseMutex;
+    std::mutex m_PlanMutex;
+    std::mutex m_PoseMutex;
 
     Eigen::Vector5d m_dLastDelta;
 

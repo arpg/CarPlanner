@@ -10,9 +10,8 @@
 #include "CarPlannerCommon.h"
 #include "BulletCarModel.h"
 #include "CVars/CVar.h"
-#include <boost/thread.hpp>
+#include <thread>
 #include <queue>
-#include "threadpool.hpp"
 
 #define CAR_GRAVITY_COMPENSATION_COEFFICIENT 1.0
 #define CAR_STEERING_COMPENSATION_COEFFICIENT 0

@@ -1,12 +1,15 @@
 /*
  * File:   BulletCarModel.h
  * Author: nima
+ * 				 crh
  *
  * Created on May 7, 2012, 1:13 PM
  */
 
 #ifndef BULLETCARMODEL_H
 #define	BULLETCARMODEL_H
+
+#include <thread>
 
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
@@ -15,8 +18,6 @@
 
 #include "GLDebugDrawer.h"
 
-#include <boost/thread.hpp>
-#include <boost/signals2/mutex.hpp>
 
 #include "CarParameters.h"
 #include "RaycastVehicle.h"
@@ -251,7 +252,7 @@ private:
     RaycastVehicle m_pVehicleBuffer;
 };
 
-struct BulletWorldInstance : public boost::mutex
+struct BulletWorldInstance : public std::mutex
 {
     BulletWorldInstance()
     {

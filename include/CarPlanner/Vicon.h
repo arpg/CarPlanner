@@ -11,8 +11,6 @@
 
 #include <Eigen/Eigen>
 #include <eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h>
-#include <boost/thread.hpp>
-#include <boost/thread/condition.hpp>
 
 //This is required to compile with Wall
 #pragma GCC diagnostic push
@@ -21,6 +19,7 @@
 #pragma GCC diagnostic pop
 
 #include <vector>
+#include <condition_variable>
 #include "CarPlannerCommon.h"
 
 
@@ -59,8 +58,8 @@ class Vicon
             double                                 m_dTime;
             vrpn_Tracker_Remote*                   m_pTracker;
             Vicon*                                 m_pViconObject;
-            boost::mutex                           m_Mutex;
-            boost::condition                       m_PoseUpdated;
+            std::mutex														m_Mutex;
+            std::condition_variable 							m_PoseUpdated;
 
             //metrics
             double                                  m_dLastTime;
@@ -86,7 +85,7 @@ class Vicon
         std::map< std::string,  TrackerObject >     m_mObjects;
 
         bool                                        m_bIsStarted;
-        boost::thread*								m_pThread;
+        std::thread*								m_pThread;
         vrpn_Connection*                            m_pViconConnection;
 };
 

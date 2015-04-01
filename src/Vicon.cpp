@@ -8,6 +8,7 @@
 #include "CarPlanner/Vicon.h"
 
 #include <math.h>
+#include <unistd.h>
 
 #include "CarPlanner/CarPlannerCommon.h"
 #include "CarPlanner/MochaException.h"
@@ -85,7 +86,7 @@ void Vicon::Start()
         throw MochaException("The Vicon thread has already started.");
     }
 
-    m_pThread = new boost::thread(Vicon::_ThreadFunction, this);
+    m_pThread = new std::thread(Vicon::_ThreadFunction, this);
     m_bIsStarted = true;
 }
 
@@ -97,7 +98,6 @@ void Vicon::Stop()
         return;
     }
 
-    m_pThread->interrupt();
     m_pThread->join();
 
     m_bIsStarted = false;
@@ -113,7 +113,7 @@ Sophus::SE3d Vicon::GetPose( const std::string& sObjectName, bool blocking/* = f
     }
 
     TrackerObject& obj = m_mObjects[sObjectName];
-    boost::mutex::scoped_lock lock(obj.m_Mutex);
+    std::unique_lock<std::mutex> lock(obj.m_Mutex, std::try_to_lock);
 
     //if blocking wait until we have a signal that the pose for this object has been updated
     if(blocking && obj.m_bPoseUpdated == false){
@@ -166,7 +166,7 @@ void Vicon::_ThreadFunction(Vicon *pV)
         std::map< std::string, TrackerObject >::iterator it;
         for( it = pV->m_mObjects.begin(); it != pV->m_mObjects.end(); it++ ) {
             it->second.m_pTracker->mainloop();
-            boost::this_thread::interruption_point();
+            //boost::this_thread::interruption_point(); //crh needs atomic?
 
         }
 
@@ -192,7 +192,7 @@ void VRPN_CALLBACK Vicon::_MoCapHandler( void* uData, const vrpn_TRACKERCB tData
     TrackerObject* pObj = (TrackerObject*)uData;
     //lock the sensor poses as we update them
     {
-        boost::mutex::scoped_lock lock(pObj->m_Mutex);
+        std::unique_lock<std::mutex> lock(pObj->m_Mutex, std::try_to_lock);
 
         Eigen::Matrix4d T;
         if(pObj->m_bRobotFrame){

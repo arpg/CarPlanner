@@ -1,13 +1,14 @@
 #ifndef LOCALPLANNER_H
 #define LOCALPLANNER_H
 
-#include "CarPlannerCommon.h"
-#include "BulletCarModel.h"
-#include "BoundarySolver.h"
-#include "ApplyVelocitiesFunctor.h"
-#include "BezierBoundarySolver.h"
-#include "sophus/se3.hpp"
-#include "sophus/se2.hpp"
+#include <sophus/se3.hpp>
+#include <sophus/se2.hpp>
+#include "CarPlanner/CarPlannerCommon.h"
+#include "CarPlanner/ThreadPool.h"
+#include "CarPlanner/BulletCarModel.h"
+#include "CarPlanner/BoundarySolver.h"
+#include "CarPlanner/ApplyVelocitiesFunctor.h"
+#include "CarPlanner/BezierBoundarySolver.h"
 
 #define XYZ_WEIGHT 2
 #define THETA_WEIGHT 0.5
@@ -27,7 +28,7 @@
 #define OPT_AGGR_DIM 4
 #define OPT_DIM 4
 
-
+#define PLANNER_NUM_THREADS 8
 
 enum PlannerError
 {
@@ -230,7 +231,8 @@ private:
     /// Transforms a vehicle state so that it is on the 2D manifold specified by the problem struct
     Eigen::Vector6d _Transform3dGoalPose(const VehicleState& state, const LocalProblem &problem) const;
 
-    boost::threadpool::pool m_ThreadPool;                       //< Threadpool for multitasking in jacobians and damping calculation
+    ThreadPool m_ThreadPool;
+
     double& m_dEps;                                              //< The epsilon used in the calculation of the finite difference jacobian
 
 
