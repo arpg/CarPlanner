@@ -2,7 +2,7 @@
 #define CARPLANNERCOMMON_H
 #define DEBUG 1
 
-#include "Eigen/Eigen"
+#include <Eigen/Eigen>
 #include <Eigen/Dense>
 #include <Eigen/SparseCore>
 #include <Eigen/StdVector>
@@ -14,7 +14,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include "sophus/se3.hpp"
+#include <sophus/se3.hpp>
 
 #ifdef __APPLE__
 #include <mach/clock.h>

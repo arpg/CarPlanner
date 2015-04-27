@@ -21,7 +21,8 @@
 
 #include "CarParameters.h"
 #include "RaycastVehicle.h"
-#include "sophus/se3.hpp"
+#include <sophus/se3.hpp>
+#include <assimp/scene.h>
 
 #define CAR_UP_AXIS 2   //this is the index for the bullet Z axis
 #define CAR_FORWARD_AXIS 0   //this is the index for the bullet X axis

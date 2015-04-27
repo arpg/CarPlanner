@@ -238,7 +238,7 @@ double LocalPlanner::_CalculateErrorNorm(const LocalProblem& problem,const Eigen
 {
     Eigen::VectorXd dW = _GetWeightVector(problem);
     Eigen::VectorXd error = dError;
-    //dout("error vector is " << error.transpose());
+    dout("error vector is " << error.transpose());
     error.array() *= dW.array();
     return error.norm();
 }
@@ -343,7 +343,9 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
                                       Eigen::MatrixXd& J)
 {
     Eigen::IOFormat CleanFmt(8, 0, ", ", "\n", "[", "]");
-    Eigen::VectorXd errors[OPT_DIM*2],dCurrentError;
+    Eigen::VectorXd errors[OPT_DIM*2],dCurrentError; //debug
+    Eigen::VectorXd errors5 = Eigen::VectorXd::Random(5,1); //debug
+    errors[OPT_DIM*2] = errors5;
     std::vector<std::shared_ptr<LocalProblem > > vCubicProblems;
     std::vector<std::shared_ptr<ApplyCommandsThreadFunctor > > vFunctors;
     vCubicProblems.resize(OPT_DIM*2);

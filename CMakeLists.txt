@@ -34,11 +34,11 @@ find_package( VRPN REQUIRED ) # requires some work!
 set( _LIBRARIES  ${BULLET_LIBRARIES}  ${BOOST_LIBRARIES} ${VRPN_LIBRARY} ${Sophus_LIBRARIES} ${VRPN_SERVER_LIBRARY}) # ${MVL_LIBRARIES})
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
-        ${Sophus_INCLUDE_DIR}
+        ${Sophus_INCLUDE_DIRS}
         ${VRPN_INCLUDES}
         ${EIGEN3_INCLUDE_DIR}
         #${MVL_INCLUDE_DIRS}
-        ${CVARS_INCLUDE_DIR}
+        ${CVars_INCLUDE_DIRS}
         ${BULLET_INCLUDE_DIR}
         ${SceneGraph_INCLUDE_DIRS}
         ${Pangolin_INCLUDE_DIRS}
