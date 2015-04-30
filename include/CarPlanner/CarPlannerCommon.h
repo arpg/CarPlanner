@@ -11,6 +11,7 @@
 #include <vector>
 #include <sys/time.h>
 #include <time.h>
+#include <chrono>
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -19,7 +20,7 @@
 #ifdef __APPLE__
 #include <mach/clock.h>
 #include <mach/mach.h>
-//#define SetThreadName(x) pthread_setname_np(x); //crh
+#define SetThreadName(x) pthread_setname_np(x); //crh
 #else
 #include <sys/prctl.h>
 #define SetThreadName(x) prctl(PR_SET_NAME,x,0,0,0);
@@ -34,32 +35,10 @@
 #endif
 
 //#define CAR_HEIGHT_OFFSET 0.06
-#define VICON_CAR_HEIGHT_OFFSET 0.02
 
 template <typename T> int sgn(T val) {
   return (T(0) < val) - (val < T(0));
 }
-
-
-enum MochaCommands{
-  eMochaPause = 1,
-  eMochaSolve = 2,
-  eMochaRestart = 3,
-  eMochaStep = 4,
-  eMochaLearn = 5,
-  eMochaToggleTrajectory = 6,
-  eMochaTogglePlans = 7,
-  eMochaLoad = 8,
-  eMochaClear = 9,
-  eMochaFixGround = 10,
-  eMochaPpmControl = 11,
-  eMochaSimulationControl = 12,
-
-  eMochaLeft = 90,
-  eMochaRight = 91,
-  eMochaUp = 92,
-  eMochaDown = 93
-};
 
 enum OptimizationTask {
   eGaussNewton = 0,
@@ -172,8 +151,6 @@ inline double SoftMinimum(double x, double y, const double multiplier = 1.0)
 
 
 
-//static boost::timer::cpu_timer g_cpuTimer;
-
 // Aux Time Functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -183,13 +160,6 @@ inline double Tic() {
   gettimeofday(&tv, 0);
   return tv.tv_sec  + 1e-6 * (tv.tv_usec);
 
-  //struct timespec tv;
-  //current_utc_time(&tv);
-  //return tv.tv_sec + 1e-9 * (tv.tv_nsec);
-
-  //boost::timer::cpu_times const elapsed_times(g_cpuTimer.elapsed());
-  //boost::timer::nanosecond_type const elapsed(elapsed_times.system+ elapsed_times.user);
-  //return elapsed*1e9;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

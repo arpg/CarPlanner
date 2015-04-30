@@ -126,15 +126,6 @@ bool CarController::_SampleControlPlan(ControlPlan* pPlan,LocalProblem& problem)
 bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& problem,const MotionSample& trajectory)
 {
     bool res = m_pPlanner->InitializeLocalProblem(problem,pPlan->m_dStartTime,&problem.m_vVelProfile,g_bPointCost ? eCostPoint : eCostTrajectory);
-    //double dLastDeltaNorm = m_dLastDelta.norm();
-//    if(std::isfinite(dLastDeltaNorm) && dLastDeltaNorm < 1.0 ){
-//        problem.m_CurrentSolution.m_dOptParams += m_dLastDelta;
-//        problem.m_BoundaryProblem.m_dGoalPose.head(3) = problem.m_CurrentSolution.m_dOptParams.head(3);
-//        problem.m_pBoundarySovler->Solve(&problem.m_BoundaryProblem);
-//    }else{
-//        m_dLastDelta.setZero();
-//    }
-
     problem.m_bInertialControlActive = g_bInertialControl;
     problem.m_Trajectory = trajectory;
 
@@ -145,7 +136,8 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
 
     res = true;
 
-    //boost::timer::cpu_timer timer; //crh
+    std::chrono::high_resolution_clock::time_point timer = std::chrono::high_resolution_clock::now();
+
     while(1)
     {
         //make sure the plan is not fully airborne
@@ -162,16 +154,15 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
         if(m_bStopping){
             res = false;
         }
-        //boost::timer::cpu_times const elapsed_times(timer.elapsed()); //crh
-        //boost::timer::nanosecond_type const elapsed(elapsed_times.system+ elapsed_times.user); //crh
-        double elapsed = 1; //crh
-        //time elapsed is in nanoseconds, hence the 1e9
+
+        std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+        const double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(timer - now).count();
         if(g_bInfiniteTime){
-            if(elapsed > 1e9*g_dMaxPlanTimeLimit){
+            if( elapsed > 1e6*g_dMaxPlanTimeLimit){
                 break;
             }
         }else{
-            if(elapsed > 1e9*(m_dMaxControlPlanTime*m_dLookaheadTime)){
+            if( elapsed > 1e6*(m_dMaxControlPlanTime*m_dLookaheadTime)){
                 break;
             }
         }

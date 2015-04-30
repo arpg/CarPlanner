@@ -15,7 +15,8 @@ BezierBoundarySolver::BezierBoundarySolver()
 
 
 ///////////////////////////////////////////////////////////////////////////////
-double BezierBoundarySolver::GetCurvature(const BoundaryProblem *pProblem, double dist)
+double BezierBoundarySolver::GetCurvature(const BoundaryProblem *pProblem,
+                                          double dist)
 {
     BezierBoundaryProblem* bezierProblem = (BezierBoundaryProblem*)pProblem;
 
@@ -41,7 +42,8 @@ double BezierBoundarySolver::GetCurvature(const BoundaryProblem *pProblem, doubl
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BezierBoundarySolver::_Get5thOrderBezier(BezierBoundaryProblem *pProblem,const Eigen::Vector4d& params)
+void BezierBoundarySolver::_Get5thOrderBezier(BezierBoundaryProblem *pProblem,
+                                              const Eigen::Vector4d& params)
 {
     //the order of the bezier
     const double n = 5.0;
@@ -136,7 +138,10 @@ void BezierBoundarySolver::Solve(BoundaryProblem *pProblem)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BezierBoundarySolver::_GetCoefs(Eigen::Vector6d& coefs,Eigen::Vector6d&  dCoefs,Eigen::Vector6d&  ddCoefs, const double& t)
+void BezierBoundarySolver::_GetCoefs(Eigen::Vector6d& coefs,
+                                     Eigen::Vector6d& dCoefs,
+                                     Eigen::Vector6d& ddCoefs,
+                                     const double& t)
 {
     Eigen::Vector5d tPowers, omtPowers, tmoPowers;
 
@@ -236,7 +241,8 @@ double BezierBoundarySolver::_GetMaximumCurvature(const BezierBoundaryProblem* p
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BezierBoundarySolver::_IterateCurvatureReduction(BezierBoundaryProblem* pProblem,Eigen::Vector4d& params)
+void BezierBoundarySolver::_IterateCurvatureReduction(BezierBoundaryProblem* pProblem,
+                                                      Eigen::Vector4d& params)
 {
     double epsilon = 0.0001;
     //create a jacobian for the parameters by perturbing them

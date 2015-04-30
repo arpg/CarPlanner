@@ -1,6 +1,10 @@
 project( CarPlanner )
 cmake_minimum_required(VERSION 2.8)
 
+if( NOT CMAKE_BUILD_TYPE )
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
 # Add to module path, so we can find our cmake modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
 include(def_library)
@@ -23,19 +27,16 @@ ENDIF()
 find_package( Eigen3 REQUIRED )
 FIND_PACKAGE( Pangolin REQUIRED )
 find_package( SceneGraph REQUIRED )
-find_package( CVARS REQUIRED )
+find_package( CVars REQUIRED )
 find_package( Protobuf REQUIRED )
 find_package( Bullet REQUIRED )
 #find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED )
-find_package( QUATLIB REQUIRED )
 find_package( Sophus REQUIRED )
-find_package( VRPN REQUIRED ) # requires some work!
 
-set( _LIBRARIES  ${BULLET_LIBRARIES}  ${BOOST_LIBRARIES} ${VRPN_LIBRARY} ${Sophus_LIBRARIES} ${VRPN_SERVER_LIBRARY}) # ${MVL_LIBRARIES})
+set( _LIBRARIES  ${BULLET_LIBRARIES}  ${BOOST_LIBRARIES} ${Sophus_LIBRARIES} ${VRPN_SERVER_LIBRARY}) # ${MVL_LIBRARIES})
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIRS}
-        ${VRPN_INCLUDES}
         ${EIGEN3_INCLUDE_DIR}
         #${MVL_INCLUDE_DIRS}
         ${CVars_INCLUDE_DIRS}
@@ -63,7 +64,6 @@ set( SRCS
         src/BezierBoundarySolver.cpp
         src/MochaException.cpp
         src/CarController.cpp
-        src/Vicon.cpp
         src/DirectBoundarySolver.cpp
    )
 
@@ -71,7 +71,6 @@ set( HDRS
         include/CarPlanner/ApplyVelocitiesFunctor.h
         include/CarPlanner/CarPlannerCommon.h
         include/CarPlanner/BulletCarModel.h
-        include/CarPlanner/Vicon.h
         include/CarPlanner/LocalPlanner.h
         include/CarPlanner/CarWheel.h
         include/CarPlanner/CarRegressor.h

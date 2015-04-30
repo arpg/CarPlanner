@@ -6,7 +6,6 @@ using namespace CarPlanner;
 static bool& g_bUseCentralDifferences = CVarUtils::CreateGetUnsavedCVar("debug.UseCentralDifferences",true);
 static double& g_dSuccessNorm = CVarUtils::CreateGetUnsavedCVar("debug.SuccessNorm",0.01);
 static double& g_dTimeTarget = CVarUtils::CreateGetUnsavedCVar("debug.TimeTarget",0.00);
-//static bool& g_bUseGoalPoseStepping = CVarUtils::CreateGetCVar("debug.UseGoalPoseStepping",false);
 static bool& g_bDisableDamping = CVarUtils::CreateGetUnsavedCVar("debug.DisableDamping",false);
 static bool& g_bMonotonicCost(CVarUtils::CreateGetUnsavedCVar("debug.MonotonicCost", true,""));
 static bool& g_bVerbose(CVarUtils::CreateGetUnsavedCVar("debug.Verbose", false,""));
@@ -14,8 +13,13 @@ static bool& g_bTrajectoryCost(CVarUtils::CreateGetUnsavedCVar("debug.Trajectory
 static int& g_nTrajectoryCostSegments(CVarUtils::CreateGetUnsavedCVar("debug.TrajectoryCostSegments", 10,""));
 
 struct ApplyCommandsThreadFunctor {
-    ApplyCommandsThreadFunctor(LocalPlanner *pPlanner, LocalProblem& problem,const int index , Eigen::Vector6d& poseOut,Eigen::VectorXd& errorOut,
-                               MotionSample& sample, const bool bSolveBoundary = false) :
+    ApplyCommandsThreadFunctor(LocalPlanner *pPlanner,
+                               LocalProblem& problem,
+                               const int index,
+                               Eigen::Vector6d& poseOut,
+                               Eigen::VectorXd& errorOut,
+                               MotionSample& sample,
+                               const bool bSolveBoundary = false) :
         m_pPlanner(pPlanner),
         m_Problem(problem),
         m_index(index),
@@ -26,9 +30,10 @@ struct ApplyCommandsThreadFunctor {
 
     {}
 
+    // this redefines the () operator for ApplyCommandThreadFunctor.
+    // therefore, when we call ACTF(), it actually does the following:
     void operator()()
     {
-        //SetThreadName((boost::format("Bullet Simulation Thread #%d") % m_index).str().c_str());
         if(m_bSolveBoundary){
             m_Problem.m_pBoundarySovler->Solve(&m_Problem.m_BoundaryProblem);
         }
@@ -37,8 +42,6 @@ struct ApplyCommandsThreadFunctor {
     }
 
     LocalPlanner *m_pPlanner;
-    //const double m_startingCurvature;
-    //const double m_dt;
     LocalProblem& m_Problem;
     const int m_index;    
     Eigen::Vector6d& m_poseOut;
@@ -55,14 +58,8 @@ inline Eigen::VectorXd GetPointLineError(const Eigen::Vector6d& line1,const Eige
     Eigen::Vector3d vAC = (point.head(3) - line1.head(3));
     double dAB = vAB.norm();
     double dProjection = vAC.dot(vAB.normalized());
-//    if(dProjection < 0){
-//        dout("Negative vector projection of " << dProjection << " when calculating point line error...");
-//    }
     dInterpolationFactor = std::max(std::min(dProjection/dAB,1.0),0.0);
 
-//    if(interpolation > 1.0 || interpolation < 0){
-//        dout("Point/line interpolation factor out of bounds at " << interpolation << "Interpolating between [" << line1.head(3).transpose() << "], [" << line2.head(3).transpose() << "] and [" << point.head(3).transpose());
-//    }
     //now calculate the interpolated value
     Eigen::Vector6d intVal = (1.0-dInterpolationFactor)*line1 + (dInterpolationFactor)*line2;
     intVal[3] = rpg::AngleWrap(intVal[3]);
@@ -94,7 +91,6 @@ LocalPlanner::LocalPlanner() :
     m_dPointWeight(2) = XYZ_WEIGHT;
     m_dPointWeight(3) = THETA_WEIGHT;
     m_dPointWeight(4) = VEL_WEIGHT_POINT;
-    //m_dPointWeight(5) = CURV_WEIGHT;
 
     m_dTrajWeight(0) = XYZ_WEIGHT;
     m_dTrajWeight(1) = XYZ_WEIGHT;
@@ -103,11 +99,12 @@ LocalPlanner::LocalPlanner() :
     m_dTrajWeight(4) = VEL_WEIGHT_TRAJ;
     m_dTrajWeight(5) = TIME_WEIGHT;
     m_dTrajWeight(6) = CURV_WEIGHT;
-    //m_dTrajWeight(7) = BADNESS_WEIGHT;
 }
 
 ///////////////////////////////////////////////////////////////////////
-void LocalPlanner::SamplePath(const LocalProblem& problem, Eigen::Vector3dAlignedVec& vSamples, bool bBestSolution /* = true */ )
+void LocalPlanner::SamplePath(const LocalProblem& problem,
+                              Eigen::Vector3dAlignedVec& vSamples,
+                              bool bBestSolution /* = true */ )
 {
     vSamples.clear();
     BezierBoundaryProblem boundaryProblem = problem.m_BoundaryProblem;
@@ -124,7 +121,8 @@ void LocalPlanner::SamplePath(const LocalProblem& problem, Eigen::Vector3dAligne
 }
 
 ///////////////////////////////////////////////////////////////////////
-Eigen::Vector6d LocalPlanner::_Transform3dGoalPose(const VehicleState& state, const LocalProblem &problem) const
+Eigen::Vector6d LocalPlanner::_Transform3dGoalPose(const VehicleState& state,
+                                                   const LocalProblem &problem) const
 {
     //also transfer this pose into the 3d projected space we are working on
     const Sophus::SE3d dPose = problem.m_dT3d * state.m_dTwv;
@@ -141,7 +139,8 @@ Eigen::Vector6d LocalPlanner::_Transform3dGoalPose(const VehicleState& state, co
 
 
 ///////////////////////////////////////////////////////////////////////
-Eigen::Vector6d  LocalPlanner::_TransformGoalPose(const Eigen::Vector6d& dGoalPose,const LocalProblem& problem) const
+Eigen::Vector6d  LocalPlanner::_TransformGoalPose(const Eigen::Vector6d& dGoalPose,
+                                                  const LocalProblem& problem) const
 {
     Eigen::Vector6d result;
     Eigen::Vector3d pt;
@@ -205,10 +204,7 @@ Eigen::VectorXd LocalPlanner::_GetTrajectoryError(const MotionSample& sample,
             error = afterError;
         }
     }
-    //error[4] = minPose[5] - endPose[5];
-//    for(int ii = 0; ii < error.rows() ; ii++){
-//        error[ii] = fabs(error[ii]);
-//    }
+
     return error;
 }
 
@@ -234,7 +230,8 @@ Eigen::VectorXd LocalPlanner::_GetWeightVector(const LocalProblem& problem)
 }
 
 ///////////////////////////////////////////////////////////////////////
-double LocalPlanner::_CalculateErrorNorm(const LocalProblem& problem,const Eigen::VectorXd& dError)
+double LocalPlanner::_CalculateErrorNorm(const LocalProblem& problem,
+                                         const Eigen::VectorXd& dError)
 {
     Eigen::VectorXd dW = _GetWeightVector(problem);
     Eigen::VectorXd error = dError;
@@ -244,7 +241,9 @@ double LocalPlanner::_CalculateErrorNorm(const LocalProblem& problem,const Eigen
 }
 
 ///////////////////////////////////////////////////////////////////////
-Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, LocalProblem& problem, double& dMinTrajTime) const
+Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample,
+                                                    LocalProblem& problem,
+                                                    double& dMinTrajTime) const
 {
     int errorVecSize = problem.m_eCostMode == eCostPoint ? POINT_COST_ERROR_TERMS : TRAJ_UNIT_ERROR_TERMS*g_nTrajectoryCostSegments+TRAJ_EXTRA_ERROR_TERMS;
     Eigen::VectorXd error;
@@ -258,28 +257,18 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, 
     //get the normalized velocity
     VehicleState state = sample.m_vStates.back();
     Eigen::Vector3d dW_goal = problem.m_GoalState.m_dTwv.so3().inverse()* state.m_dW;
-    //double dPrevAngle = state.GetTheta();
     if(state.IsAirborne()){
         state.AlignWithVelocityVector();
-        //dout("End state transformed from " << dPrevAngle << " to " << state.GetTheta());
     }
 
     Eigen::Vector6d endPose = _Transform3dGoalPose(state,problem);
     if(problem.m_eCostMode == eCostPoint){
         error =Eigen::VectorXd(errorVecSize);
-        //Eigen::Vector3d cartError = T2Cart_2D(Cart2T_2D(problem.m_dTransformedGoal.head(3))*Tinv_2D(Cart2T_2D(endPose.head(3))));
-        //error.head(3) = cartError;
-        //transform the angular velocity into the plane of goal pose
 
         error.head(3) = problem.m_dTransformedGoal.head(3) - endPose.head(3);
         error[3] = rpg::AngleWrap(problem.m_dTransformedGoal[3] - endPose[3]);
         error[4] = problem.m_dTransformedGoal[5] - endPose[5];
-        //error[5] = state.m_dV.norm()*dW_goal[2] - problem.m_GoalState.m_dCurvature;
 
-        //error[5] = sample.GetBadnessCost();
-        //error[5] = -std::log(problem.m_BoundaryProblem.m_dAggressiveness);
-        //error.array() *= m_dPointWeight.block<POINT_COST_ERROR_TERMS,1>(0,0).array();
-        //dout("Error vector is " << error.transpose() << " weights are " << m_dPointWeight.transpose());
     }else if(problem.m_eCostMode == eCostTrajectory){
         error =Eigen::VectorXd(errorVecSize);
 
@@ -311,7 +300,6 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, 
                    ii < dMinTrajTime && counter < ((double)g_nTrajectoryCostSegments-1) ;
                    ii += dMinTrajTime/(double)g_nTrajectoryCostSegments ){
             //get the poses at this point in time
-            //Eigen::Vector6d poseTraj = _Transform3dGoalPose(VehicleState::GetInterpolatedState(problem.m_Trajectory.m_vStates,nStartIndex,ii,nStartIndex),problem);
             Eigen::Vector6d poseSample = _Transform3dGoalPose(VehicleState::GetInterpolatedState(sample.m_vStates,nStartIndex,ii,nStartIndex),problem);
 
             double dMinTime;
@@ -329,9 +317,6 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, 
         error[error.rows()-2] = g_dTimeTarget-dMinTrajTime;
         error[error.rows()-1] = state.m_dV.norm()*dW_goal[2] - problem.m_GoalState.m_dCurvature; // sample.GetBadnessCost();
 
-        //error[7] = sample.GetBadnessCost();
-        //error[6] = -std::log(problem.m_BoundaryProblem.m_dAggressiveness);
-        //error.array() *= m_dTrajWeight.block<TRAJ_COST_ERROR_TERMS,1>(0,0).array();
     }
     return error;
 }
@@ -354,7 +339,6 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
 
     const double dEps = m_dEps;// * problem.m_CurrentSolution.m_dNorm;
 
-    //g_bUseCentralDifferences = false;
     for( int ii = 0; ii < OPT_DIM; ii++ ){
         int plusIdx = ii*2, minusIdx = ii*2+1;
         vCubicProblems[plusIdx] = std::make_shared<LocalProblem>(problem);
@@ -447,11 +431,6 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
             return false;
         }
 
-        //if this column is zero
-//        if( col.norm() == 0){
-//            problem.m_eError = eJacobianColumnZero;
-//            return false;
-//        }
     }
 
     coordinateDescent = pCoordinateDescent->m_CurrentSolution;
@@ -466,7 +445,8 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
 
 
 ///////////////////////////////////////////////////////////////////////
-double LocalPlanner::_DistanceTraveled( const double& t,const AccelerationProfile& profile ) const
+double LocalPlanner::_DistanceTraveled( const double& t,
+                                        const AccelerationProfile& profile ) const
 {
     double totalDist = 0;
     double lastTime = 0;
@@ -486,14 +466,12 @@ double LocalPlanner::_DistanceTraveled( const double& t,const AccelerationProfil
 }
 
 ///////////////////////////////////////////////////////////////////////
-void LocalPlanner::SampleAcceleration(std::vector<ControlCommand>& vCommands, LocalProblem& problem) const
+void LocalPlanner::SampleAcceleration(std::vector<ControlCommand>& vCommands,
+                                      LocalProblem& problem) const
 {
     vCommands.clear();
 
-    //double st;// = SegmentTime(p);
-    //AccelerationProfile accelProfile;
     _GetAccelerationProfile(problem);
-    //problem.m_dSegmentTime += problem.m_dSegmentTimeDelta;
     if(std::isfinite(problem.m_dSegmentTime) == false ){
         dout(problem.m_nPlanId << ":Segment time of " << problem.m_dSegmentTime << " was not finite.");
         return;
@@ -531,16 +509,6 @@ void LocalPlanner::SampleAcceleration(std::vector<ControlCommand>& vCommands, Lo
         vCommands.push_back(ControlCommand(problem.m_vAccelProfile[accelIndex].m_dAccel+(problem.m_CurrentSolution.m_dOptParams[OPT_ACCEL_DIM]/problem.m_dSegmentTime),curvature,dTorques,actualDt,0));
     }
 
-    //if there is control delay, add empty commands to the end, so that the control delay queue can be flushed out
-//    double totalDelay = problem.m_pFunctor->GetCarModel()->GetParameters(nIndex)[CarParameters::ControlDelay];
-//    if(totalDelay > 0 && problem.m_pFunctor->GetPreviousCommand().size() != 0){
-//        CommandList::iterator it  = problem.m_pFunctor->GetPreviousCommand().begin();
-//        while(totalDelay > 0 && it != problem.m_pFunctor->GetPreviousCommand().end()){
-//            vCommands.push_back(ControlCommands(0,0,Eigen::Vector3d::Zero(),problem.m_dT,0));
-//            totalDelay -= problem.m_dT;
-//            ++it;
-//        }
-//    }
 }
 
 
@@ -597,7 +565,6 @@ void LocalPlanner::_GetAccelerationProfile(LocalProblem& problem) const
         problem.m_vAccelProfile.push_back(AccelerationProfileNode(totalTime,accel,currentDist,problem.m_vVelProfile[ii-1].m_dVel,problem.m_vVelProfile[ii].m_dVel));
     }
     problem.m_dSegmentTime = totalTime;
-    //problem.m_dMaxSegmentTime = DBL_MAX;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -616,7 +583,6 @@ bool LocalPlanner::InitializeLocalProblem(LocalProblem& problem,
         CommandList::iterator it  = problem.m_pFunctor->GetPreviousCommand().begin();
         while(totalDelay > 0 && it != problem.m_pFunctor->GetPreviousCommand().end()){
             delaySample.m_vCommands.insert(delaySample.m_vCommands.begin(),(*it));
-            //delaySample.m_vCommands.push_back((*it)  );
             totalDelay -= (*it).m_dT;
             ++it;
         }
@@ -643,7 +609,6 @@ bool LocalPlanner::InitializeLocalProblem(LocalProblem& problem,
     Eigen::Quaternion<double> dEndQuat = problem.m_GoalState.m_dTwv.so3().unit_quaternion();
     //find the halfway rotation
     Eigen::Quaternion<double> dMidQuat = dStartQuat.slerp(0.5,dEndQuat);
-    //dMidQuat.setIdentity();
 
     //now rotate both waypoints into this intermediate frame
     Sophus::SE3d dRotation(Sophus::SO3d(dMidQuat.toRotationMatrix().transpose()),Eigen::Vector3d::Zero()); //we want the inverse rotation here
@@ -719,7 +684,6 @@ bool LocalPlanner::InitializeLocalProblem(LocalProblem& problem,
     problem.m_dTransformedGoal = _TransformGoalPose(problem.m_dGoalPose, problem);
 
     //restore the original start state for simulation purposes
-    //problem.m_StartState = originalStartState;
     problem.m_eCostMode = eCostMode;
 
     return true;
@@ -741,7 +705,6 @@ bool LocalPlanner::Iterate(LocalProblem &problem )
             //here we have to re-evaluate the segment time of the trajectory
 
             SimulateTrajectory(problem.m_CurrentSolution.m_Sample,problem,0,false);
-            //problem.m_dDistanceDelta = problem.m_pCurrentMotionSample->GetDistance() - problem.m_BoundaryProblem.m_dDistance;
             if(problem.m_bInertialControlActive){
                 CalculateTorqueCoefficients(problem,&problem.m_CurrentSolution.m_Sample);
                 SimulateTrajectory(problem.m_CurrentSolution.m_Sample,problem,0,false);
@@ -750,7 +713,6 @@ bool LocalPlanner::Iterate(LocalProblem &problem )
             //calculate the distance
             double dMinLookahead;
             Eigen::VectorXd error = _CalculateSampleError(problem,dMinLookahead);
-            //dout(problem.m_nPlanId << ":Initial error is " << error.transpose());
             problem.m_CurrentSolution.m_dNorm = _CalculateErrorNorm(problem,error);
             if(std::isfinite(problem.m_CurrentSolution.m_dNorm) == false){
                 dout(problem.m_nPlanId << ":Initial norm is not finite. Exiting optimization");
@@ -761,7 +723,6 @@ bool LocalPlanner::Iterate(LocalProblem &problem )
         }
 
         if( m_dEps > 5 || problem.m_bInLocalMinimum == true) {
-            //dout("Failed to plan. Norm = " << problem.m_dCurrentNorm);
             return true;
         }
 
@@ -775,7 +736,8 @@ bool LocalPlanner::Iterate(LocalProblem &problem )
     }
 }
 
-void LocalPlanner::CalculateTorqueCoefficients(LocalProblem& problem,MotionSample* pSample)
+void LocalPlanner::CalculateTorqueCoefficients(LocalProblem& problem,
+                                               MotionSample* pSample)
 {
     //find the last air section and record its duration
     double dAirTime = 0;
@@ -837,26 +799,14 @@ void LocalPlanner::CalculateTorqueCoefficients(LocalProblem& problem,MotionSampl
         const Sophus::SO3d Rw_dest = problem.m_GoalState.m_dTwv.so3();
         const Sophus::SO3d Rw_init = pSample->m_vStates[nStartIndex].m_dTwv.so3();
 
-        //const Sophus::SO3d Rinit_w = Rw_init.inverse();
-        //const Sophus::SO3d Rinit_dest = Rinit_w * Rw_dest;
         //angle in body frame
         const Eigen::Vector3d angles(0,
                                      rpg::AngleWrap(rpg::R2Cart(Rw_dest.matrix())[1]-rpg::R2Cart(Rw_init.matrix())[1]),// - (problem.m_eCostMode == eCostPoint ? M_PI*2 : 0),
                                      0);// = Rinit_dest.log();
 
         const Eigen::Vector3d dInertia = problem.m_pFunctor->GetCarModel()->GetVehicleInertiaTensor(0);
-        //Eigen::Vector3d currentV = pSample->m_vStates[nStartIndex].m_dV;
         const Sophus::SO3d Rwv = pSample->m_vStates[nStartIndex].m_dTwv.so3();
         //angular velocities in body frame
-        //create the inertia tensor
-//        Eigen::Matrix3d omega_w;
-//        omega_w << 0, -pSample->m_vStates[nStartIndex].m_dW[2], pSample->m_vStates[nStartIndex].m_dW[1],
-//                   pSample->m_vStates[nStartIndex].m_dW[2],0,-pSample->m_vStates[nStartIndex].m_dW[0],
-//                   -pSample->m_vStates[nStartIndex].m_dW[1],pSample->m_vStates[nStartIndex].m_dW[0],0;
-        //dout("omega " << omega_w);
-
-        //Sophus::SO3d dRwv = Sophus::SO3d::hat(pSample->m_vStates[nStartIndex].m_dW);
-        //const Eigen::Vector3d omega_v =  Sophus::SO3d::vee((Rwv.inverse()*dRwv).matrix());
         const Eigen::Vector3d omega_v = Rwv.inverse() * pSample->m_vStates[nStartIndex].m_dW;
 
         //calculate the coefficients
@@ -878,45 +828,11 @@ void LocalPlanner::CalculateTorqueCoefficients(LocalProblem& problem,MotionSampl
     }
 }
 
-void LocalPlanner::StressTest(LocalProblem &problem)
-{
-//    std::vector<std::shared_ptr<boost::thread> > threads;
-//    for(int jj = 0; jj < 1000 ; jj++){
-//        Eigen::Vector6d pHypeStates[DAMPING_STEPS];
-//        Eigen::VectorXd pHypeErrors[DAMPING_STEPS];
-//        std::vector<std::shared_ptr<LocalProblem> > vCubicProblems;
-//        std::vector<std::shared_ptr<ApplyCommandsThreadFunctor> >vFunctors;
-//        vCubicProblems.resize(DAMPING_STEPS);
-//        vFunctors.resize(DAMPING_STEPS);
-
-////        vCubicProblems[0] = std::make_shared<LocalProblem>(problem);
-////        vFunctors[0] = std::make_shared<ApplyCommandsThreadFunctor>(this,*vCubicProblems[0],0,pHypeStates[0],m_DampingMotionSamples[0],true);
-////        vFunctors[0]->operator()();
-
-//        for(int ii = 0 ; ii < DAMPING_STEPS ; ii++) {
-//            vCubicProblems[ii] = std::make_shared<LocalProblem>(problem);
-//            vCubicProblems[ii]->m_pBoundarySovler->Solve(&vCubicProblems[ii]->m_BoundaryProblem);
-//            vFunctors[ii] = std::make_shared<ApplyCommandsThreadFunctor>(this,*vCubicProblems[ii],ii,pHypeStates[ii],pHypeErrors[ii],m_MotionSamples[ii],false);
-//            threads.push_back(std::make_shared<boost::thread>(*vFunctors[ii].get()));
-//            //vFunctors[0]->operator()();
-//            //m_ThreadPool.schedule(*vFunctors[ii]);
-//        }
-
-//        for(size_t ii = 0 ; ii < threads.size() ; ii++){
-//            threads[ii]->join();
-//        }
-//        threads.clear();
-//        //m_ThreadPool.wait();
-//    }
-}
-
-
 ///////////////////////////////////////////////////////////////////////
 bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
 {
     Eigen::IOFormat CleanFmt(8, 0, ", ", "\n", "[", "]");
     Eigen::VectorXd dDeltaP;
-    //        dout("Entered gauss-newton search with e = " << m_dCurrentEps);
     double bestDamping;
     unsigned int nBestDampingIdx = 0;
 
@@ -929,7 +845,6 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
     //double dMinLookahead;
     Eigen::VectorXd error;// = _CalculateSampleError(problem,dMinLookahead);
 
-    //dout(problem.m_nPlanId << ":Iteration error is" << error.transpose());
     LocalProblemSolution coordinateDescent;
 
     std::cout << J << std::endl; //debug
@@ -981,9 +896,6 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
 
     //if no damping is required, just pick the result of the gauss newton
     if(g_bDisableDamping == true){
-//        problem.m_CurrentSolution.m_dOptParams.head(OPT_DIM) += dDeltaP.head(OPT_DIM);
-//        problem.m_BoundaryProblem.m_dGoalPose.head(3) = problem.m_CurrentSolution.m_dOptParams.head(3);
-//        problem.m_BoundaryProblem.m_dAggressiveness = problem.m_CurrentSolution.m_dOptParams[OPT_AGGR_DIM];
         problem.UpdateOptParams(problem.m_CurrentSolution.m_dOptParams.head(OPT_DIM) + dDeltaP);
         problem.m_pBoundarySovler->Solve(&problem.m_BoundaryProblem);
         SimulateTrajectory( problem.m_CurrentSolution.m_Sample,problem);
@@ -998,11 +910,9 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
     //dampings are any good
     double damping = 0;
     //damp the gauss newton response
-    //dout("Gauss newton delta is: [" << dDeltaP.transpose() << "] - Damping with lambda");
 
     Eigen::Vector6d pDampingStates[DAMPING_STEPS];
     Eigen::VectorXd pDampingErrors[DAMPING_STEPS];
-    //Eigen::VectorOpt pHypePs[DAMPING_STEPS];
     std::vector<std::shared_ptr<LocalProblem> > vCubicProblems;
     std::vector<std::shared_ptr<ApplyCommandsThreadFunctor> >vFunctors;
     vCubicProblems.resize(DAMPING_STEPS);
@@ -1071,17 +981,12 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
         problem.m_bInLocalMinimum = true;
         dout(problem.m_nPlanId << ":In local minimum with Norm = " << problem.m_CurrentSolution.m_dNorm );
     }else if( dampedSolution.m_dNorm > problem.m_CurrentSolution.m_dNorm && g_bMonotonicCost) {
-        //newSolution = coordinateDescent;
         problem.m_bInLocalMinimum = true;
         dout(problem.m_nPlanId << ":Accepted coordinate descent with norm = " << problem.m_CurrentSolution.m_dNorm ) ;
     }else{
         newSolution = dampedSolution;
         dout( problem.m_nPlanId << ":New norm from damped gauss newton = " << newSolution.m_dNorm << " with damping = " << bestDamping << " best damped traj error is " << pDampingErrors[nBestDampingIdx].transpose().format(CleanFmt));
     }
-
-
-    //update the problem params
-    //problem.m_CurrentSolution.m_dOptParams = newSolution.m_dOptParams;
 
 
     //update the best solution if necessary
@@ -1093,16 +998,10 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
         }
         problem.m_CurrentSolution = newSolution;
     }
-    //problem.m_CurrentSolution.m_Sample = newSolution.m_Sample;
 
     problem.UpdateOptParams(problem.m_CurrentSolution.m_dOptParams.head(OPT_DIM));
     problem.m_pBoundarySovler->Solve(&problem.m_BoundaryProblem);
 
-//    if(problem.m_pCurrentMotionSample == NULL) {
-//        assert(false);
-//    }
     problem.m_eError = eSuccess;
     return true;
 }
-
-

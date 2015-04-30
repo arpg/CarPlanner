@@ -203,7 +203,6 @@ public:
                                       , const bool &bBestSolution = false);
     /// Samples the acceleration and curvature of the current control law
     void SampleAcceleration(std::vector<ControlCommand>& vCommands, LocalProblem &problem) const;
-    void StressTest(LocalProblem &problem);
     void CalculateTorqueCoefficients(LocalProblem &problem, MotionSample *pSample);
     /// Calculates the error for the current trajectory. The error is parametrized as [x,y,t,v]
     Eigen::VectorXd _CalculateSampleError(LocalProblem& problem, double& dMinTrajTime) const { return _CalculateSampleError(problem.m_CurrentSolution.m_Sample,problem,dMinTrajTime); }
