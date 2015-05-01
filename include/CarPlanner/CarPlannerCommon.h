@@ -35,10 +35,32 @@
 #endif
 
 //#define CAR_HEIGHT_OFFSET 0.06
+#define VICON_CAR_HEIGHT_OFFSET 0.02
 
 template <typename T> int sgn(T val) {
   return (T(0) < val) - (val < T(0));
 }
+
+
+enum MochaCommands{
+  eMochaPause = 1,
+  eMochaSolve = 2,
+  eMochaRestart = 3,
+  eMochaStep = 4,
+  eMochaLearn = 5,
+  eMochaToggleTrajectory = 6,
+  eMochaTogglePlans = 7,
+  eMochaLoad = 8,
+  eMochaClear = 9,
+  eMochaFixGround = 10,
+  eMochaPpmControl = 11,
+  eMochaSimulationControl = 12,
+
+  eMochaLeft = 90,
+  eMochaRight = 91,
+  eMochaUp = 92,
+  eMochaDown = 93
+};
 
 enum OptimizationTask {
   eGaussNewton = 0,
