@@ -45,7 +45,7 @@ void CarController::Init(std::vector<MotionSample>& segmentSamples,LocalPlanner 
 void CarController::Reset()
 {
     {
-        std::unique_lock<std::mutex>(m_PlanMutex);
+        std::lock_guard<std::mutex>(m_PlanMutex);
         while(m_lControlPlans.begin() != m_lControlPlans.end()) {
             //delete this plan
             delete(m_lControlPlans.front());
@@ -198,7 +198,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
 
         //only continue planning if the pose has been updated since the last plan
         {
-            std::unique_lock<std::mutex> lock(m_PoseMutex, std::try_to_lock);
+            std::lock_guard<std::mutex> lock(m_PoseMutex);
             if(m_bPoseUpdated == false) {
                 //dout("Pose not updated, exiting control.");
                 return false;
@@ -211,7 +211,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
         pPlan = new ControlPlan();
 
         {
-            std::unique_lock<std::mutex> lock(m_PlanMutex, std::try_to_lock);
+            std::lock_guard<std::mutex> lock(m_PlanMutex);
 
             //first find out where we are on the current plan
             _GetCurrentPlanIndex(dPlanStartTime,nCurrentPlanIndex,nCurrentSampleIndex,interpolationAmount);
@@ -240,7 +240,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
 
         VehicleState currentState;
         {
-            std::unique_lock<std::mutex> lock(m_PoseMutex, std::try_to_lock);
+            std::lock_guard<std::mutex> lock(m_PoseMutex);
             currentState = m_CurrentState;
         }
 
@@ -392,7 +392,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
 
 
         {
-            std::unique_lock<std::mutex> lock(m_PlanMutex, std::try_to_lock);
+            std::lock_guard<std::mutex> lock(m_PlanMutex);
             pPlan->m_nPlanId = rand() % 10000;
             //dout("Created control plan id:" << pPlan->m_nPlanId << " with starting torques: " << planStartTorques.transpose() << "with norm " << m_pPlanner->GetCurrentNorm());
             m_lControlPlans.push_back(pPlan);
@@ -419,14 +419,14 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
 
 VehicleState CarController::GetCurrentPose() {
     VehicleState poseOut;
-    std::unique_lock<std::mutex> lock(m_PoseMutex, std::try_to_lock);
+    std::lock_guard<std::mutex> lock(m_PoseMutex);
     poseOut = m_CurrentState;
     return poseOut;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CarController::SetCurrentPoseFromCarModel(BulletCarModel* pModel, int nWorldId) {
-    std::unique_lock<std::mutex> lock(m_PoseMutex, std::try_to_lock);
+    std::lock_guard<std::mutex> lock(m_PoseMutex);
     //Sophus::SE3d oldTwv = m_CurrentState.m_dTwv;
     pModel->GetVehicleState(0,m_CurrentState);
     //remove the car offset from the car state
@@ -437,7 +437,7 @@ void CarController::SetCurrentPoseFromCarModel(BulletCarModel* pModel, int nWorl
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CarController::SetCurrentPose(VehicleState pose, CommandList* pCommandList /*= NULL*/) {
-    std::unique_lock<std::mutex> lock(m_PoseMutex, std::try_to_lock);
+    std::lock_guard<std::mutex> lock(m_PoseMutex);
 
     if( std::isfinite(pose.m_dV[0]) == false ){
         assert(false);
@@ -455,7 +455,7 @@ void CarController::SetCurrentPose(VehicleState pose, CommandList* pCommandList 
 /////////////////////////////////////////////////////////////////////////////////////////
 double CarController::GetLastPlanStartTime()
 {
-    std::unique_lock<std::mutex> lock(m_PlanMutex, std::try_to_lock);
+    std::lock_guard<std::mutex> lock(m_PlanMutex);
     if(m_lControlPlans.empty() == false){
         return m_lControlPlans.back()->m_dStartTime;
     }else{
@@ -479,7 +479,7 @@ void CarController::GetCurrentCommands(const double time,
                                        Eigen::Vector3d& targetVel,
                                        Sophus::SE3d& dT_target)
 {
-    std::unique_lock<std::mutex> lock(m_PlanMutex, std::try_to_lock);
+    std::lock_guard<std::mutex> lock(m_PlanMutex);
     int nCurrentSampleIndex;
     PlanPtrList::iterator nCurrentPlanIndex;
     double interpolationAmount;
