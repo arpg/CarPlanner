@@ -1,7 +1,6 @@
 #ifndef _CAR_CONTROLLER_H_
 #define _CAR_CONTROLLER_H_
 
-
 #include "CarPlannerCommon.h"
 #include "CVarHelpers.h"
 #include "LocalPlanner.h"

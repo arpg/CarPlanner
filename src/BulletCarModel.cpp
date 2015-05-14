@@ -149,7 +149,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 {
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
     //lock the world to prevent changes
-    std::lock_guard<std::mutex> lock(*pWorld);
+    std::unique_lock<std::mutex> lock(*pWorld);
     pWorld->m_lPreviousCommands.push_front(delayedCommands);
     //add to the total command time
     pWorld->m_dTotalCommandTime += delayedCommands.m_dT;
@@ -200,7 +200,7 @@ void BulletCarModel::_GetDelayedControl(int worldId, double timeDelay, ControlCo
 
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
     //lock the world to prevent changes
-    std::lock_guard<std::mutex> lock(*pWorld);
+    std::unique_lock<std::mutex> lock(*pWorld);
     CommandList& previousCommands = pWorld->m_lPreviousCommands;
     //if there is control delay, get commands from a previous time
     double currentDelay = 0;
@@ -291,7 +291,7 @@ void BulletCarModel::UpdateParameters(const std::vector<RegressionParameter>& vN
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::UpdateParameters(const std::vector<RegressionParameter>& vNewParams,BulletWorldInstance* pWorld)
 {
-    std::lock_guard<std::mutex> lock(*pWorld);
+    std::unique_lock<std::mutex> lock(*pWorld);
     //update the parameter map and learning parameter list with the new params
     for(size_t ii = 0; ii < vNewParams.size() ; ii++) {
         //pWorld->m_vLearningParameters[ii].m_dVal = vNewParams[ii].m_dVal;
@@ -482,7 +482,7 @@ void BulletCarModel::UpdateState(  const int& worldId,
 
     //do this in a critical section
     {
-        std::lock_guard<std::mutex> lock(*pWorld);
+        std::unique_lock<std::mutex> lock(*pWorld);
         //get chassis data from bullet
         Eigen::Matrix4d Twv;
         pWorld->m_pVehicle->getChassisWorldTransform().getOpenGLMatrix(Twv.data());
@@ -549,7 +549,7 @@ Eigen::Vector3d BulletCarModel::GetVehicleInertiaTensor(int worldId)
 void BulletCarModel::GetVehicleState(int worldId,VehicleState& stateOut)
 {
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
-    std::lock_guard<std::mutex> lock(*pWorld);
+    std::unique_lock<std::mutex> lock(*pWorld);
     stateOut = pWorld->m_state;
     stateOut.m_dTwv.translation() += GetBasisVector(stateOut.m_dTwv,2)*
                                    (pWorld->m_Parameters[CarParameters::SuspRestLength] +
@@ -571,7 +571,7 @@ void BulletCarModel::SetStateNoReset( BulletWorldInstance *pWorld , const Sophus
 void BulletCarModel::SetState( int nWorldId,  const VehicleState& state )
 {
     BulletWorldInstance *pWorld = GetWorldInstance(nWorldId);
-    std::lock_guard<std::mutex> lock(*pWorld);
+    std::unique_lock<std::mutex> lock(*pWorld);
     //load the backup onto the vehicle
     pWorld->m_vehicleBackup.LoadState(pWorld->m_pVehicle);
 
@@ -757,7 +757,7 @@ std::vector<Sophus::SE3d> BulletCarModel::GetWheelTransforms(const int worldInde
 void BulletCarModel::ResetCommandHistory(int worldId)
 {
     BulletWorldInstance *pWorld = GetWorldInstance(worldId);
-    std::lock_guard<std::mutex>lock(*pWorld);
+    std::unique_lock<std::mutex>lock(*pWorld);
     pWorld->m_lPreviousCommands.clear();
     pWorld->m_dTotalCommandTime = 0;
 }
@@ -766,7 +766,7 @@ void BulletCarModel::ResetCommandHistory(int worldId)
 void BulletCarModel::GetCommandHistory(int worldId,CommandList &previousCommandsOut)
 {
     BulletWorldInstance *pWorld = GetWorldInstance(worldId);
-    std::lock_guard<std::mutex> lock(*pWorld);
+    std::unique_lock<std::mutex> lock(*pWorld);
     previousCommandsOut = pWorld->m_lPreviousCommands;
 }
 
@@ -781,7 +781,7 @@ CommandList&        BulletCarModel::GetCommandHistoryRef(int worldId)
 void BulletCarModel::SetCommandHistory(const int& worldId, const CommandList &previousCommands)
 {
     BulletWorldInstance *pWorld = GetWorldInstance(worldId);
-    std::lock_guard<std::mutex> lock(*pWorld);
+    std::unique_lock<std::mutex> lock(*pWorld);
     //find out the total time of the commands
     pWorld->m_dTotalCommandTime = 0;
     for(const ControlCommand& command : previousCommands ){
