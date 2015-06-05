@@ -1,6 +1,5 @@
 #include "CarPlanner/CarPlannerCommon.h"
 #include "CarPlanner/BulletCarModel.h"
-#include "CVars/CVar.h"
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
