@@ -8,7 +8,7 @@ static double& g_dSuccessNorm = CVarUtils::CreateGetUnsavedCVar("debug.SuccessNo
 static double& g_dTimeTarget = CVarUtils::CreateGetUnsavedCVar("debug.TimeTarget",0.00);
 static bool& g_bDisableDamping = CVarUtils::CreateGetUnsavedCVar("debug.DisableDamping",false);
 static bool& g_bMonotonicCost(CVarUtils::CreateGetUnsavedCVar("debug.MonotonicCost", true,""));
-static bool& g_bVerbose(CVarUtils::CreateGetUnsavedCVar("debug.Verbose", false,""));
+static bool& g_bVerbose(CVarUtils::CreateGetUnsavedCVar("debug.Verbose", true,""));
 static bool& g_bTrajectoryCost(CVarUtils::CreateGetUnsavedCVar("debug.TrajectoryCost", true,""));
 static int& g_nTrajectoryCostSegments(CVarUtils::CreateGetUnsavedCVar("debug.TrajectoryCostSegments", 10,""));
 
@@ -328,9 +328,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
                                       Eigen::MatrixXd& J)
 {
     Eigen::IOFormat CleanFmt(8, 0, ", ", "\n", "[", "]");
-    Eigen::VectorXd errors[OPT_DIM*2],dCurrentError; //debug
-    Eigen::VectorXd errors5 = Eigen::VectorXd::Random(5,1); //debug
-    errors[OPT_DIM*2] = errors5;
+    Eigen::VectorXd errors[OPT_DIM*2], dCurrentError;
     std::vector<std::shared_ptr<LocalProblem > > vCubicProblems;
     std::vector<std::shared_ptr<ApplyCommandsThreadFunctor > > vFunctors;
     vCubicProblems.resize(OPT_DIM*2);
@@ -385,7 +383,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
 
 
     //wait for all simulations to finish
-    while(m_ThreadPool.busy_threads() > (m_ThreadPool.num_threads())){
+    while(m_ThreadPool.busy_threads() > 0) {
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
@@ -842,12 +840,12 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
     //create an appropriate weighting matrix
     Eigen::MatrixXd dW = dWvec.asDiagonal();
 
-    //double dMinLookahead;
-    Eigen::VectorXd error;// = _CalculateSampleError(problem,dMinLookahead);
+    // error, dMinLookahead initially undefined.
+    double dMinLookahead;
+    Eigen::VectorXd error = _CalculateSampleError(problem,dMinLookahead);
 
     LocalProblemSolution coordinateDescent;
 
-    std::cout << J << std::endl; //debug
     if(_CalculateJacobian(problem,error,coordinateDescent,J) == false){
         return false;
     }
@@ -940,7 +938,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
             m_ThreadPool.enqueue(*vFunctors[ii]);
             damping/= DAMPING_DIVISOR;
         }
-        while(m_ThreadPool.busy_threads() > (m_ThreadPool.num_threads())){
+        while(m_ThreadPool.busy_threads() > 0){
           std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
