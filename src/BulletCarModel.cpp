@@ -148,7 +148,8 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 {
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
     //lock the world to prevent changes
-    std::unique_lock<std::mutex> lock(*pWorld);
+    //while (cv.wait_for(lck,std::chrono::seconds(1))==std::cv_status::timeout) //crh attempt to lock
+    std::unique_lock<std::mutex> lock(*pWorld);//, std::try_to_lock);
     pWorld->m_lPreviousCommands.push_front(delayedCommands);
     //add to the total command time
     pWorld->m_dTotalCommandTime += delayedCommands.m_dT;
@@ -471,6 +472,7 @@ void BulletCarModel::UpdateState(  const int& worldId,
 
     if (pWorld->m_pDynamicsWorld && bNoUpdate==false)
     {
+      std::unique_lock<std::mutex> lock(*pWorld);// std::try_to_lock);
         Eigen::Vector3d T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
         btVector3 bTorques(T_w[0],T_w[1], T_w[2]);
         pWorld->m_pVehicle->getRigidBody()->applyTorque(bTorques);
@@ -481,7 +483,7 @@ void BulletCarModel::UpdateState(  const int& worldId,
 
     //do this in a critical section
     {
-        std::unique_lock<std::mutex> lock(*pWorld);
+        std::unique_lock<std::mutex> lock(*pWorld);//, std::try_to_lock);
         //get chassis data from bullet
         Eigen::Matrix4d Twv;
         pWorld->m_pVehicle->getChassisWorldTransform().getOpenGLMatrix(Twv.data());
@@ -780,12 +782,14 @@ CommandList&        BulletCarModel::GetCommandHistoryRef(int worldId)
 void BulletCarModel::SetCommandHistory(const int& worldId, const CommandList &previousCommands)
 {
     BulletWorldInstance *pWorld = GetWorldInstance(worldId);
-    std::unique_lock<std::mutex> lock(*pWorld);
+    std::unique_lock<std::mutex> lock(*pWorld);//, std::try_to_lock);
     //find out the total time of the commands
     pWorld->m_dTotalCommandTime = 0;
     for(const ControlCommand& command : previousCommands ){
-        pWorld->m_dTotalCommandTime += command.m_dT;
+      pWorld->m_dTotalCommandTime += command.m_dT;
     }
+
+    //std::cout << previousCommands.back().m_dForce << std::endl;
 
     pWorld->m_lPreviousCommands = previousCommands;
 }

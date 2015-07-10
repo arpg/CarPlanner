@@ -190,7 +190,7 @@ double CarRegressor::CalculateParamNorms(ApplyVelocitesFunctor5d simFunctor,
 
         //if we have no more worlds, wait until all worlds have finished
         if(worldCounter >= simFunctor.GetCarModel()->GetWorldCount()) {
-          while(m_ThreadPool.busy_threads() > (m_ThreadPool.num_threads())){
+          while(m_ThreadPool.busy_threads() > 0){
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
           }
             //augment the counter
@@ -219,7 +219,7 @@ double CarRegressor::CalculateParamNorms(ApplyVelocitesFunctor5d simFunctor,
         worldCounter++;
     }
 
-    while(m_ThreadPool.busy_threads() > (m_ThreadPool.num_threads())){
+    while(m_ThreadPool.busy_threads() > 0){
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
@@ -357,8 +357,13 @@ void CarRegressor::ApplyParameters(ApplyVelocitesFunctor5d f,
     //Eigen::Vector6d error6d = T2Cart(vStatesOut.back().m_dTwv.matrix() * TInv(plan.m_vStates[nEndIndex-1].m_dTwv.matrix()));
     errorOut.setZero();
     for(size_t ii = 0 ; ii < vStatesOut.size() ; ii+= 10){
-
-        Eigen::Vector6d error6d = (vStatesOut[ii].m_dTwv * plan.m_vStates[nStartIndex+ii].m_dTwv.inverse()).log();
+      Eigen::Vector6d error6d;
+      try {
+        error6d = (vStatesOut[ii].m_dTwv * plan.m_vStates[nStartIndex+ii].m_dTwv.inverse()).log().matrix();
+      }
+      catch( ... ) {
+        error6d = vStatesOut[ii].m_dTwv.log().matrix();
+      }
         //dout("Error out " << error6d.transpose() << std::endl);
         errorOut.head(6) += error6d;
         errorOut[6] += (vStatesOut[ii].m_dV.norm() - plan.m_vStates[nStartIndex+ii].m_dV.norm());
@@ -426,7 +431,7 @@ void CarRegressor::CalculateJacobian(ApplyVelocitesFunctor5d functor,
         for(size_t ii = 0 ; ii < params.size() ; ii++) {
             //if we have no more worlds, wait until all worlds have finished
             if(worldCounter >= functor.GetCarModel()->GetWorldCount()) {
-              while(m_ThreadPool.busy_threads() > (m_ThreadPool.num_threads())){
+              while(m_ThreadPool.busy_threads() > 0){
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
               }
                 worldCounter  = 0;
@@ -451,7 +456,7 @@ void CarRegressor::CalculateJacobian(ApplyVelocitesFunctor5d functor,
             if(g_bUseCentralDifferences == true){
                 //if we have no more worlds, wait until all worlds have finished
                 if(worldCounter >= functor.GetCarModel()->GetWorldCount()) {
-                  while(m_ThreadPool.busy_threads() > (m_ThreadPool.num_threads())){
+                  while(m_ThreadPool.busy_threads() > 0){
                     std::this_thread::sleep_for(std::chrono::milliseconds(10));
                   }
                   worldCounter  = 0;
@@ -477,7 +482,7 @@ void CarRegressor::CalculateJacobian(ApplyVelocitesFunctor5d functor,
 
         //if we have no more worlds, wait until all worlds have finished
         if(worldCounter >= functor.GetCarModel()->GetWorldCount()) {
-          while(m_ThreadPool.busy_threads() > (m_ThreadPool.num_threads())){
+          while(m_ThreadPool.busy_threads() > 0){
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
           }
           worldCounter  = 0;
@@ -498,7 +503,7 @@ void CarRegressor::CalculateJacobian(ApplyVelocitesFunctor5d functor,
         vFunctors.push_back(functorBase);
 
         //wait for all threads to finish
-        while(m_ThreadPool.busy_threads() > (m_ThreadPool.num_threads())){
+        while(m_ThreadPool.busy_threads() > 0){
           std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 

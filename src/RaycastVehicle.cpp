@@ -749,7 +749,11 @@ void	RaycastVehicle::updateFriction(btScalar	timeStep)
                 m_chassisBody->applyImpulse(m_forwardWS[wheel]*(m_forwardImpulse[wheel]),rel_pos);
             }
             if (m_sideImpulse[wheel] != btScalar(0.) ){
-                class btRigidBody* groundObject = (class btRigidBody*) m_wheelInfo[wheel].m_raycastInfo.m_groundObject;
+//                class btRigidBody* groundObject = (class btRigidBody*) m_wheelInfo[wheel].m_raycastInfo.m_groundObject;
+              btRigidBody* groundObject = (btRigidBody*) m_wheelInfo[wheel].m_raycastInfo.m_groundObject;
+
+
+                //std::cout << "Ground object pointer is: " << groundObject->getCenterOfMassPosition() << std::endl; //debug to ensure groundObject is referrable
 
                 btVector3 rel_pos2 = wheelInfo.m_raycastInfo.m_contactPointWS -
                     groundObject->getCenterOfMassPosition();

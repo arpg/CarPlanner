@@ -47,7 +47,7 @@
 #define VEHICLE_WHEEL_RADIUS 0.04
 #define VEHICLE_WHEEL_WIDTH 0.025
 #define MIN_CONTROL_DELAY 0.0
-#define MAX_CONTROL_DELAY 0.3
+#define MAX_CONTROL_DELAY 0.1
 
 
 /// Structure to hold the steering, acceleration and reaction wheel caommands that are sent to the vehicle
