@@ -2,7 +2,7 @@
 #define _CAR_CONTROLLER_H_
 
 #include "CarPlannerCommon.h"
-#include "CVarHelpers.h"
+#include "VarHelpers.h"
 #include "LocalPlanner.h"
 
 
@@ -59,8 +59,8 @@ private:
     bool m_bPoseUpdated;
     bool m_bFirstPose;
 
-    float& m_dMaxControlPlanTime;
-    float& m_dLookaheadTime; 
+    float m_dMaxControlPlanTime;
+    float m_dLookaheadTime;
 
     std::thread* m_pControlPlannerThread;
 

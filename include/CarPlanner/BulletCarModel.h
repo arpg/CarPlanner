@@ -10,6 +10,7 @@
 #define	BULLETCARMODEL_H
 
 #include <thread>
+#include <list>
 
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"

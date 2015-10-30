@@ -1,8 +1,8 @@
 #include "CarPlanner/ApplyVelocitiesFunctor.h"
 #include "CarPlanner/LocalPlanner.h"
-#include "Eigen/StdVector"
+#include <Eigen/StdVector>
 
-static bool& g_bSkidCompensationActive(CVarUtils::CreateCVar("debug.SkidCompensationActive", false, ""));
+static bool g_bSkidCompensationActive = false;
 
 ////////////////////////////////////////////////////////////////
 ApplyVelocitesFunctor5d::ApplyVelocitesFunctor5d(BulletCarModel *pCarModel, Eigen::Vector3d dInitTorques, CommandList *pPreviousCommands /* = NULL */) :
@@ -10,7 +10,7 @@ ApplyVelocitesFunctor5d::ApplyVelocitesFunctor5d(BulletCarModel *pCarModel, Eige
         m_dInitTorques(dInitTorques),
         m_bNoDelay(false)
 {
-
+  pangolin::Var<bool>::Attach("debug.SkidCompensationActive", g_bSkidCompensationActive);
   if(pPreviousCommands != NULL) {
     m_lPreviousCommands = *pPreviousCommands;
   }
@@ -64,7 +64,9 @@ void ApplyVelocitesFunctor5d::ApplyVelocities(const VehicleState& startingState,
   //clear all the previous commands but chose between the member list or the one passed to the function
   /// Running the next command sometimes leads to a race condition.
   /// Using debug mode and stepping through solves the problem.
+  // Try reformulating such that worldId isnt handed off, but rather the entire world is; lock the world.
   m_pCarModel->SetCommandHistory(nIndex, pPreviousCommands == NULL ? m_lPreviousCommands : *pPreviousCommands);
+
   //m_pCarModel->ResetCommandHistory(nIndex);
 
   vStatesOut.resize(nEndIndex-nStartIndex);

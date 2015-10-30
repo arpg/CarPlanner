@@ -779,17 +779,23 @@ CommandList&        BulletCarModel::GetCommandHistoryRef(int worldId)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::SetCommandHistory(const int& worldId, const CommandList &previousCommands)
+void BulletCarModel::SetCommandHistory( const int &worldId,
+    const CommandList &previousCommands)
+
 {
-    BulletWorldInstance *pWorld = GetWorldInstance(worldId);
-    std::unique_lock<std::mutex> lock(*pWorld);//, std::try_to_lock);
+    BulletWorldInstance* pWorld = GetWorldInstance(worldId);
+    std::unique_lock<std::mutex> lock(*pWorld);
     //find out the total time of the commands
     pWorld->m_dTotalCommandTime = 0;
+
+    //std::cout << previousCommands.back().m_dForce << std::endl; //crh debug race condition
     for(const ControlCommand& command : previousCommands ){
       pWorld->m_dTotalCommandTime += command.m_dT;
     }
 
-    //std::cout << previousCommands.back().m_dForce << std::endl;
+    // heisenbug follows: in debug, stepping through the next command
+    // makes it no longer an issue. or, we can use std::cout to block the
+    // calls and fix the problem.
 
     pWorld->m_lPreviousCommands = previousCommands;
 }

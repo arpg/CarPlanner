@@ -1,16 +1,16 @@
-#include "CarPlanner/CVarHelpers.h"
-#include "CarPlanner/LocalPlanner.h"
+#include "VarHelpers.h"
+#include <CarPlanner/LocalPlanner.h>
 
 using namespace CarPlanner;
 
-static bool& g_bUseCentralDifferences = CVarUtils::CreateGetUnsavedCVar("debug.UseCentralDifferences",true);
-static double& g_dSuccessNorm = CVarUtils::CreateGetUnsavedCVar("debug.SuccessNorm",0.01);
-static double& g_dTimeTarget = CVarUtils::CreateGetUnsavedCVar("debug.TimeTarget",0.00);
-static bool& g_bDisableDamping = CVarUtils::CreateGetUnsavedCVar("debug.DisableDamping",false);
-static bool& g_bMonotonicCost(CVarUtils::CreateGetUnsavedCVar("debug.MonotonicCost", true,""));
-static bool& g_bVerbose(CVarUtils::CreateGetUnsavedCVar("debug.Verbose", true,""));
-static bool& g_bTrajectoryCost(CVarUtils::CreateGetUnsavedCVar("debug.TrajectoryCost", true,""));
-static int& g_nTrajectoryCostSegments(CVarUtils::CreateGetUnsavedCVar("debug.TrajectoryCostSegments", 10,""));
+static bool g_bUseCentralDifferences = true;
+static double g_dSuccessNorm = 0.01;
+static double g_dTimeTarget = 0.00;
+static bool g_bDisableDamping = false;
+static bool g_bMonotonicCost = true;
+static bool g_bVerbose = true;
+static bool g_bTrajectoryCost = true;
+static int g_nTrajectoryCostSegments = 10;
 
 struct ApplyCommandsThreadFunctor {
     ApplyCommandsThreadFunctor(LocalPlanner *pPlanner,
@@ -74,11 +74,22 @@ inline Eigen::VectorXd GetPointLineError(const Eigen::Vector6d& line1,const Eige
 
 LocalPlanner::LocalPlanner() :
     m_ThreadPool(PLANNER_NUM_THREADS),
-    m_dEps(CVarUtils::CreateUnsavedCVar("planner.Epsilon", 1e-6, "Epsilon value used in finite differences.")),
-    m_dPointWeight(CVarUtils::CreateUnsavedCVar("planner.PointCostWeights",Eigen::MatrixXd(1,1))),
-    m_dTrajWeight(CVarUtils::CreateUnsavedCVar("planner.TrajCostWeights",Eigen::MatrixXd(1,1))),
+    m_dEps(1e-6),
+    m_dPointWeight(Eigen::MatrixXd(1,1)),
+    m_dTrajWeight(Eigen::MatrixXd(1,1)),
     m_nPlanCounter(0)
 {
+  pangolin::Var<double>::Attach("planner.Epsilon",m_dEps);	// Epsilon value used in finite differences.
+  pangolin::Var<Eigen::MatrixXd>::Attach("planner.PointCostWeights",m_dPointWeight);
+  pangolin::Var<Eigen::MatrixXd>::Attach("planner.TrajCostWeights",m_dTrajWeight);
+  pangolin::Var<bool>::Attach("debug.UseCentralDifferences",g_bUseCentralDifferences);
+  pangolin::Var<double>::Attach("debug.SuccessNorm",g_dSuccessNorm);
+  pangolin::Var<double>::Attach("debug.TimeTarget",g_dTimeTarget);
+  pangolin::Var<bool>::Attach("debug.DisableDamping",g_bDisableDamping);
+  pangolin::Var<bool>::Attach("debug.MonotonicCost", g_bMonotonicCost);
+  pangolin::Var<bool>::Attach("debug.Verbose", g_bVerbose);
+  pangolin::Var<bool>::Attach("debug.TrajectoryCost", g_bTrajectoryCost);
+  pangolin::Var<int>::Attach("debug.TrajectoryCostSegments", g_nTrajectoryCostSegments);
 
     //weight matrix
     m_dPointWeight = Eigen::MatrixXd(POINT_COST_ERROR_TERMS,1);
@@ -334,6 +345,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
     vCubicProblems.resize(OPT_DIM*2);
     vFunctors.resize(OPT_DIM*2);
     Eigen::Vector6d pPoses[OPT_DIM*2],dCurrentPose;
+    std::cout << "Running _CalculateJacobians --- ACTF keeps being killed." << std::endl; //crh debug race condition
 
     const double dEps = m_dEps;// * problem.m_CurrentSolution.m_dNorm;
 
@@ -610,7 +622,8 @@ bool LocalPlanner::InitializeLocalProblem(LocalProblem& problem,
 
     //now rotate both waypoints into this intermediate frame
     Sophus::SE3d dRotation(Sophus::SO3d(dMidQuat.toRotationMatrix().transpose()),Eigen::Vector3d::Zero()); //we want the inverse rotation here
-    static bool& bFlatten2Dcurves = CVarUtils::CreateGetCVar("debug.flatten2Dcurves",false,"");
+    static bool bFlatten2Dcurves = false;
+    pangolin::Var<bool>::Attach("debug.flatten2Dcurves",bFlatten2Dcurves);
     if(bFlatten2Dcurves){
         dRotation.so3() = Sophus::SO3d();
     }
@@ -868,7 +881,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
     //solve for the dDeltaP
     dDeltaP = J.transpose()*dW*error;
     Eigen::MatrixXd JtJ = J.transpose()*dW*J;
-    //Do thikonov reguralization if there is a null column
+    //Do thikonov regularization if there is a null column
     if(bZeroCols) {
         JtJ += Eigen::Matrix<double,OPT_DIM,OPT_DIM>::Identity();
     }

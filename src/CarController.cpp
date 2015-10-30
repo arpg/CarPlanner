@@ -1,30 +1,33 @@
+#include <iostream>
+#include <pangolin/pangolin.h>
 #include "CarPlanner/CarController.h"
 
 
-static bool& g_bShow2DResult = CVarUtils::CreateGetUnsavedCVar("debug.Show2DResult",false);
-static bool& g_bOptimize2DOnly = CVarUtils::CreateGetUnsavedCVar("debug.Optimize2DOnly",false);
-static bool& g_bForceZeroStartingCurvature = CVarUtils::CreateGetUnsavedCVar("debug.ForceZeroStartingCurvature",false);
-static double& g_dMinLookaheadTime(CVarUtils::CreateGetUnsavedCVar("debug.MinLookaheadTime",(double)0.05,""));
-static double& g_dMaxLookaheadTime(CVarUtils::CreateGetUnsavedCVar("debug.MaxLookaheadTime",(double)2.0,""));
-static double& g_dInitialLookaheadTime(CVarUtils::CreateGetUnsavedCVar("debug.InitialLookaheadTime",(double)0.5,""));
-static double& g_dMaxPlanTimeLimit(CVarUtils::CreateGetUnsavedCVar("debug.MaxPlanTimeLimit",(double)1.0,""));
-static double& g_dLookaheadEmaWeight(CVarUtils::CreateGetUnsavedCVar("debug.LookaheadEmaWeight",1.0,""));
-static bool& g_bFreezeControl(CVarUtils::CreateGetUnsavedCVar("debug.FreezeControl",false,""));
-static bool& g_bPointCost(CVarUtils::CreateGetUnsavedCVar("debug.PointCost",false,""));
-static bool& g_bInertialControl = CVarUtils::CreateGetUnsavedCVar("debug.InertialControl",false);
-static bool& g_bInfiniteTime = CVarUtils::CreateGetUnsavedCVar("debug.InfiniteTime",false);
-static bool& g_bFrontFlip = CVarUtils::CreateGetUnsavedCVar("debug.FrontFlip",false);
-static double& g_dMaxPlanNorm = CVarUtils::CreateGetUnsavedCVar("debug.MaxPlanNorm",5.0);
-
+static bool g_bShow2DResult = false;
+static bool g_bOptimize2DOnly = false;
+static bool g_bForceZeroStartingCurvature = false;
+static double g_dMinLookaheadTime = (double)0.05;
+static double g_dMaxLookaheadTime = (double)2.0;
+static double g_dInitialLookaheadTime = (double)0.5;
+static double g_dMaxPlanTimeLimit = (double)1.0;
+static double g_dLookaheadEmaWeight = 1.0;
+static bool g_bFreezeControl = false;
+static bool g_bPointCost = false;
+static bool g_bInertialControl = false;
+static bool g_bInfiniteTime = false;
+static bool g_bFrontFlip = false;
+static double g_dMaxPlanNorm = 5.0;
 
 /////////////////////////////////////////////////////////////////////////////////////////
 CarController::CarController() :
-    m_dMaxControlPlanTime(CVarUtils::CreateGetCVar("controller.MaxControlPlanTime",(float)0.2,"")),
-    m_dLookaheadTime(CVarUtils::CreateUnsavedCVar("controller.LookaheadTime",(float)0.2,"")),
+    m_dMaxControlPlanTime((float)0.2),
+    m_dLookaheadTime((float)0.2),
     m_pControlPlannerThread(NULL)
 {
-    m_dLastDelta.setZero();
-    //m_vControlPlans.reserve(10);
+  pangolin::Var<float>::Attach("controller.MaxControlPlanTime",m_dMaxControlPlanTime);
+  pangolin::Var<float>::Attach("controller.LookaheadTime",m_dLookaheadTime);
+  m_dLastDelta.setZero();
+  //m_vControlPlans.reserve(10);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -38,6 +41,21 @@ void CarController::Init(std::vector<MotionSample>& segmentSamples,LocalPlanner 
     //m_pCurrentPlan = NULL;
     m_dt = dt;
     m_bPoseUpdated = false;
+    pangolin::Var<bool>::Attach("debug.Show2DResult", g_bShow2DResult);
+    pangolin::Var<bool>::Attach("debug.Optimize2DOnly", g_bOptimize2DOnly);
+    pangolin::Var<bool>::Attach("debug.ForceZeroStartingCurvature", g_bForceZeroStartingCurvature);
+    pangolin::Var<double>::Attach("debug.MinLookaheadTime", g_dMinLookaheadTime);
+    pangolin::Var<double>::Attach("debug.MaxLookaheadTime", g_dMaxLookaheadTime);
+    pangolin::Var<double>::Attach("debug.InitialLookaheadTime", g_dInitialLookaheadTime);
+    pangolin::Var<double>::Attach("debug.MaxPlanTimeLimit",g_dMaxPlanTimeLimit);
+    pangolin::Var<double>::Attach("debug.LookaheadEmaWeight",g_dLookaheadEmaWeight);
+    pangolin::Var<bool>::Attach("debug.FreezeControl",g_bFreezeControl);
+    pangolin::Var<bool>::Attach("debug.PointCost",g_bPointCost);
+    pangolin::Var<bool>::Attach("debug.InertialControl",g_bInertialControl);
+    pangolin::Var<bool>::Attach("debug.InfiniteTime",g_bInfiniteTime);
+    pangolin::Var<bool>::Attach("debug.FrontFlip",g_bFrontFlip);
+    pangolin::Var<double>::Attach("debug.MaxPlanNorm",g_dMaxPlanNorm);
+
 }
 
 

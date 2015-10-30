@@ -1,8 +1,8 @@
 #include "CarPlanner/CarRegressor.h"
 
-static bool& g_bUseCentralDifferences = CVarUtils::CreateGetCVar("debug.UseCentralDifferences",true);
-static bool& g_bCurvatureDependentSegmentation = CVarUtils::CreateGetCVar("learning.CurvatureDependentSegmentation",false);
-static int& g_nSegmentLength = CVarUtils::CreateGetCVar("learning.SegmentLength",80);
+static bool g_bUseCentralDifferences = false;
+static bool g_bCurvatureDependentSegmentation = false;
+static int g_nSegmentLength = 80;
 
 struct ApplyParametersThreadFunctor {
     ApplyParametersThreadFunctor(CarRegressor* pRegressor,
@@ -50,12 +50,16 @@ struct ApplyParametersThreadFunctor {
 };
 
 ///////////////////////////////////////////////////////////////////////
-CarRegressor::CarRegressor() : m_ThreadPool(REGRESSOR_NUM_THREADS)
+CarRegressor::CarRegressor() :
+  m_ThreadPool(REGRESSOR_NUM_THREADS)
 {
+
+    pangolin::Var<bool>::Attach("debug.UseCentralDifferences",g_bUseCentralDifferences);
+    pangolin::Var<bool>::Attach("learning.CurvatureDependentSegmentation",g_bCurvatureDependentSegmentation);
+    pangolin::Var<int>::Attach("learning.SegmentLength",g_nSegmentLength);
 
     m_dCurrentNorm = NORM_NOT_INITIALIZED;
     m_bFailed = false;
-    g_bUseCentralDifferences = false;
 
     //initialize the weight matrix
     m_dW = Eigen::MatrixXd::Identity(7,7);

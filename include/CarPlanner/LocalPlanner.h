@@ -232,13 +232,13 @@ private:
 
     ThreadPool m_ThreadPool;
 
-    double& m_dEps;                                              //< The epsilon used in the calculation of the finite difference jacobian
+    double m_dEps;                                              //< The epsilon used in the calculation of the finite difference jacobian
 
 
     BezierBoundarySolver m_BoundarySolver;                      //< The boundary value problem solver
 
-    Eigen::MatrixXd& m_dPointWeight;                                       //< The matrix which holds the weighted Gauss-Newton weights
-    Eigen::MatrixXd& m_dTrajWeight;
+    Eigen::MatrixXd m_dPointWeight;                                       //< The matrix which holds the weighted Gauss-Newton weights
+    Eigen::MatrixXd m_dTrajWeight;
     int m_nPlanCounter;
 };
 

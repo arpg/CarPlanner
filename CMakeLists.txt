@@ -65,6 +65,7 @@ set( SRCS
         src/MochaException.cpp
         src/CarController.cpp
         src/DirectBoundarySolver.cpp
+        src/VarHelpers.h
    )
 
 set( HDRS
@@ -78,7 +79,6 @@ set( HDRS
         include/CarPlanner/GLDebugDrawer.h
         include/CarPlanner/CarParameters.h
         include/CarPlanner/DirectBoundarySolver.h
-        include/CarPlanner/CVarHelpers.h
         include/CarPlanner/RaycastVehicle.h
         include/CarPlanner/ThreadPool.h
    )
