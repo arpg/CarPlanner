@@ -1,5 +1,6 @@
-#include "VarHelpers.h"
 #include <CarPlanner/LocalPlanner.h>
+
+#include "RpgUtils.h"
 
 using namespace CarPlanner;
 
@@ -73,12 +74,15 @@ inline Eigen::VectorXd GetPointLineError(const Eigen::Vector6d& line1,const Eige
 }
 
 LocalPlanner::LocalPlanner() :
-    m_ThreadPool(PLANNER_NUM_THREADS),
-    m_dEps(1e-6),
-    m_dPointWeight(Eigen::MatrixXd(1,1)),
-    m_dTrajWeight(Eigen::MatrixXd(1,1)),
-    m_nPlanCounter(0)
+  m_ThreadPool(PLANNER_NUM_THREADS),
+  m_dEps(1e-6),
+  m_dPointWeight(Eigen::MatrixXd(1,1)),
+  m_dTrajWeight(Eigen::MatrixXd(1,1)),
+  m_nPlanCounter(0)
 {
+
+    // TODO(crh):  attach these later in the GUI.
+/*
   pangolin::Var<double>::Attach("planner.Epsilon",m_dEps);	// Epsilon value used in finite differences.
   pangolin::Var<Eigen::MatrixXd>::Attach("planner.PointCostWeights",m_dPointWeight);
   pangolin::Var<Eigen::MatrixXd>::Attach("planner.TrajCostWeights",m_dTrajWeight);
@@ -90,6 +94,9 @@ LocalPlanner::LocalPlanner() :
   pangolin::Var<bool>::Attach("debug.Verbose", g_bVerbose);
   pangolin::Var<bool>::Attach("debug.TrajectoryCost", g_bTrajectoryCost);
   pangolin::Var<int>::Attach("debug.TrajectoryCostSegments", g_nTrajectoryCostSegments);
+  */
+
+    ThreadPool m_ThreadPool(PLANNER_NUM_THREADS);
 
     //weight matrix
     m_dPointWeight = Eigen::MatrixXd(POINT_COST_ERROR_TERMS,1);
@@ -623,7 +630,6 @@ bool LocalPlanner::InitializeLocalProblem(LocalProblem& problem,
     //now rotate both waypoints into this intermediate frame
     Sophus::SE3d dRotation(Sophus::SO3d(dMidQuat.toRotationMatrix().transpose()),Eigen::Vector3d::Zero()); //we want the inverse rotation here
     static bool bFlatten2Dcurves = false;
-    pangolin::Var<bool>::Attach("debug.flatten2Dcurves",bFlatten2Dcurves);
     if(bFlatten2Dcurves){
         dRotation.so3() = Sophus::SO3d();
     }

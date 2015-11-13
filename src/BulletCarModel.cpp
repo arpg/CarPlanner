@@ -818,10 +818,6 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
     pWorld->m_pOverlappingPairCache = new btAxisSweep3(dMin,dMax);
     pWorld->m_pConstraintSolver = new btSequentialImpulseConstraintSolver();
     pWorld->m_pDynamicsWorld = new btDiscreteDynamicsWorld(pWorld->m_pDispatcher,pWorld->m_pOverlappingPairCache,pWorld->m_pConstraintSolver,pWorld->m_pCollisionConfiguration);
-    pWorld->m_pDynamicsWorld->setDebugDrawer(&pWorld->m_DebugDrawer);
-    pWorld->m_pDynamicsWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe || btIDebugDraw::DBG_FastWireframe);
-    //pWorld->m_pDynamicsWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawAabb);
-    //pWorld->m_pDynamicsWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_NoDebug);
 
 
     //set the gravity vector

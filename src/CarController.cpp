@@ -1,5 +1,4 @@
 #include <iostream>
-#include <pangolin/pangolin.h>
 #include "CarPlanner/CarController.h"
 
 
@@ -24,8 +23,10 @@ CarController::CarController() :
     m_dLookaheadTime((float)0.2),
     m_pControlPlannerThread(NULL)
 {
-  pangolin::Var<float>::Attach("controller.MaxControlPlanTime",m_dMaxControlPlanTime);
-  pangolin::Var<float>::Attach("controller.LookaheadTime",m_dLookaheadTime);
+
+  // TODO(crh): Pangolin vars to attach.
+  // pangolin::Var<float>::Attach("controller.MaxControlPlanTime",m_dMaxControlPlanTime);
+  // pangolin::Var<float>::Attach("controller.LookaheadTime",m_dLookaheadTime);
   m_dLastDelta.setZero();
   //m_vControlPlans.reserve(10);
 }
@@ -41,6 +42,8 @@ void CarController::Init(std::vector<MotionSample>& segmentSamples,LocalPlanner 
     //m_pCurrentPlan = NULL;
     m_dt = dt;
     m_bPoseUpdated = false;
+    // TODO(crh): Move to MochaGui
+    /*
     pangolin::Var<bool>::Attach("debug.Show2DResult", g_bShow2DResult);
     pangolin::Var<bool>::Attach("debug.Optimize2DOnly", g_bOptimize2DOnly);
     pangolin::Var<bool>::Attach("debug.ForceZeroStartingCurvature", g_bForceZeroStartingCurvature);
@@ -55,7 +58,7 @@ void CarController::Init(std::vector<MotionSample>& segmentSamples,LocalPlanner 
     pangolin::Var<bool>::Attach("debug.InfiniteTime",g_bInfiniteTime);
     pangolin::Var<bool>::Attach("debug.FrontFlip",g_bFrontFlip);
     pangolin::Var<double>::Attach("debug.MaxPlanNorm",g_dMaxPlanNorm);
-
+    */
 }
 
 

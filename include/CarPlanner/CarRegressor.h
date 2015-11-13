@@ -1,9 +1,9 @@
 #ifndef CARREGRESSOR_H
 #define CARREGRESSOR_H
 
-#include "CarPlanner/CarPlannerCommon.h"
-#include "CarPlanner/LocalPlanner.h"
-#include "CarPlanner/ThreadPool.h"
+#include <CarPlanner/CarPlannerCommon.h>
+#include <CarPlanner/LocalPlanner.h>
+#include <CarPlanner/ThreadPool.h>
 
 #define NORM_NOT_INITIALIZED -1
 #define REGRESSOR_NUM_THREADS 8
@@ -54,13 +54,13 @@ private:
                                const std::vector<RegressionParameter>& dParams, std::vector<RegressionParameter>& dParamsOut,
                                double& dNewNorm);
 
-    ThreadPool m_ThreadPool;
     double m_dEpsilon;
     double m_dCurrentNorm;
     OptimizationTask m_eCurrentTask;
     bool m_bFailed;
     int m_nSegmentLength;
     int m_nStartIndex;
+    ThreadPool m_ThreadPool;
     std::fstream* m_pLogFile;
     Eigen::MatrixXd m_dW;
     Eigen::MatrixXd m_dPrior;

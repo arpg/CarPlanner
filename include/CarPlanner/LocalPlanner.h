@@ -3,12 +3,13 @@
 
 #include <sophus/se3.hpp>
 #include <sophus/se2.hpp>
-#include "CarPlanner/CarPlannerCommon.h"
-#include "CarPlanner/ThreadPool.h"
-#include "CarPlanner/BulletCarModel.h"
-#include "CarPlanner/BoundarySolver.h"
-#include "CarPlanner/ApplyVelocitiesFunctor.h"
-#include "CarPlanner/BezierBoundarySolver.h"
+
+#include <CarPlanner/CarPlannerCommon.h>
+#include <CarPlanner/BulletCarModel.h>
+#include <CarPlanner/BoundarySolver.h>
+#include <CarPlanner/ApplyVelocitiesFunctor.h>
+#include <CarPlanner/BezierBoundarySolver.h>
+#include <CarPlanner/ThreadPool.h>
 
 #define XYZ_WEIGHT 2
 #define THETA_WEIGHT 0.5
@@ -230,12 +231,12 @@ private:
     /// Transforms a vehicle state so that it is on the 2D manifold specified by the problem struct
     Eigen::Vector6d _Transform3dGoalPose(const VehicleState& state, const LocalProblem &problem) const;
 
-    ThreadPool m_ThreadPool;
-
     double m_dEps;                                              //< The epsilon used in the calculation of the finite difference jacobian
 
 
     BezierBoundarySolver m_BoundarySolver;                      //< The boundary value problem solver
+
+    ThreadPool m_ThreadPool;
 
     Eigen::MatrixXd m_dPointWeight;                                       //< The matrix which holds the weighted Gauss-Newton weights
     Eigen::MatrixXd m_dTrajWeight;

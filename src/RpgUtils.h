@@ -15,7 +15,7 @@ namespace rpg
     }
 
     ///////////////////////////////////////////////////////////////////////
-    inline Eigen::Matrix3d	TInv( const Eigen::Matrix3d& T )
+    inline Eigen::Matrix3d  TInv( const Eigen::Matrix3d& T )
     {
         Eigen::Matrix3d Tinv;
         Tinv(0, 0) = T(0, 0);
@@ -61,4 +61,3 @@ namespace rpg
 }
 
 #endif
-

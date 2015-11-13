@@ -10,7 +10,8 @@ ApplyVelocitesFunctor5d::ApplyVelocitesFunctor5d(BulletCarModel *pCarModel, Eige
         m_dInitTorques(dInitTorques),
         m_bNoDelay(false)
 {
-  pangolin::Var<bool>::Attach("debug.SkidCompensationActive", g_bSkidCompensationActive);
+  // TODO(crh): Move to MochaGui.
+  // pangolin::Var<bool>::Attach("debug.SkidCompensationActive", g_bSkidCompensationActive);
   if(pPreviousCommands != NULL) {
     m_lPreviousCommands = *pPreviousCommands;
   }

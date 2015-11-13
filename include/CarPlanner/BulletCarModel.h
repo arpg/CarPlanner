@@ -11,19 +11,15 @@
 
 #include <thread>
 #include <list>
-
+#include <sophus/se3.hpp>
+#include <assimp/scene.h>
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 #include "BulletDynamics/ConstraintSolver/btHingeConstraint.h"
 #include "BulletDynamics/ConstraintSolver/btSliderConstraint.h"
 
-#include "GLDebugDrawer.h"
-
-
-#include "CarParameters.h"
-#include "RaycastVehicle.h"
-#include <sophus/se3.hpp>
-#include <assimp/scene.h>
+#include <CarPlanner/CarParameters.h>
+#include <CarPlanner/RaycastVehicle.h>
 
 #define CAR_UP_AXIS 2   //this is the index for the bullet Z axis
 #define CAR_FORWARD_AXIS 0   //this is the index for the bullet X axis
@@ -294,7 +290,6 @@ struct BulletWorldInstance : public std::mutex
     class btDiscreteDynamicsWorld* m_pDynamicsWorld;
 
     btRigidBody* m_pCarChassis;
-    GLDebugDrawer	m_DebugDrawer;
     BulletVehicleState m_vehicleBackup;
     VehicleState m_state;
 

@@ -1,12 +1,10 @@
-#include "CarPlanner/BezierBoundarySolver.h"
-#include <CVars/CVar.h>
+#include <CarPlanner/BezierBoundarySolver.h>
 
 #define CURV_MULT 1.2
 
 using namespace CarPlanner;
 
-static int& g_nAggressivenessDivisor(CVarUtils::CreateGetUnsavedCVar("debug.AggressivenessDivisor", 5,""));
-
+static int g_nAggressivenessDivisor = 5;
 
 ///////////////////////////////////////////////////////////////////////////////
 BezierBoundarySolver::BezierBoundarySolver()

@@ -1,56 +1,36 @@
 project( CarPlanner )
 cmake_minimum_required(VERSION 2.8)
+set( VERSION 2.0 )
 
 if( NOT CMAKE_BUILD_TYPE )
-    set(CMAKE_BUILD_TYPE Debug)
+    set(CMAKE_BUILD_TYPE Release)
 endif()
 
 # Add to module path, so we can find our cmake modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
-include(def_library)
-include(export_package)
-
-message( STATUS "CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}" )
 
 add_definitions(-DBT_USE_DOUBLE_PRECISION)
 add_definitions(-DBT_NO_PROFILE)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall") #-DBOOST_NO_CXX11_NUMERIC_LIMITS")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
 IF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 ENDIF()
 
-# the boost libraries that we need
-#set( BOOST_LIBS thread date_time system timer )
-
 find_package( Eigen3 REQUIRED )
-FIND_PACKAGE( Pangolin REQUIRED )
-find_package( SceneGraph REQUIRED )
-find_package( CVars REQUIRED )
 find_package( Protobuf REQUIRED )
 find_package( Bullet REQUIRED )
-#find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED )
 find_package( Sophus REQUIRED )
 
-set( _LIBRARIES  ${BULLET_LIBRARIES}  ${BOOST_LIBRARIES} ${Sophus_LIBRARIES} ${VRPN_SERVER_LIBRARY}) # ${MVL_LIBRARIES})
-set( _INCLUDE_DIRS
-        ${CMAKE_BINARY_DIR}
-        ${Sophus_INCLUDE_DIRS}
-        ${EIGEN3_INCLUDE_DIR}
-        #${MVL_INCLUDE_DIRS}
-        ${CVars_INCLUDE_DIRS}
-        ${BULLET_INCLUDE_DIR}
-        ${SceneGraph_INCLUDE_DIRS}
-        ${Pangolin_INCLUDE_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        )
+set( REQUIRED_LIBRARIES ${BULLET_LIBRARIES}  ${BOOST_LIBRARIES} ${EIGEN3_LIBRARIES} )
 
-include_directories( ${_INCLUDE_DIRS} )
-
-
-include_directories( ${CAR_PLANNER_INCLUDE_DIRS} )
+set( REQUIRED_INCLUDE_DIRS
+     ${CMAKE_BINARY_DIR}
+     ${Sophus_INCLUDE_DIRS}
+     ${EIGEN3_INCLUDE_DIR}
+     ${BULLET_INCLUDE_DIR}
+     )
 
 set( SRCS
         src/ApplyVelocitiesFunctor.cpp
@@ -59,13 +39,12 @@ set( SRCS
         src/LocalPlanner.cpp
         src/WheelInfo.cpp
         src/CarParameters.cpp
-        src/GLDebugDrawer.cpp
         src/RaycastVehicle.cpp
         src/BezierBoundarySolver.cpp
         src/MochaException.cpp
         src/CarController.cpp
         src/DirectBoundarySolver.cpp
-        src/VarHelpers.h
+        src/RpgUtils.h
    )
 
 set( HDRS
@@ -76,7 +55,6 @@ set( HDRS
         include/CarPlanner/CarWheel.h
         include/CarPlanner/CarRegressor.h
         include/CarPlanner/CarController.h
-        include/CarPlanner/GLDebugDrawer.h
         include/CarPlanner/CarParameters.h
         include/CarPlanner/DirectBoundarySolver.h
         include/CarPlanner/RaycastVehicle.h
@@ -85,16 +63,23 @@ set( HDRS
 
 string( TOLOWER ${PROJECT_NAME} LIBRARY_NAME )
 
-def_library(${LIBRARY_NAME}
-  SOURCES ${HDRS} ${SRCS}
-  LINK_LIBS ${_LIBRARIES}
-  PACKAGE CarPlanner
-  )
+include_directories( ${REQUIRED_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/include)
 
-export_package( CarPlanner
-  TARGETS ${LIBRARY_NAME}
-  LIBRARY ${LIBRARY_NAME}
-  LIBRARIES ${LIBRARY_NAME}
-  INCLUDE_DIRS ${_INCLUDE_DIRS}
-  )
+add_library(${LIBRARY_NAME} ${SRCS} ${HDRS})
+target_link_libraries(${LIBRARY_NAME} ${REQUIRED_LIBRARIES})
 
+include(install_package)
+
+install_package(
+    PKG_NAME ${PROJECT_NAME}
+    LIB_NAME ${LIBRARY_NAME}
+    VERSION ${VERSION}
+    DESCRIPTION "Statically typed library depending on bullet for SITL Control."
+    INSTALL_INCLUDE_DIR true
+    DESTINATION ${CMAKE_INSTALL_PREFIX}
+    INCLUDE_DIRS ${REQUIRED_INCLUDE_DIRS}
+    LINK_LIBS ${REQUIRED_LIBRARIES}
+    )

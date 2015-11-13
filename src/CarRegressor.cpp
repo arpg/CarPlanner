@@ -1,4 +1,4 @@
-#include "CarPlanner/CarRegressor.h"
+#include <CarPlanner/CarRegressor.h>
 
 static bool g_bUseCentralDifferences = false;
 static bool g_bCurvatureDependentSegmentation = false;
@@ -52,30 +52,30 @@ struct ApplyParametersThreadFunctor {
 ///////////////////////////////////////////////////////////////////////
 CarRegressor::CarRegressor() :
   m_ThreadPool(REGRESSOR_NUM_THREADS)
-{
-
-    pangolin::Var<bool>::Attach("debug.UseCentralDifferences",g_bUseCentralDifferences);
-    pangolin::Var<bool>::Attach("learning.CurvatureDependentSegmentation",g_bCurvatureDependentSegmentation);
-    pangolin::Var<int>::Attach("learning.SegmentLength",g_nSegmentLength);
-
-    m_dCurrentNorm = NORM_NOT_INITIALIZED;
-    m_bFailed = false;
-
-    //initialize the weight matrix
-    m_dW = Eigen::MatrixXd::Identity(7,7);
-    //give the position terms a higher weight
-//    m_dW(0,0) = m_dW(1,1) = m_dW(2,2) = XY_MULTIPLIER;
-//    m_dW(3,3) = m_dW(4,4) = m_dW(5,5) = THETA_MULTIPLIER;
-//    m_dW(6,6) = VEL_MULTIPLIER;
-
-}
+{ }
 
 ///////////////////////////////////////////////////////////////////////
 void CarRegressor::Init(double dEpsilon, std::fstream *pLogFile)
 {
-    m_dEpsilon = dEpsilon;
-    //m_ThreadPool(REGRESSOR_NUM_THREADS);
-    m_pLogFile = pLogFile;
+  //TODO(crh): Move to MochaGui.
+  /*
+  pangolin::Var<bool>::Attach("debug.UseCentralDifferences",g_bUseCentralDifferences);
+  pangolin::Var<bool>::Attach("learning.CurvatureDependentSegmentation",g_bCurvatureDependentSegmentation);
+  pangolin::Var<int>::Attach("learning.SegmentLength",g_nSegmentLength);
+  */
+
+  m_dCurrentNorm = NORM_NOT_INITIALIZED;
+  m_bFailed = false;
+
+  //initialize the weight matrix
+  m_dW = Eigen::MatrixXd::Identity(7,7);
+  //give the position terms a higher weight
+  //    m_dW(0,0) = m_dW(1,1) = m_dW(2,2) = XY_MULTIPLIER;
+  //    m_dW(3,3) = m_dW(4,4) = m_dW(5,5) = THETA_MULTIPLIER;
+  //    m_dW(6,6) = VEL_MULTIPLIER;
+
+  m_dEpsilon = dEpsilon;
+  m_pLogFile = pLogFile;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -354,23 +354,12 @@ void CarRegressor::ApplyParameters(ApplyVelocitesFunctor5d f,
                       true,
                       pPreviousCommands);
 
-//    dout("Starting wheel rotation:" <<
-//         T2Cart(plan.m_vStates[nStartIndex].m_dTwv.matrix())[5] <<
-//        " sim phi: " << T2Cart(vStatesOut.front().m_dTwv.matrix())[5]);
-
-    //Eigen::Vector6d error6d = T2Cart(vStatesOut.back().m_dTwv.matrix() * TInv(plan.m_vStates[nEndIndex-1].m_dTwv.matrix()));
     errorOut.setZero();
     for(size_t ii = 0 ; ii < vStatesOut.size() ; ii+= 10){
       Eigen::Vector6d error6d;
-      try {
-        error6d = (vStatesOut[ii].m_dTwv * plan.m_vStates[nStartIndex+ii].m_dTwv.inverse()).log().matrix();
-      }
-      catch( ... ) {
-        error6d = vStatesOut[ii].m_dTwv.log().matrix();
-      }
-        //dout("Error out " << error6d.transpose() << std::endl);
-        errorOut.head(6) += error6d;
-        errorOut[6] += (vStatesOut[ii].m_dV.norm() - plan.m_vStates[nStartIndex+ii].m_dV.norm());
+      //dout("Error out " << error6d.transpose() << std::endl);
+      errorOut.head(6) += error6d;
+      errorOut[6] += (vStatesOut[ii].m_dV.norm() - plan.m_vStates[nStartIndex+ii].m_dV.norm());
     }
 }
 
