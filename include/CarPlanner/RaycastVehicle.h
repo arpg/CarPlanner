@@ -200,7 +200,14 @@ public:
         m_indexForwardAxis = forwardIndex;
     }
     btScalar resolveSingleCollision(btRigidBody *body1, btCollisionObject *colObj2, const btVector3 &contactPositionWorld, const btVector3 &contactNormalOnB, const btContactSolverInfo &solverInfo, btScalar distance);
-};
+
+    void resolveSingleBilateral(btRigidBody& body1, const btVector3& pos1,
+                      btRigidBody& body2, const btVector3& pos2,
+                      btScalar distance, const btVector3& normal,btScalar& impulse ,btScalar timeStep);
+
+    void setMassProps(btScalar mass, const btVector3& inertia);
+
+    };
 
 class DefaultVehicleRaycaster : public btVehicleRaycaster
 {

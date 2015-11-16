@@ -626,8 +626,7 @@ void	RaycastVehicle::updateFriction(btScalar	timeStep)
                     m_forwardWS[i] = surfNormalWS.cross(m_axle[i]);
                     m_forwardWS[i].normalize();
 
-
-                    resolveSingleBilateral(*m_chassisBody, wheelInfo.m_raycastInfo.m_contactPointWS,
+                    RaycastVehicle::resolveSingleBilateral(*m_chassisBody, wheelInfo.m_raycastInfo.m_contactPointWS,
                               *groundObject, wheelInfo.m_raycastInfo.m_contactPointWS,
                               btScalar(0.), m_axle[i],m_sideImpulse[i],timeStep);
 
@@ -801,7 +800,7 @@ std::pair<btScalar,btScalar> RaycastVehicle::GetSteeringRequiredAndMaxForce(cons
         axle = axle.normalize();
 
         btScalar sideImpulse;
-        resolveSingleBilateral(*m_chassisBody, wheelInfo.m_raycastInfo.m_contactPointWS,
+        RaycastVehicle::resolveSingleBilateral(*m_chassisBody, wheelInfo.m_raycastInfo.m_contactPointWS,
                   *groundObject, wheelInfo.m_raycastInfo.m_contactPointWS,
                   btScalar(0.), axle,sideImpulse,dt);
 
@@ -874,6 +873,87 @@ void	RaycastVehicle::debugDraw(btIDebugDraw* debugDrawer)
 void RaycastVehicle::SetMass(btScalar dMass, btVector3 localInertia)
 {
     getRigidBody()->setMassProps(dMass,localInertia);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// Stolen from Bullet directly since the symbols weren't resolving.
+void btRigidBody::setMassProps(btScalar mass, const btVector3& inertia)
+{
+  if (mass == btScalar(0.))
+  {
+    m_collisionFlags |= btCollisionObject::CF_STATIC_OBJECT;
+    m_inverseMass = btScalar(0.);
+  } else
+  {
+    m_collisionFlags &= (~btCollisionObject::CF_STATIC_OBJECT);
+    m_inverseMass = btScalar(1.0) / mass;
+  }
+
+  //Fg = m * a
+  m_gravity = mass * m_gravity_acceleration;
+
+  m_invInertiaLocal.setValue(inertia.x() != btScalar(0.0) ? btScalar(1.0) / inertia.x(): btScalar(0.0),
+                             inertia.y() != btScalar(0.0) ? btScalar(1.0) / inertia.y(): btScalar(0.0),
+                             inertia.z() != btScalar(0.0) ? btScalar(1.0) / inertia.z(): btScalar(0.0));
+
+  m_invMass = m_linearFactor*m_inverseMass;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// Stolen from Bullet directly since the symbols weren't resolving.
+//bilateral constraint between two dynamic objects
+void RaycastVehicle::resolveSingleBilateral(btRigidBody& body1, const btVector3& pos1,
+                                            btRigidBody& body2, const btVector3& pos2,
+                                            btScalar distance, const btVector3& normal,btScalar& impulse ,btScalar timeStep)
+{
+  (void)timeStep;
+  (void)distance;
+
+
+  btScalar normalLenSqr = normal.length2();
+  btAssert(btFabs(normalLenSqr) < btScalar(1.1));
+  if (normalLenSqr > btScalar(1.1))
+  {
+    impulse = btScalar(0.);
+    return;
+  }
+  btVector3 rel_pos1 = pos1 - body1.getCenterOfMassPosition();
+  btVector3 rel_pos2 = pos2 - body2.getCenterOfMassPosition();
+  //this jacobian entry could be re-used for all iterations
+
+  btVector3 vel1 = body1.getVelocityInLocalPoint(rel_pos1);
+  btVector3 vel2 = body2.getVelocityInLocalPoint(rel_pos2);
+  btVector3 vel = vel1 - vel2;
+
+
+  btJacobianEntry jac(body1.getCenterOfMassTransform().getBasis().transpose(),
+                      body2.getCenterOfMassTransform().getBasis().transpose(),
+                      rel_pos1,rel_pos2,normal,body1.getInvInertiaDiagLocal(),body1.getInvMass(),
+                      body2.getInvInertiaDiagLocal(),body2.getInvMass());
+
+  btScalar jacDiagAB = jac.getDiagonal();
+  btScalar jacDiagABInv = btScalar(1.) / jacDiagAB;
+
+  btScalar rel_vel = jac.getRelativeVelocity(
+        body1.getLinearVelocity(),
+        body1.getCenterOfMassTransform().getBasis().transpose() * body1.getAngularVelocity(),
+        body2.getLinearVelocity(),
+        body2.getCenterOfMassTransform().getBasis().transpose() * body2.getAngularVelocity());
+
+
+
+  rel_vel = normal.dot(vel);
+
+  //todo: move this into proper structure
+  btScalar contactDamping = btScalar(0.2);
+
+#ifdef ONLY_USE_LINEAR_MASS
+  btScalar massTerm = btScalar(1.) / (body1.getInvMass() + body2.getInvMass());
+  impulse = - contactDamping * rel_vel * massTerm;
+#else
+  btScalar velocityImpulse = -contactDamping * rel_vel * jacDiagABInv;
+  impulse = velocityImpulse;
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

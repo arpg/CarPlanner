@@ -23,7 +23,7 @@ find_package( Protobuf REQUIRED )
 find_package( Bullet REQUIRED )
 find_package( Sophus REQUIRED )
 
-set( REQUIRED_LIBRARIES ${BULLET_LIBRARIES}  ${BOOST_LIBRARIES} ${EIGEN3_LIBRARIES} )
+set( REQUIRED_LIBRARIES ${BULLET_LIBRARIES} )
 
 set( REQUIRED_INCLUDE_DIRS
      ${CMAKE_BINARY_DIR}
@@ -68,7 +68,7 @@ include_directories( ${REQUIRED_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/include)
 
-add_library(${LIBRARY_NAME} ${SRCS} ${HDRS})
+add_library(${LIBRARY_NAME} SHARED ${SRCS} ${HDRS})
 target_link_libraries(${LIBRARY_NAME} ${REQUIRED_LIBRARIES})
 
 include(install_package)

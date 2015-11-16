@@ -2,10 +2,6 @@
 #define CARPLANNERCOMMON_H
 #define DEBUG 1
 
-#include <Eigen/Eigen>
-#include <Eigen/Dense>
-#include <Eigen/SparseCore>
-#include <Eigen/StdVector>
 #include <stdio.h>
 #include <fstream>
 #include <vector>
@@ -15,6 +11,14 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+
+#include <glog/logging.h>
+
+#include <Eigen/Eigen>
+#include <Eigen/Dense>
+#include <Eigen/SparseCore>
+#include <Eigen/StdVector>
+
 #include <sophus/se3.hpp>
 
 #ifdef __APPLE__
