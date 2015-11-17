@@ -18,18 +18,20 @@ IF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 ENDIF()
 
+find_package( GLOG REQUIRED )
 find_package( Eigen3 REQUIRED )
 find_package( Protobuf REQUIRED )
 find_package( Bullet REQUIRED )
 find_package( Sophus REQUIRED )
 
-set( REQUIRED_LIBRARIES ${BULLET_LIBRARIES} )
+set( REQUIRED_LIBRARIES ${BULLET_LIBRARIES} ${GLOG_LIBRARIES} )
 
 set( REQUIRED_INCLUDE_DIRS
      ${CMAKE_BINARY_DIR}
      ${Sophus_INCLUDE_DIRS}
      ${EIGEN3_INCLUDE_DIR}
      ${BULLET_INCLUDE_DIR}
+     ${GLOG_INCLUDE_DIRS}
      )
 
 set( SRCS
