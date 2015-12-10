@@ -238,10 +238,10 @@ void BulletCarModel::_GetDelayedControl(int worldId, double timeDelay, ControlCo
             }
         }
     }else if(previousCommands.size() > 0){
-        dout("Command history list size < 2, using first command.");
+        DLOG(INFO) << "Command history list size < 2, using first command.";
         delayedCommands = previousCommands.front();
     }else{
-        dout("Command history list size == 0. Passing empty command");
+        DLOG(INFO) << "Command history list size == 0. Passing empty command";
         delayedCommands.m_dForce = pWorld->m_Parameters[CarParameters::AccelOffset]*SERVO_RANGE;
         delayedCommands.m_dCurvature = 0;
         delayedCommands.m_dPhi = pWorld->m_Parameters[CarParameters::SteeringOffset]*SERVO_RANGE;

@@ -132,7 +132,7 @@ bool CarController::_SampleControlPlan(ControlPlan* pPlan,LocalProblem& problem)
     }
 
     if(pPlan->m_Sample.m_vCommands.empty()) {
-        dout("Empty control plan discovered...");
+        DLOG(INFO) << "Empty control plan discovered...";
         return false;
     }
 
@@ -151,7 +151,7 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
     problem.m_Trajectory = trajectory;
 
     if( res == false ){
-        dout("2d planner failed to converge...");
+        DLOG(INFO) << "2d planner failed to converge...";
         return false;
     }
 
@@ -193,7 +193,7 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
     m_dLastDelta = problem.m_CurrentSolution.m_dOptParams - problem.m_dInitOptParams;
 
     if(problem.m_CurrentSolution.m_dNorm > g_dMaxPlanNorm){
-        dout("Planned control plan with norm too high -> " << problem.m_CurrentSolution.m_dNorm  );
+        DLOG(INFO) << "Planned control plan with norm too high -> " << problem.m_CurrentSolution.m_dNorm;
         res = false;
     }
 
@@ -352,7 +352,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
         }else {
             if(nCurrentSampleIndex == -1) {
                 //if we have overshot the current plan, function must be called again to create a new plan
-                dout("Overshot plan.");
+                DLOG(INFO) << "Overshot plan.";
                 return false;
             }else {
                 //get the curvature at the end of the projection to have a smooth transition in steering
@@ -388,7 +388,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
         //solve the control plan
         if( _SolveControlPlan(pPlan,problem,trajectorySample) == false ) {
             //do not use the plan
-            dout("Could not solve plan.");
+            DLOG(INFO) << "Could not solve plan.";
             return false;
         }
 
@@ -396,7 +396,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
 
         //only need to sample the planner if the plan is not airborne
         if( _SampleControlPlan(pPlan,problem) == false ) {
-            dout("Failed to sample plan.");
+            DLOG(INFO) << "Failed to sample plan.";
             return false;
         }
 
@@ -432,7 +432,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
 
     }catch(...)
     {
-        dout("Exception caught while planning.");
+        DLOG(INFO) << "Exception caught while planning.";
         return false;
     }
     return true;

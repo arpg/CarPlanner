@@ -253,7 +253,7 @@ double LocalPlanner::_CalculateErrorNorm(const LocalProblem& problem,
 {
     Eigen::VectorXd dW = _GetWeightVector(problem);
     Eigen::VectorXd error = dError;
-    dout("error vector is " << error.transpose());
+    DLOG(INFO) << "error vector is " << error.transpose();
     error.array() *= dW.array();
     return error.norm();
 }
@@ -266,7 +266,7 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample,
     int errorVecSize = problem.m_eCostMode == eCostPoint ? POINT_COST_ERROR_TERMS : TRAJ_UNIT_ERROR_TERMS*g_nTrajectoryCostSegments+TRAJ_EXTRA_ERROR_TERMS;
     Eigen::VectorXd error;
     if(sample.m_vStates.size() == 0 ){
-        dout(problem.m_nPlanId << ":Sample with size 0 detected. Aborting.");
+        DLOG(INFO) << problem.m_nPlanId << ":Sample with size 0 detected. Aborting.";
         error = Eigen::VectorXd(errorVecSize);
         error.setOnes();
         error *= DBL_MAX;
@@ -352,7 +352,6 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
     vCubicProblems.resize(OPT_DIM*2);
     vFunctors.resize(OPT_DIM*2);
     Eigen::Vector6d pPoses[OPT_DIM*2],dCurrentPose;
-    std::cout << "Running _CalculateJacobians --- ACTF keeps being killed." << std::endl; //crh debug race condition
 
     const double dEps = m_dEps;// * problem.m_CurrentSolution.m_dNorm;
 
@@ -433,7 +432,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
         }
 
         if(g_bVerbose){
-            dout("Dimension " << ii << " norm " << norm << " error-> [" << errors[plusIdx].transpose().format(CleanFmt) << "] vs. ["  << dCurrentErrorVec.transpose().format(CleanFmt));
+            DLOG(INFO) << "Dimension " << ii << " norm " << norm << " error-> [" << errors[plusIdx].transpose().format(CleanFmt) << "] vs. ["  << dCurrentErrorVec.transpose().format(CleanFmt);
         }
 
         //now that we have all the error terms, we can set this column of the jacobians
@@ -455,7 +454,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
 
 
     if(g_bVerbose){
-        dout("Jacobian:" << J.format(CleanFmt) << std::endl);
+        DLOG(INFO) << "Jacobian:" << J.format(CleanFmt);
     }
     return true;
 }
@@ -490,7 +489,7 @@ void LocalPlanner::SampleAcceleration(std::vector<ControlCommand>& vCommands,
 
     _GetAccelerationProfile(problem);
     if(std::isfinite(problem.m_dSegmentTime) == false ){
-        dout(problem.m_nPlanId << ":Segment time of " << problem.m_dSegmentTime << " was not finite.");
+        DLOG(INFO) << problem.m_nPlanId << ":Segment time of " << problem.m_dSegmentTime << " was not finite.";
         return;
     }
     double t;
@@ -511,7 +510,7 @@ void LocalPlanner::SampleAcceleration(std::vector<ControlCommand>& vCommands,
         }
 
         if(accelIndex >= problem.m_vAccelProfile.size()){
-            dout(problem.m_nPlanId << ":Exceeded bounds of acceleration profile.");
+            DLOG(INFO) << problem.m_nPlanId << ":Exceeded bounds of acceleration profile.";
             return;
         }
 
@@ -713,7 +712,7 @@ bool LocalPlanner::Iterate(LocalProblem &problem )
     try
     {
         if(problem.m_CurrentSolution.m_dNorm < g_dSuccessNorm) {
-            dout(problem.m_nPlanId << ":Succeeded to plan. Norm = " << problem.m_CurrentSolution.m_dNorm);
+            DLOG(INFO) << problem.m_nPlanId << ":Succeeded to plan. Norm = " << problem.m_CurrentSolution.m_dNorm;
             return true;
         }
 
@@ -732,7 +731,7 @@ bool LocalPlanner::Iterate(LocalProblem &problem )
             Eigen::VectorXd error = _CalculateSampleError(problem,dMinLookahead);
             problem.m_CurrentSolution.m_dNorm = _CalculateErrorNorm(problem,error);
             if(std::isfinite(problem.m_CurrentSolution.m_dNorm) == false){
-                dout(problem.m_nPlanId << ":Initial norm is not finite. Exiting optimization");
+                DLOG(INFO) << problem.m_nPlanId << ":Initial norm is not finite. Exiting optimization";
                 return false;
             }
             problem.m_lSolutions.push_back(problem.m_CurrentSolution);
@@ -871,7 +870,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
 
     problem.m_CurrentSolution.m_dNorm = _CalculateErrorNorm(problem,error);
     if(g_bVerbose){
-        dout("Calculated jacobian with base norm: " << problem.m_CurrentSolution.m_dNorm);
+        DLOG(INFO) << "Calculated jacobian with base norm: " << problem.m_CurrentSolution.m_dNorm;
     }
 
     //if any of the columns are zero, reguralize
@@ -901,12 +900,12 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
     }
 
     if(g_bVerbose){
-        dout("Gauss newton delta: [" << dDeltaP.transpose().format(CleanFmt) << "]");
+        DLOG(INFO) << "Gauss newton delta: [" << dDeltaP.transpose().format(CleanFmt) << "]";
     }
 
 
     if(std::isfinite(dDeltaP.norm()) == false){
-        dout(problem.m_nPlanId << ":Deltas are NAN. Dump => J:" << J.format(CleanFmt) << std::endl << "b:" << error.transpose().format(CleanFmt) << std::endl);
+        DLOG(INFO) << problem.m_nPlanId << ":Deltas are NAN. Dump => J:" << J.format(CleanFmt) << std::endl << "b:" << error.transpose().format(CleanFmt);
         problem.m_eError = eDeltaNan;
         return false;
     }
@@ -919,7 +918,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
         problem.m_CurrentSolution.m_dNorm = _CalculateErrorNorm(problem,_CalculateSampleError(problem,problem.m_CurrentSolution.m_dMinTrajectoryTime));
         problem.m_lSolutions.push_back(problem.m_CurrentSolution);
         problem.m_pBestSolution = &problem.m_lSolutions.back();
-        dout("Iteration with no damping finished with norm " << problem.m_CurrentSolution.m_dNorm << " and opts "<< problem.m_CurrentSolution.m_dOptParams.transpose().format(CleanFmt));
+        DLOG(INFO) << "Iteration with no damping finished with norm " << problem.m_CurrentSolution.m_dNorm << " and opts "<< problem.m_CurrentSolution.m_dOptParams.transpose().format(CleanFmt);
         return true;
     }
 
@@ -968,7 +967,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
         //pick out the best damping by comparing the norms
         for(int ii = 0 ; ii < DAMPING_STEPS ; ii++) {
             double norm = 0;
-            dout_cond("Final state is " << pDampingStates[ii].transpose().format(CleanFmt),g_bVerbose);
+            DLOG(INFO) << "Final state is " << pDampingStates[ii].transpose().format(CleanFmt),g_bVerbose;
             norm = _CalculateErrorNorm(*vCubicProblems[ii],pDampingErrors[ii]);
             if(g_bVerbose){
                 std::cout << " " << norm;
@@ -987,7 +986,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
 
     }else{
         Eigen::IOFormat CleanFmt(2, 0, ", ", "\n", "[", "]");
-        dout(problem.m_nPlanId << ":Deltas ar NAN. Dump => J:" << J.format(CleanFmt) << std::endl);
+        DLOG(INFO) << problem.m_nPlanId << ":Deltas ar NAN. Dump => J:" << J.format(CleanFmt);
         problem.m_eError = eDeltaNan;
         return false;
     }
@@ -996,13 +995,13 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
 
     if(coordinateDescent.m_dNorm > problem.m_CurrentSolution.m_dNorm && g_bMonotonicCost){
         problem.m_bInLocalMinimum = true;
-        dout(problem.m_nPlanId << ":In local minimum with Norm = " << problem.m_CurrentSolution.m_dNorm );
+        DLOG(INFO) << problem.m_nPlanId << ":In local minimum with Norm = " << problem.m_CurrentSolution.m_dNorm;
     }else if( dampedSolution.m_dNorm > problem.m_CurrentSolution.m_dNorm && g_bMonotonicCost) {
         problem.m_bInLocalMinimum = true;
-        dout(problem.m_nPlanId << ":Accepted coordinate descent with norm = " << problem.m_CurrentSolution.m_dNorm ) ;
+        DLOG(INFO) << problem.m_nPlanId << ":Accepted coordinate descent with norm = " << problem.m_CurrentSolution.m_dNorm ;
     }else{
         newSolution = dampedSolution;
-        dout( problem.m_nPlanId << ":New norm from damped gauss newton = " << newSolution.m_dNorm << " with damping = " << bestDamping << " best damped traj error is " << pDampingErrors[nBestDampingIdx].transpose().format(CleanFmt));
+        DLOG(INFO) << problem.m_nPlanId << ":New norm from damped gauss newton = " << newSolution.m_dNorm << " with damping = " << bestDamping << " best damped traj error is " << pDampingErrors[nBestDampingIdx].transpose().format(CleanFmt);
     }
 
 

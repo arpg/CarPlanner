@@ -140,7 +140,7 @@ void CarRegressor::Regress(ApplyVelocitesFunctor5d& f,
     newParams = params;
     m_dCurrentNorm = CalculateParamNorms(f,sample,params);
 
-    dout("Staring regression on " << sample.m_vStates.size() << " data points starting with params=" << params );
+    DLOG(INFO) << "Staring regression on " << sample.m_vStates.size() << " data points starting with params=" << params;
     m_bFailed = false;
     double dLastNorm = 0;
     int maxIter = 500;
@@ -148,17 +148,17 @@ void CarRegressor::Regress(ApplyVelocitesFunctor5d& f,
         dLastNorm = m_dCurrentNorm;
         _OptimizeParametersGN(f,sample,newParams,updatedParams,m_dCurrentNorm);
         //write the new parameters back
-        dout("parameter update: " << updatedParams << " norm:" << m_dCurrentNorm);
+        DLOG(INFO) << "parameter update: " << updatedParams << " norm:" << m_dCurrentNorm;
         newParams = updatedParams;
 
         //if the reduction is too little
         if(fabs(dLastNorm - m_dCurrentNorm)/dLastNorm < 0.000001){
-            dout("Norm changed too little. Exiting optimization.");
+            DLOG(INFO) << "Norm changed too little. Exiting optimization.";
             break;
         }
     }
 
-    dout("orig params: " << origParams << ". new params " << newParams << " norm:" << m_dCurrentNorm);
+    DLOG(INFO) << "orig params: " << origParams << ". new params " << newParams << " norm:" << m_dCurrentNorm;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -273,7 +273,7 @@ void CarRegressor::_OptimizeParametersGN(ApplyVelocitesFunctor5d& f,
     double damping = 0;
     if(std::isfinite(dDeltaParams[0]) ){
         //damp the gauss newton response
-        dout("Gauss newton delta is : " << dDeltaParams.transpose().format(CleanFmt) << " norm: " << dBestNorm);
+        DLOG(INFO) << "Gauss newton delta is : " << dDeltaParams.transpose().format(CleanFmt) << " norm: " << dBestNorm;
         double dHypeNorms[DAMPING_STEPS];
         std::vector<RegressionParameter> pHypeParams[DAMPING_STEPS];
         double dampings[DAMPING_STEPS];
@@ -302,7 +302,7 @@ void CarRegressor::_OptimizeParametersGN(ApplyVelocitesFunctor5d& f,
             }
         }
     }else{
-        dout("NaN returned");
+        DLOG(INFO) << "NaN returned";
         m_bFailed = true;
     }
 
@@ -313,7 +313,7 @@ void CarRegressor::_OptimizeParametersGN(ApplyVelocitesFunctor5d& f,
         }else{
             //steepest descent
             m_eCurrentTask = eGaussNewton;
-            dout("coord descent params: " << dBestParams << " norm: " << dBestNorm);
+            DLOG(INFO) << "coord descent params: " << dBestParams << " norm: " << dBestNorm;
         }
         dParamsOut = dBestParams;
         dNewNorm = dBestNorm;
@@ -322,7 +322,7 @@ void CarRegressor::_OptimizeParametersGN(ApplyVelocitesFunctor5d& f,
         dParamsOut = dHypeParams;
         dNewNorm = dHypeNorm;
         m_eCurrentTask = eGaussNewton;
-        dout("GN params: " << dHypeParams << " damping: " << dBestDamping <<  " norm: " << dHypeNorm);
+        DLOG(INFO) << "GN params: " << dHypeParams << " damping: " << dBestDamping <<  " norm: " << dHypeNorm;
     }
 }
 
@@ -517,7 +517,7 @@ void CarRegressor::CalculateJacobian(ApplyVelocitesFunctor5d functor,
             }
 
             if(J.col(ii).norm() == 0){
-                dout("Jacobian column for parameter " << ii << "(" << params[ii].m_sName << ") for segment " << jj << " is zero.");
+                DLOG(INFO) << "Jacobian column for parameter " << ii << "(" << params[ii].m_sName << ") for segment " << jj << " is zero.";
             }
         }
 

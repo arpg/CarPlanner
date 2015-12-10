@@ -30,14 +30,6 @@
 #define SetThreadName(x) prctl(PR_SET_NAME,x,0,0,0);
 #endif
 
-#define DEBUG 1
-#ifdef DEBUG
-#define dout(str) std::cout << __FUNCTION__ << " --  " << str << std::endl
-#define dout_cond(str,x) if(x)std::cout << __FUNCTION__ << " --  " << str << std::endl
-#else
-#define dout(str)
-#endif
-
 //#define CAR_HEIGHT_OFFSET 0.06
 
 template <typename T> int sgn(T val) {

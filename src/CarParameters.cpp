@@ -14,7 +14,7 @@ const char * const CarParameters::Names[] = {"WheelBase", "Width", "Height", "Dy
 ////////////////////////////////////////////////////////////////
 bool CarParameters::SaveToFile(const std::string sFile,const CarParameterMap& map)
 {
-    dout("Writing parameter map to " << sFile << "-----------------");
+    DLOG(INFO) << "Writing parameter map to " << sFile << "-----------------";
     std::ofstream file;
     file.open(sFile);
     for(const CarParameterPair& pair: map ){
@@ -29,7 +29,7 @@ bool CarParameters::SaveToFile(const std::string sFile,const CarParameterMap& ma
 ////////////////////////////////////////////////////////////////
 bool CarParameters::LoadFromFile(const std::string sFile,CarParameterMap& map)
 {
-    dout("Reading parameter map from " << sFile << "-----------------");
+    DLOG(INFO) << "Reading parameter map from " << sFile << "-----------------";
     std::ifstream file;
     //open the file for read
     file.open(sFile.c_str());
@@ -52,17 +52,17 @@ bool CarParameters::LoadFromFile(const std::string sFile,CarParameterMap& map)
                     bFound = true;
                     double val = std::stod(vals[1]);
                     map[ii] = val;
-                    dout("Loading parameter " << Names[ii] << " with value " << val);
+                    DLOG(INFO) << "Loading parameter " << Names[ii] << " with value " << val;
                     break;
                 }
             }
 
             if(bFound == false){
-                dout("ERROR - parameter " << vals[0] << " not recognized.");
+                DLOG(INFO) << "ERROR - parameter " << vals[0] << " not recognized.";
                 return false;
             }
         }else{
-            dout("ERROR - line with less than 2 comma delimited items found when parsing parameters.");
+            DLOG(INFO) << "ERROR - line with less than 2 comma delimited items found when parsing parameters.";
             return false;
         }
     }
@@ -73,9 +73,9 @@ bool CarParameters::LoadFromFile(const std::string sFile,CarParameterMap& map)
 ////////////////////////////////////////////////////////////////
 void CarParameters::PrintAllParams(const CarParameterMap &map)
 {
-    dout("Printing parameter map -----------------");
+    DLOG(INFO) << "Printing parameter map -----------------";
     for(const CarParameterPair& pair: map ){
-        dout(Names[pair.first] << ":" << pair.second);
+        DLOG(INFO) << Names[pair.first] << ":" << pair.second;
     }
 }
 
