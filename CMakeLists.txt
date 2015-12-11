@@ -18,9 +18,10 @@ set(BOOST_LIBS thread date_time system timer)
 
 
 find_package( Eigen3 REQUIRED )
-FIND_PACKAGE(Pangolin REQUIRED)
+find_package(Pangolin REQUIRED)
+find_package( Node REQUIRED )
 find_package( SceneGraph REQUIRED )
-find_package( CVARS REQUIRED )
+find_package( CVars REQUIRED )
 find_package( Protobuf REQUIRED )
 find_package( Bullet REQUIRED )
 find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
@@ -28,14 +29,14 @@ find_package( QUATLIB REQUIRED )
 find_package(Sophus REQUIRED)
 find_package( VRPN REQUIRED ) # requires some work!
 
-set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${VRPN_LIBRARY} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} )
+set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${Node_LIBRARIES} ${CVars_LIBRARIES} )
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIRS}
         ${VRPN_INCLUDE_DIR}
         ${EIGEN3_INCLUDE_DIR}
-        ${MVL_INCLUDE_DIRS}
-        ${CVARS_INCLUDE_DIR}
+        ${Node_INCLUDE_DIRS}
+        ${CVars_INCLUDE_DIR}
         ${BULLET_INCLUDE_DIR}
         ${SceneGraph_INCLUDE_DIRS}
         ${Pangolin_INCLUDE_DIRS}
@@ -65,7 +66,7 @@ set( SRCS
         BezierBoundarySolver.cpp
         MochaException.cpp
         CarController.cpp
-        Vicon.cpp
+        Localizer.cpp
         DirectBoundarySolver.cpp
    )
 
@@ -73,7 +74,7 @@ set( HDRS
         ApplyVelocitiesFunctor.h
         CarPlannerCommon.h
         BulletCarModel.h
-        Vicon.h
+        Localizer.h
         CarWheel.h
         CarRegressor.h
         CarController.h

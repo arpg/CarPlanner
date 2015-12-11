@@ -1,11 +1,11 @@
 /*
- * File:   Vicon.cpp
+ * File:   Localizer.cpp
  * Author: jmf
  *
  * Created on February 16, 2012, 5:07 PM
  */
 
-#include "Vicon.h"
+#include "Localizer.h"
 
 #include <math.h>
 
@@ -31,14 +31,14 @@ Eigen::Vector3d Quat2Euler( double *Q )
 }
 
 //////////////////////////////////////////////////////////////////
-Vicon::Vicon()
+Localizer::Localizer()
 {
-    m_pViconConnection = NULL;
+    m_pLocalizerConnection = NULL;
     m_bIsStarted = false;
 }
 
 //////////////////////////////////////////////////////////////////
-void Vicon::TrackObject(
+void Localizer::TrackObject(
         const std::string& sObjectName,
         const std::string& sHost,
         bool bRobotFrame /*= true*/
@@ -47,7 +47,7 @@ void Vicon::TrackObject(
 }
 
 //////////////////////////////////////////////////////////////////
-void Vicon::TrackObject(
+void Localizer::TrackObject(
         const std::string& sObjectName,
         const std::string& sHost,
         Sophus::SE3d dToffset,
@@ -59,18 +59,18 @@ void Vicon::TrackObject(
 
     TrackerObject* pObj = &m_mObjects[ sObjectName ];
 
-    pObj->m_pTracker = new vrpn_Tracker_Remote( sUri.c_str(), m_pViconConnection  );
+    pObj->m_pTracker = new vrpn_Tracker_Remote( sUri.c_str(), m_pLocalizerConnection  );
     pObj->m_dToffset = dToffset;
     pObj->m_bRobotFrame = bRobotFrame;
     pObj->m_pTracker->shutup = true;
-    pObj->m_pViconObject = this;
+    pObj->m_pLocalizerObject = this;
     pObj->m_pTracker->register_change_handler( pObj, _MoCapHandler );
 
-    m_pViconConnection = vrpn_get_connection_by_name( sHost.c_str() );
+    m_pLocalizerConnection = vrpn_get_connection_by_name( sHost.c_str() );
 }
 
 //////////////////////////////////////////////////////////////////
-Vicon::~Vicon()
+Localizer::~Localizer()
 {
     std::map< std::string, TrackerObject >::iterator it;
     for( it = m_mObjects.begin(); it != m_mObjects.end(); it++ ){
@@ -79,18 +79,18 @@ Vicon::~Vicon()
 }
 
 //////////////////////////////////////////////////////////////////
-void Vicon::Start()
+void Localizer::Start()
 {
     if( m_bIsStarted == true ) {
-        throw MochaException("The Vicon thread has already started.");
+        throw MochaException("The Localizer thread has already started.");
     }
 
-    m_pThread = new boost::thread(Vicon::_ThreadFunction, this);
+    m_pThread = new boost::thread(Localizer::_ThreadFunction, this);
     m_bIsStarted = true;
 }
 
 //////////////////////////////////////////////////////////////////
-void Vicon::Stop()
+void Localizer::Stop()
 {
     if( m_bIsStarted == false ) {
         //throw MochaException("No thread is running!");
@@ -105,7 +105,7 @@ void Vicon::Stop()
 
 //////////////////////////////////////////////////////////////////
 //
-Sophus::SE3d Vicon::GetPose( const std::string& sObjectName, bool blocking/* = false */,
+Sophus::SE3d Localizer::GetPose( const std::string& sObjectName, bool blocking/* = false */,
                                           double* time /*= NULL*/, double* rate /*= NULL*/)
 {
     if( m_mObjects.find( sObjectName ) == m_mObjects.end() ){
@@ -132,7 +132,7 @@ Sophus::SE3d Vicon::GetPose( const std::string& sObjectName, bool blocking/* = f
 
 //////////////////////////////////////////////////////////////////
 //
-//Eigen::Matrix<double,6,1> Vicon::GetdPose( const std::string& sObjectName )
+//Eigen::Matrix<double,6,1> Localizer::GetdPose( const std::string& sObjectName )
 //{
 //    if( m_mObjects.find( sObjectName ) == m_mObjects.end() ){
 //        throw MochaException("Invalid object name.");
@@ -147,20 +147,20 @@ Sophus::SE3d Vicon::GetPose( const std::string& sObjectName, bool blocking/* = f
 //}
 
 //////////////////////////////////////////////////////////////////
-eLocType Vicon::WhereAmI( Eigen::Vector3d P )
+eLocType Localizer::WhereAmI( Eigen::Vector3d P )
 {
     return VT_AIR;
 }
 
 //////////////////////////////////////////////////////////////////
-eLocType Vicon::WhereAmI( Eigen::Matrix<double, 6, 1 > P )
+eLocType Localizer::WhereAmI( Eigen::Matrix<double, 6, 1 > P )
 {
     Eigen::Vector3d Pv = P.block < 3, 1 > (0, 0);
     return WhereAmI( Pv );
 }
 
 //////////////////////////////////////////////////////////////////
-void Vicon::_ThreadFunction(Vicon *pV)
+void Localizer::_ThreadFunction(Localizer *pV)
 {
     while (1) {
         std::map< std::string, TrackerObject >::iterator it;
@@ -176,10 +176,10 @@ void Vicon::_ThreadFunction(Vicon *pV)
 }
 
 //////////////////////////////////////////////////////////////////
-void VRPN_CALLBACK Vicon::_MoCapVelHandler( void* uData, const vrpn_TRACKERVELCB tData )
+void VRPN_CALLBACK Localizer::_MoCapVelHandler( void* uData, const vrpn_TRACKERVELCB tData )
 {
     //TrackerObject* pObj = (TrackerObject*)uData;
-    //Vicon* pVicon = pObj->m_pViconObject;
+    //Localizer* pLocalizer = pObj->m_pLocalizerObject;
 
     //pObj->m_dDSensorPose.block<3,1>(0,0) << tData.vel[0],tData.vel[1],tData.vel[2];
     //double dQuats[4] = { tData.vel_quat[0], tData.vel_quat[1], tData.vel_quat[2], tData.vel_quat[3] };
@@ -187,7 +187,7 @@ void VRPN_CALLBACK Vicon::_MoCapVelHandler( void* uData, const vrpn_TRACKERVELCB
 }
 
 //////////////////////////////////////////////////////////////////
-void VRPN_CALLBACK Vicon::_MoCapHandler( void* uData, const vrpn_TRACKERCB tData )
+void VRPN_CALLBACK Localizer::_MoCapHandler( void* uData, const vrpn_TRACKERCB tData )
 {
     TrackerObject* pObj = (TrackerObject*)uData;
     //lock the sensor poses as we update them
@@ -211,22 +211,22 @@ void VRPN_CALLBACK Vicon::_MoCapHandler( void* uData, const vrpn_TRACKERCB tData
         pObj->m_dSensorPose = Sophus::SE3d(T) * (pObj->m_dToffset * Twc);
 
         //now calculate the time derivative
-        double viconTime = tData.msg_time.tv_sec + 1e-6*tData.msg_time.tv_usec;
+        double localizerTime = tData.msg_time.tv_sec + 1e-6*tData.msg_time.tv_usec;
 
         //calculate metrics
         if(pObj->m_dLastTime == -1){
-            pObj->m_dLastTime = viconTime;
+            pObj->m_dLastTime = localizerTime;
             pObj->m_nNumPoses = 0;
             pObj->m_dPoseRate = 0;
-        }else if((viconTime - pObj->m_dLastTime) > 1){
-            pObj->m_dPoseRate = pObj->m_nNumPoses /(viconTime - pObj->m_dLastTime) ;
-            pObj->m_dLastTime = viconTime;
+        }else if((localizerTime - pObj->m_dLastTime) > 1){
+            pObj->m_dPoseRate = pObj->m_nNumPoses /(localizerTime - pObj->m_dLastTime) ;
+            pObj->m_dLastTime = localizerTime;
             pObj->m_nNumPoses = 0;
         }
 
         pObj->m_nNumPoses++;
 
-        pObj->m_dTime = viconTime;
+        pObj->m_dTime = localizerTime;
 
     }
 

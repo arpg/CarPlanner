@@ -1,12 +1,12 @@
 /*
- * File:   Vicon.h
+ * File:   Localizer.h
  * Author: jmf
  *
  * Created on February 16, 2012, 5:07 PM
  */
 
-#ifndef VICON_H
-#define	VICON_H
+#ifndef LOCALIZER_H
+#define	LOCALIZER_H
 
 
 #include <Eigen/Eigen>
@@ -31,11 +31,11 @@
 //    Eigen::Vector6d m_DPose;
 //};
 
-class Vicon
+class Localizer
 {
     public:
-        Vicon();
-        virtual ~Vicon();
+        Localizer();
+        virtual ~Localizer();
         void TrackObject(const std::string& sObjectName, const std::string& sHost , bool bRobotFrame = true);
         void TrackObject(const std::string& sObjectName, const std::string& sHost , Sophus::SE3d dToffset, bool bRobotFrame = true);
         void Start();
@@ -46,7 +46,7 @@ class Vicon
         eLocType WhereAmI( Eigen::Vector6d P );
 
     private:
-        static void _ThreadFunction(Vicon *pVT);
+        static void _ThreadFunction(Localizer *pVT);
         static void VRPN_CALLBACK _MoCapHandler(void* uData, const vrpn_TRACKERCB tData );
         static void VRPN_CALLBACK _MoCapVelHandler( void* uData, const vrpn_TRACKERVELCB tData );
 
@@ -58,7 +58,7 @@ class Vicon
             Sophus::SE3d                        m_dToffset;
             double                                 m_dTime;
             vrpn_Tracker_Remote*                   m_pTracker;
-            Vicon*                                 m_pViconObject;
+            Localizer*                                 m_pLocalizerObject;
             boost::mutex                           m_Mutex;
             boost::condition                       m_PoseUpdated;
 
@@ -72,13 +72,13 @@ class Vicon
             {
             }
 
-            TrackerObject(const Vicon::TrackerObject& obj): m_Mutex(),
+            TrackerObject(const Localizer::TrackerObject& obj): m_Mutex(),
                 m_PoseUpdated()
             {
                 m_dSensorPose = obj.m_dSensorPose;
                 m_dTime = obj.m_dTime;
                 m_pTracker = obj.m_pTracker;
-                m_pViconObject = obj.m_pViconObject;
+                m_pLocalizerObject = obj.m_pLocalizerObject;
 
             }
         };
@@ -87,7 +87,7 @@ class Vicon
 
         bool                                        m_bIsStarted;
         boost::thread*								m_pThread;
-        vrpn_Connection*                            m_pViconConnection;
+        vrpn_Connection*                            m_pLocalizerConnection;
 };
 
-#endif	/* VICON_H */
+#endif	/* LOCALIZER_H */

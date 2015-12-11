@@ -34,7 +34,7 @@
 #endif
 
 //#define CAR_HEIGHT_OFFSET 0.06
-#define VICON_CAR_HEIGHT_OFFSET 0.02
+#define LOCALIZER_CAR_HEIGHT_OFFSET 0.02
 
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
