@@ -1,5 +1,5 @@
-#include "LocalPlanner.h"
 #include "CVarHelpers.h"
+#include "LocalPlanner.h"
 
 static bool& g_bUseCentralDifferences = CVarUtils::CreateGetUnsavedCVar("debug.UseCentralDifferences",true);
 static double& g_dSuccessNorm = CVarUtils::CreateGetUnsavedCVar("debug.SuccessNorm",0.01);

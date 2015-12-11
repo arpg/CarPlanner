@@ -3,6 +3,7 @@
 
 
 #include "CarPlannerCommon.h"
+#include "CVarHelpers.h"
 #include "LocalPlanner.h"
 
 

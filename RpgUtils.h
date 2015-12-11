@@ -1,5 +1,6 @@
 #ifndef _MISC_UTILS_H_
 #define _MISC_UTILS_H_
+#include <Eigen/Eigen>
 
 namespace rpg
 {

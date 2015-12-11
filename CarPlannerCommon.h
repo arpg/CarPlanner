@@ -13,7 +13,7 @@
 #include <time.h>
 #include "boost/timer/timer.hpp"
 #include <boost/format.hpp>
-#include "sophus/se3.hpp"
+#include <sophus/se3.hpp>
 
 #ifdef __APPLE__
 #include "pthread.h"

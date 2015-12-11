@@ -2,6 +2,7 @@
 #define RIGIDBODY_H
 
 #include "Eigen/Eigen"
+#include "SE3.h"
 #include "CarPlannerCommon.h"
 
 struct State {
@@ -53,7 +54,7 @@ public:
 
 
 
-        Eigen::Matrix3d R = mvl::Cart2R(m_vW);
+        Eigen::Matrix3d R = fusion::Cart2R(m_vW);
         //if given in body coordinates, rotate them to suit
         if (bInBodyCoords == true) {
             force = R*force;
