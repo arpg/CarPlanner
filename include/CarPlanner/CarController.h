@@ -12,6 +12,7 @@ class CarController
 {
 public:
     CarController();
+    ~CarController();
 
     void Init(std::vector<MotionSample> &segmentSamples, LocalPlanner *pPlanner, BulletCarModel *pModel, double dt) ;
     void Reset();

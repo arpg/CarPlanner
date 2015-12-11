@@ -96,8 +96,6 @@ LocalPlanner::LocalPlanner() :
   pangolin::Var<int>::Attach("debug.TrajectoryCostSegments", g_nTrajectoryCostSegments);
   */
 
-    ThreadPool m_ThreadPool(PLANNER_NUM_THREADS);
-
     //weight matrix
     m_dPointWeight = Eigen::MatrixXd(POINT_COST_ERROR_TERMS,1);
     m_dTrajWeight = Eigen::MatrixXd(TRAJ_EXTRA_ERROR_TERMS+TRAJ_UNIT_ERROR_TERMS,1);
@@ -456,6 +454,12 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
     if(g_bVerbose){
         DLOG(INFO) << "Jacobian:" << J.format(CleanFmt);
     }
+
+    // One last wait to *ensure* all of the threads are finished.
+    while(m_ThreadPool.busy_threads() > 0) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
     return true;
 }
 
@@ -860,7 +864,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
 
     // error, dMinLookahead initially undefined.
     double dMinLookahead;
-    Eigen::VectorXd error = _CalculateSampleError(problem,dMinLookahead);
+    Eigen::VectorXd error;// = _CalculateSampleError(problem,dMinLookahead);
 
     LocalProblemSolution coordinateDescent;
 

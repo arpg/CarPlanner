@@ -31,6 +31,11 @@ CarController::CarController() :
   //m_vControlPlans.reserve(10);
 }
 
+CarController::~CarController() {
+  Reset();
+  m_pControlPlannerThread->join();
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 void CarController::Init(std::vector<MotionSample>& segmentSamples,LocalPlanner *pPlanner, BulletCarModel *pModel, double dt) {
     m_vSegmentSamples = segmentSamples;
