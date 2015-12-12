@@ -13,6 +13,12 @@
 #include "MochaException.h"
 #include "RpgUtils.h"
 
+/// MUST set up a Posys object using the command:
+/// PoseToNode -posys vicon://IP_address_to_vicon_machine:[NinjaCar]
+///
+/// When running PoseToNode, do NOT use a different node name; it is
+/// hard coded to be `posetonode'.
+
 
 //////////////////////////////////////////////////////////////////
 Eigen::Vector3d Quat2Euler( double *Q )
@@ -33,8 +39,12 @@ Eigen::Vector3d Quat2Euler( double *Q )
 //////////////////////////////////////////////////////////////////
 Localizer::Localizer()
 {
-    m_pLocalizerConnection = NULL;
     m_bIsStarted = false;
+    m_pNode->init("commander_node");
+    if( m_pNode->advertise("command") == false ){
+      LOG(ERROR) << "Error setting up publisher.";
+    }
+
 }
 
 //////////////////////////////////////////////////////////////////
@@ -54,28 +64,28 @@ void Localizer::TrackObject(
         bool bRobotFrame /*= true*/
         )
 {
-
-    std::string sUri = sObjectName + "@" + sHost;
+    std::string sUri = sHost + "/" + sObjectName ;
 
     TrackerObject* pObj = &m_mObjects[ sObjectName ];
 
-    pObj->m_pTracker = new vrpn_Tracker_Remote( sUri.c_str(), m_pLocalizerConnection  );
+    pObj->m_bNodeSubscribed = false;
+
+    if( pObj->m_bNodeSubscribed ) {
+      if( m_pNode->subscribe( sUri ) == false ) {
+        LOG(ERROR) << "Could not subscribe to " << sUri;
+      }
+      pObj->m_bNodeSubscribed = true;
+    }
+
     pObj->m_dToffset = dToffset;
     pObj->m_bRobotFrame = bRobotFrame;
-    pObj->m_pTracker->shutup = true;
     pObj->m_pLocalizerObject = this;
-    pObj->m_pTracker->register_change_handler( pObj, _MoCapHandler );
-
-    m_pLocalizerConnection = vrpn_get_connection_by_name( sHost.c_str() );
 }
 
 //////////////////////////////////////////////////////////////////
 Localizer::~Localizer()
 {
-    std::map< std::string, TrackerObject >::iterator it;
-    for( it = m_mObjects.begin(); it != m_mObjects.end(); it++ ){
-        delete( it->second.m_pTracker );
-    }
+  delete m_pNode;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -85,7 +95,7 @@ void Localizer::Start()
         throw MochaException("The Localizer thread has already started.");
     }
 
-    m_pThread = new boost::thread(Localizer::_ThreadFunction, this);
+    m_pThread = new boost::thread([this] () { Localizer::_ThreadFunction(this); } );
     m_bIsStarted = true;
 }
 
@@ -160,77 +170,89 @@ eLocType Localizer::WhereAmI( Eigen::Matrix<double, 6, 1 > P )
 }
 
 //////////////////////////////////////////////////////////////////
-void Localizer::_ThreadFunction(Localizer *pV)
-{
-    while (1) {
-        std::map< std::string, TrackerObject >::iterator it;
-        for( it = pV->m_mObjects.begin(); it != pV->m_mObjects.end(); it++ ) {
-            it->second.m_pTracker->mainloop();
-            boost::this_thread::interruption_point();
+void Localizer::_ThreadFunction(Localizer *pV) {
+  while (1) {
+    std::map< std::string, TrackerObject >::iterator it;
+    for( it = pV->m_mObjects.begin(); it != pV->m_mObjects.end(); it++ ) {
 
+      it->second.m_bNodeSubscribed = false;
+
+      // Subscribe to the Posys node.
+      if( !it->second.m_bNodeSubscribed ) {
+        if( m_pNode->subscribe( it->first ) == false ) {
+          LOG(ERROR) << "Could not subscribe to " << it->first;
         }
+        it->second.m_bNodeSubscribed = true;
+      }
 
-        //small sleep to not eat up all the cpu
-        usleep(1000);
-    }
-}
+      hal::PoseMsg posys;
 
-//////////////////////////////////////////////////////////////////
-void VRPN_CALLBACK Localizer::_MoCapVelHandler( void* uData, const vrpn_TRACKERVELCB tData )
-{
-    //TrackerObject* pObj = (TrackerObject*)uData;
-    //Localizer* pLocalizer = pObj->m_pLocalizerObject;
+      if( m_pNode->receive( it->first, posys ) ) {
+        if(posys.type() == hal::PoseMsg::Type::PoseMsg_Type_SE3) {
+          DLOG(INFO) << "Received Posys message with data: "
+                     << posys.pose().data(0) << " "
+                     << posys.pose().data(1) << " "
+                     << posys.pose().data(2);
+        } else {
+          LOG(ERROR) << "Incorrect Posys message type.";
+        }
+      } else if( m_pNode->subscribe( it->first ) == false ) {
+        LOG(INFO) << "Could not re-subscribe to " << it->first;
+        it->second.m_bNodeSubscribed = false;
+      } else {
+        LOG(INFO) << "Did not get a message.";
+      }
 
-    //pObj->m_dDSensorPose.block<3,1>(0,0) << tData.vel[0],tData.vel[1],tData.vel[2];
-    //double dQuats[4] = { tData.vel_quat[0], tData.vel_quat[1], tData.vel_quat[2], tData.vel_quat[3] };
-    //pObj->m_dDSensorPose.block < 3, 1 > (3, 0) = Quat2Euler( dQuats );
-}
-
-//////////////////////////////////////////////////////////////////
-void VRPN_CALLBACK Localizer::_MoCapHandler( void* uData, const vrpn_TRACKERCB tData )
-{
-    TrackerObject* pObj = (TrackerObject*)uData;
-    //lock the sensor poses as we update them
-    {
-        boost::mutex::scoped_lock lock(pObj->m_Mutex);
+      {
+        boost::mutex::scoped_lock lock(it->second.m_Mutex);
 
         Eigen::Matrix4d T;
-        if(pObj->m_bRobotFrame){
-            T << 1, 0, 0, 0,
-                    0, -1, 0, 0,
-                    0, 0, -1, 0,
-                    0, 0 , 0, 1;
-        }else{
-            T = Eigen::Matrix4d::Identity();
-        }
-        Eigen::Vector3d Pos;
-        Pos << tData.pos[0], tData.pos[1], tData.pos[2];
-
-        //get the pose and transform it as necessary
-        Sophus::SE3d Twc(Sophus::SO3d(Eigen::Quaterniond(tData.quat)),Pos);
-        pObj->m_dSensorPose = Sophus::SE3d(T) * (pObj->m_dToffset * Twc);
-
-        //now calculate the time derivative
-        double localizerTime = tData.msg_time.tv_sec + 1e-6*tData.msg_time.tv_usec;
-
-        //calculate metrics
-        if(pObj->m_dLastTime == -1){
-            pObj->m_dLastTime = localizerTime;
-            pObj->m_nNumPoses = 0;
-            pObj->m_dPoseRate = 0;
-        }else if((localizerTime - pObj->m_dLastTime) > 1){
-            pObj->m_dPoseRate = pObj->m_nNumPoses /(localizerTime - pObj->m_dLastTime) ;
-            pObj->m_dLastTime = localizerTime;
-            pObj->m_nNumPoses = 0;
+        if(it->second.m_bRobotFrame){
+          T << 1, 0, 0, 0,
+              0, -1, 0, 0,
+              0, 0, -1, 0,
+              0, 0 , 0, 1;
+        } else {
+          T = Eigen::Matrix4d::Identity();
         }
 
-        pObj->m_nNumPoses++;
+          Eigen::Vector3d Pos(posys.pose().data(0), posys.pose().data(1), posys.pose().data(2));
+          Eigen::Quaterniond Quat(posys.pose().data(3), posys.pose().data(4),
+              posys.pose().data(5), posys.pose().data(6));
 
-        pObj->m_dTime = localizerTime;
+          //get the pose and transform it as necessary
+          Sophus::SE3d Twc( Sophus::SO3d(Quat) ,Pos);
 
+          it->second.m_dSensorPose = Sophus::SE3d(T) * (it->second.m_dToffset * Twc);
+
+          //now calculate the time derivative
+          //used to be the next line, but now is modified for hal::PosysMsg.
+          //double localizerTime = tData.msg_time.tv_sec + 1e-6*tData.msg_time.tv_usec;
+          double localizerTime = posys.device_time();
+
+          //calculate metrics
+          if(it->second.m_dLastTime == -1){
+            it->second.m_dLastTime = localizerTime;
+            it->second.m_nNumPoses = 0;
+            it->second.m_dPoseRate = 0;
+          }else if((localizerTime - it->second.m_dLastTime) > 1){
+            it->second.m_dPoseRate = it->second.m_nNumPoses /(localizerTime - it->second.m_dLastTime) ;
+            it->second.m_dLastTime = localizerTime;
+            it->second.m_nNumPoses = 0;
+          }
+          it->second.m_nNumPoses++;
+          it->second.m_dTime = localizerTime;
+
+      }
+
+      //signal that the object has been update
+      it->second.m_bPoseUpdated = true;
+      it->second.m_PoseUpdated.notify_all();
     }
 
-    //signal that the object has been update
-    pObj->m_bPoseUpdated = true;
-    pObj->m_PoseUpdated.notify_all();
+    boost::this_thread::interruption_point();
+  }
+
+  //small sleep to not eat up all the cpu
+  usleep(1000);
 }

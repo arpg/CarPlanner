@@ -24,12 +24,13 @@ find_package( SceneGraph REQUIRED )
 find_package( CVars REQUIRED )
 find_package( Protobuf REQUIRED )
 find_package( Bullet REQUIRED )
+find_package( HAL REQUIRED )
 find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
 find_package( QUATLIB REQUIRED )
 find_package(Sophus REQUIRED)
 find_package( VRPN REQUIRED ) # requires some work!
 
-set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${Node_LIBRARIES} ${CVars_LIBRARIES} )
+set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${Node_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} )
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIRS}
@@ -40,6 +41,7 @@ set( _INCLUDE_DIRS
         ${BULLET_INCLUDE_DIR}
         ${SceneGraph_INCLUDE_DIRS}
         ${Pangolin_INCLUDE_DIRS}
+        ${HAL_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/..
         )

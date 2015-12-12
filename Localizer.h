@@ -20,6 +20,8 @@
     #include <vrpn_Tracker.h>
 #pragma GCC diagnostic pop
 
+#include <node/Node.h>
+#include <HAL/Messages.pb.h>
 #include <vector>
 #include "CarPlannerCommon.h"
 
@@ -46,9 +48,7 @@ class Localizer
         eLocType WhereAmI( Eigen::Vector6d P );
 
     private:
-        static void _ThreadFunction(Localizer *pVT);
-        static void VRPN_CALLBACK _MoCapHandler(void* uData, const vrpn_TRACKERCB tData );
-        static void VRPN_CALLBACK _MoCapVelHandler( void* uData, const vrpn_TRACKERVELCB tData );
+        void _ThreadFunction(Localizer *pVT);
 
     private:
 
@@ -57,7 +57,7 @@ class Localizer
             Sophus::SE3d                        m_dSensorPose;
             Sophus::SE3d                        m_dToffset;
             double                                 m_dTime;
-            vrpn_Tracker_Remote*                   m_pTracker;
+            bool																m_bNodeSubscribed;
             Localizer*                                 m_pLocalizerObject;
             boost::mutex                           m_Mutex;
             boost::condition                       m_PoseUpdated;
@@ -77,17 +77,15 @@ class Localizer
             {
                 m_dSensorPose = obj.m_dSensorPose;
                 m_dTime = obj.m_dTime;
-                m_pTracker = obj.m_pTracker;
                 m_pLocalizerObject = obj.m_pLocalizerObject;
 
             }
         };
 
         std::map< std::string,  TrackerObject >     m_mObjects;
-
+        node::node*																	m_pNode;
         bool                                        m_bIsStarted;
-        boost::thread*								m_pThread;
-        vrpn_Connection*                            m_pLocalizerConnection;
+        boost::thread*															m_pThread;
 };
 
 #endif	/* LOCALIZER_H */
