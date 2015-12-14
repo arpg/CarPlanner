@@ -1,9 +1,9 @@
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
-#include "Eigen/Eigen"
-#include "SE3.h"
-#include "CarPlannerCommon.h"
+#include <Eigen/Eigen>
+#include <CarPlanner/SE3.h>
+#include <CarPlanner/CarPlannerCommon.h>
 
 struct State {
     float x; // position

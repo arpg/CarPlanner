@@ -14,12 +14,6 @@
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
 
-//This is required to compile with Wall
-#pragma GCC diagnostic push
-    # pragma GCC diagnostic ignored "-Wunused-variable"
-    #include <vrpn_Tracker.h>
-#pragma GCC diagnostic pop
-
 #include <node/Node.h>
 #include <HAL/Messages.pb.h>
 #include <vector>

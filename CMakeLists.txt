@@ -1,5 +1,13 @@
 project( CarPlanner )
 cmake_minimum_required(VERSION 2.8)
+enable_testing()
+
+# Add to module path, so we can find our cmake modules
+list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules )
+
+STRING( TOLOWER ${PROJECT_NAME} LIBRARY_NAME )
+
+include(install_package)
 
 add_definitions(-DBT_USE_DOUBLE_PRECISION)
 add_definitions(-DBT_NO_PROFILE)
@@ -10,8 +18,6 @@ IF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 ENDIF()
 
-# Add to module path, so we can find our cmake modules
-set( CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules ${CMAKE_MODULE_PATH} )
 
 #the boost libraries that we need
 set(BOOST_LIBS thread date_time system timer)
@@ -28,13 +34,11 @@ find_package( HAL REQUIRED )
 find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
 find_package( QUATLIB REQUIRED )
 find_package(Sophus REQUIRED)
-find_package( VRPN REQUIRED ) # requires some work!
 
 set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${Node_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} )
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIRS}
-        ${VRPN_INCLUDE_DIR}
         ${EIGEN3_INCLUDE_DIR}
         ${Node_INCLUDE_DIRS}
         ${CVars_INCLUDE_DIR}
@@ -87,16 +91,25 @@ set( HDRS
    )
 
 
-add_library( CarPlanner SHARED ${SRCS} ${HDRS} )
-target_link_libraries( CarPlanner ${_LIBRARIES} )
+add_library( ${LIBRARY_NAME} SHARED ${SRCS} ${HDRS} )
+target_link_libraries( ${LIBRARY_NAME} ${_LIBRARIES} )
 
-get_target_property( _LIBRARY CarPlanner LOCATION )
-list( INSERT CAR_PLANNER_LIBRARIES 0 ${_LIBRARY} )
+install_package(
+    PKG_NAME ${PROJECT_NAME}
+    LIB_NAME ${LIBRARY_NAME}
+    VERSION 2.1
+    DESCRIPTION "CarPlanner library."
+    INSTALL_INCLUDE_DIR true
+    INSTALL_GENERATED_HEADERS ${GENERATED_HEADERS}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}
+    INCLUDE_DIRS ${_INCLUDE_DIRS}
+    LINK_LIBS ${_LIBRARIES}
+    )
 
-# Create the *Config.cmake file for the build tree.
-configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/CarPlannerConfig.cmake.in
-            ${CMAKE_CURRENT_BINARY_DIR}/CarPlannerConfig.cmake @ONLY IMMEDIATE )
+###########################
 
-# Add module to CMake package registery.
-export( PACKAGE CarPlanner )
+include(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in)
 
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+###########################

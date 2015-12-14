@@ -19,23 +19,6 @@
 /// When running PoseToNode, do NOT use a different node name; it is
 /// hard coded to be `posetonode'.
 
-
-//////////////////////////////////////////////////////////////////
-Eigen::Vector3d Quat2Euler( double *Q )
-{
-    Eigen::Vector3d X;
-
-    X(2)   = atan2((Q[2] * Q[3] + Q[0] * Q[1]) * 2,
-                   (Q[1] * Q[1] + Q[2] * Q[2])*-2 + 1) ;
-
-    X(1) = -asin((Q[0] * Q[2] - Q[1] * Q[3])*2);
-
-    X(0)   = -atan2((Q[1] * Q[2] + Q[0] * Q[3])*2,
-                    (Q[2] * Q[2] + Q[3] * Q[3])*-2 + 1 ) ;
-
-    return X;
-}
-
 //////////////////////////////////////////////////////////////////
 Localizer::Localizer()
 {
