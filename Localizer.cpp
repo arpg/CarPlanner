@@ -23,6 +23,7 @@
 Localizer::Localizer()
 {
     m_bIsStarted = false;
+    m_pNode = new node::node;
     m_pNode->init("commander_node");
     if( m_pNode->advertise("command") == false ){
       LOG(ERROR) << "Error setting up publisher.";
