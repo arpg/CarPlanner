@@ -10,7 +10,7 @@
 #include "CarPlannerCommon.h"
 #include "BulletCarModel.h"
 #include "CVarHelpers.h"
-#include "CVars/CVar.h"
+#include "cvars/CVar.h"
 #include <boost/thread.hpp>
 #include <queue>
 #include "threadpool.hpp"
