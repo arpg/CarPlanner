@@ -35,7 +35,7 @@ find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
 find_package( QUATLIB REQUIRED )
 find_package(Sophus REQUIRED)
 
-set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${Node_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} )
+set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${Node_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} ${assimp_LIBRARIES} )
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIRS}
@@ -43,6 +43,7 @@ set( _INCLUDE_DIRS
         ${Node_INCLUDE_DIRS}
         ${CVars_INCLUDE_DIR}
         ${BULLET_INCLUDE_DIR}
+        ${assimp_INCLUDE_DIRS}
         ${SceneGraph_INCLUDE_DIRS}
         ${Pangolin_INCLUDE_DIRS}
         ${HAL_INCLUDE_DIRS}
