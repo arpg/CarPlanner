@@ -11,6 +11,7 @@
 #include <vector>
 #include <sys/time.h>
 #include <time.h>
+#include <glog/logging.h>
 #include "boost/timer/timer.hpp"
 #include <boost/format.hpp>
 #include <sophus/se3.hpp>
