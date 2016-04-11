@@ -41,7 +41,7 @@ set( _INCLUDE_DIRS
         ${Sophus_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIR}
         ${Node_INCLUDE_DIRS}
-        ${CVars_INCLUDE_DIR}
+				${CVars_INCLUDE_DIRS}
         ${BULLET_INCLUDE_DIR}
         ${assimp_INCLUDE_DIRS}
         ${SceneGraph_INCLUDE_DIRS}
