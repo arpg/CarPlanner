@@ -54,7 +54,7 @@ void Localizer::TrackObject(
 
     pObj->m_bNodeSubscribed = false;
 
-    if( pObj->m_bNodeSubscribed ) {
+    if( !pObj->m_bNodeSubscribed ) {
       if( m_pNode->subscribe( sUri ) == false ) {
         LOG(ERROR) << "Could not subscribe to " << sUri;
       }
@@ -114,6 +114,7 @@ Sophus::SE3d Localizer::GetPose( const std::string& sObjectName, bool blocking/*
         obj.m_PoseUpdated.wait(lock);
     }
     obj.m_bPoseUpdated = false;
+
     Sophus::SE3d pose = m_mObjects[sObjectName].m_dSensorPose;
     if(time != NULL){
         *time = m_mObjects[sObjectName].m_dTime;
