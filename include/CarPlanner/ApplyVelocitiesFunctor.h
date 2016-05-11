@@ -4,7 +4,12 @@
 #include <vector>
 #include <cmath>
 #include <float.h>
-#include <thread>
+#include "RpgUtils.h"
+#include "CarPlannerCommon.h"
+#include "BulletCarModel.h"
+#include "CVarHelpers.h"
+#include "cvars/CVar.h"
+#include <boost/thread.hpp>
 #include <queue>
 
 #include <Eigen/LU>

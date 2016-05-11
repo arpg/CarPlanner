@@ -1,17 +1,15 @@
-#include <CarPlanner/LocalPlanner.h>
+#include "CVarHelpers.h"
+#include "LocalPlanner.h"
 
-#include "RpgUtils.h"
-
-using namespace CarPlanner;
-
-static bool g_bUseCentralDifferences = true;
-static double g_dSuccessNorm = 0.01;
-static double g_dTimeTarget = 0.00;
-static bool g_bDisableDamping = false;
-static bool g_bMonotonicCost = true;
-static bool g_bVerbose = true;
-static bool g_bTrajectoryCost = true;
-static int g_nTrajectoryCostSegments = 10;
+static bool& g_bUseCentralDifferences = CVarUtils::CreateGetUnsavedCVar("debug.UseCentralDifferences",true);
+static double& g_dSuccessNorm = CVarUtils::CreateGetUnsavedCVar("debug.SuccessNorm",0.01);
+static double& g_dTimeTarget = CVarUtils::CreateGetUnsavedCVar("debug.TimeTarget",0.00);
+//static bool& g_bUseGoalPoseStepping = CVarUtils::CreateGetCVar("debug.UseGoalPoseStepping",false);
+static bool& g_bDisableDamping = CVarUtils::CreateGetUnsavedCVar("debug.DisableDamping",false);
+static bool& g_bMonotonicCost(CVarUtils::CreateGetUnsavedCVar("debug.MonotonicCost", true,""));
+static bool& g_bVerbose(CVarUtils::CreateGetUnsavedCVar("debug.Verbose", false,""));
+static bool& g_bTrajectoryCost(CVarUtils::CreateGetUnsavedCVar("debug.TrajectoryCost", true,""));
+static int& g_nTrajectoryCostSegments(CVarUtils::CreateGetUnsavedCVar("debug.TrajectoryCostSegments", 10,""));
 
 struct ApplyCommandsThreadFunctor {
     ApplyCommandsThreadFunctor(LocalPlanner *pPlanner,
