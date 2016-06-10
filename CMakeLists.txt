@@ -24,7 +24,7 @@ set(BOOST_LIBS thread date_time system timer)
 
 
 find_package( Eigen3 REQUIRED )
-find_package(Pangolin REQUIRED)
+find_package( Pangolin REQUIRED )
 find_package( Node REQUIRED )
 find_package( SceneGraph REQUIRED )
 find_package( CVars REQUIRED )

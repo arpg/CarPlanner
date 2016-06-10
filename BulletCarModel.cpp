@@ -167,7 +167,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-//std::vector<RegressionParameter> & BulletCarModel::GetLearningParameterVector(int index)
+/*/std::vector<RegressionParameter> & BulletCarModel::GetLearningParameterVector(int index)
 //{
 //    BulletWorldInstance* pWorld = GetWorldInstance(index);
 //    //update the parameter vector
@@ -190,7 +190,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 //{
 //    BulletWorldInstance* pWorld = GetWorldInstance(index);
 //    pWorld->m_vLearningParameters = params;
-//}
+//}*/
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_GetDelayedControl(int worldId, double timeDelay, ControlCommand& delayedCommands)

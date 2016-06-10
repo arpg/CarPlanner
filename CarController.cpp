@@ -28,7 +28,7 @@ CarController::CarController() :
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void CarController::Init(std::vector<MotionSample>& segmentSamples,LocalPlanner *pPlanner, BulletCarModel *pModel, double dt) {
+void CarController::Init( std::vector<MotionSample>& segmentSamples, LocalPlanner *pPlanner, BulletCarModel *pModel, double dt ) {
     m_vSegmentSamples = segmentSamples;
     m_pModel = pModel;
     m_pPlanner = pPlanner;
