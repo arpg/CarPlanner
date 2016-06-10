@@ -22,12 +22,13 @@
 //////////////////////////////////////////////////////////////////
 Localizer::Localizer()
 {
-    m_bIsStarted = false;
     m_pNode = new node::node;
-    m_pNode->init("commander_node");
-    if( m_pNode->advertise("command") == false ){
-      LOG(ERROR) << "Error setting up publisher.";
-    }
+    m_pNode->init( "Localizer" );
+    /*if( m_pNode->advertise("poses") == false ){
+      LOG(ERROR) << "Error advertisizing topic.";
+    }*/
+
+    LOG(INFO) << "New Localizer created.";
 
 }
 
@@ -50,15 +51,20 @@ void Localizer::TrackObject(
 {
     std::string sUri = sHost + "/" + sObjectName ;
 
+    LOG(INFO) << "Tracking object at topic " << sUri << ".";
+
     TrackerObject* pObj = &m_mObjects[ sObjectName ];
 
     pObj->m_bNodeSubscribed = false;
 
-    if( pObj->m_bNodeSubscribed ) {
-      if( m_pNode->subscribe( sUri ) == false ) {
+    if( !pObj->m_bNodeSubscribed ) {
+      while( m_pNode->subscribe( sUri ) == false ) { // changed if to while
         LOG(ERROR) << "Could not subscribe to " << sUri;
+        this_thread::sleep_for( std::chrono::seconds(1) );
       }
       pObj->m_bNodeSubscribed = true;
+      LOG(INFO) << "Subscribed to " << sUri << endl;
+
     }
 
     pObj->m_dToffset = dToffset;
@@ -76,17 +82,22 @@ Localizer::~Localizer()
 void Localizer::Start()
 {
     if( m_bIsStarted == true ) {
-        throw MochaException("The Localizer thread has already started.");
+        LOG(ERROR) << "Localizer thread already started";
+        //throw MochaException("The Localizer thread has already started.");
+        return;
     }
 
     m_pThread = new boost::thread([this] () { Localizer::_ThreadFunction(this); } );
     m_bIsStarted = true;
+
+    //LOG(INFO) << "Localizer thread started.";
 }
 
 //////////////////////////////////////////////////////////////////
 void Localizer::Stop()
 {
     if( m_bIsStarted == false ) {
+        LOG(ERROR) << "No thread running!";
         //throw MochaException("No thread is running!");
         return;
     }
@@ -95,6 +106,8 @@ void Localizer::Stop()
     m_pThread->join();
 
     m_bIsStarted = false;
+
+    LOG(INFO) << "Localizer thread stopped.";
 }
 
 //////////////////////////////////////////////////////////////////
@@ -102,6 +115,7 @@ void Localizer::Stop()
 Sophus::SE3d Localizer::GetPose( const std::string& sObjectName, bool blocking/* = false */,
                                           double* time /*= NULL*/, double* rate /*= NULL*/)
 {
+
     if( m_mObjects.find( sObjectName ) == m_mObjects.end() ){
         throw MochaException("Invalid object name.");
     }
@@ -114,7 +128,8 @@ Sophus::SE3d Localizer::GetPose( const std::string& sObjectName, bool blocking/*
         obj.m_PoseUpdated.wait(lock);
     }
     obj.m_bPoseUpdated = false;
-    Sophus::SE3d pose = m_mObjects[sObjectName].m_dSensorPose;
+
+    Sophus::SE3d pose = obj.m_dSensorPose;
     if(time != NULL){
         *time = m_mObjects[sObjectName].m_dTime;
     }
@@ -160,28 +175,31 @@ void Localizer::_ThreadFunction(Localizer *pV) {
     for( it = pV->m_mObjects.begin(); it != pV->m_mObjects.end(); it++ ) {
 
       it->second.m_bNodeSubscribed = false;
+      std::string host_name = "NinjaCar/";
+      std::string topic_resource = host_name + it->first;
 
       // Subscribe to the Posys node.
       if( !it->second.m_bNodeSubscribed ) {
-        if( m_pNode->subscribe( it->first ) == false ) {
-          LOG(ERROR) << "Could not subscribe to " << it->first;
+        if( m_pNode->subscribe( topic_resource ) == false ) { // changed if to while // replaced it->first with topic_resource
+          LOG(ERROR) << "Could not subscribe to " << topic_resource;
         }
         it->second.m_bNodeSubscribed = true;
+        //LOG(INFO) << "Subscribed to " << topic_resource << endl;
       }
 
       hal::PoseMsg posys;
 
-      if( m_pNode->receive( it->first, posys ) ) {
+      if( m_pNode->receive( topic_resource, posys ) ) { // replaced it->first with topic_resource
         if(posys.type() == hal::PoseMsg::Type::PoseMsg_Type_SE3) {
-          DLOG(INFO) << "Received Posys message with data: "
+          LOG(INFO) << "Received Posys message"; /* with data: "
                      << posys.pose().data(0) << " "
                      << posys.pose().data(1) << " "
-                     << posys.pose().data(2);
+                     << posys.pose().data(2);*/
         } else {
           LOG(ERROR) << "Incorrect Posys message type.";
         }
-      } else if( m_pNode->subscribe( it->first ) == false ) {
-        LOG(INFO) << "Could not re-subscribe to " << it->first;
+      } else if( m_pNode->subscribe( topic_resource ) == false ) { // replaced it->first with topic_resource
+        LOG(INFO) << "Could not re-subscribe to " << topic_resource;
         it->second.m_bNodeSubscribed = false;
       } else {
         LOG(INFO) << "Did not get a message.";
@@ -194,20 +212,31 @@ void Localizer::_ThreadFunction(Localizer *pV) {
         if(it->second.m_bRobotFrame){
           T << 1, 0, 0, 0,
               0, -1, 0, 0,
-              0, 0, -1, 0,
+              0, 0, 1, 0,
               0, 0 , 0, 1;
         } else {
           T = Eigen::Matrix4d::Identity();
         }
 
-          Eigen::Vector3d Pos(posys.pose().data(0), posys.pose().data(1), posys.pose().data(2));
+          Eigen::Vector3d Pos(posys.pose().data(0), posys.pose().data(1), -posys.pose().data(2));
           Eigen::Quaterniond Quat(posys.pose().data(3), posys.pose().data(4),
               posys.pose().data(5), posys.pose().data(6));
 
           //get the pose and transform it as necessary
-          Sophus::SE3d Twc( Sophus::SO3d(Quat) ,Pos);
+          Sophus::SE3d Twc( Sophus::SO3d(Quat), Pos );
+
+          Eigen::Matrix4d Tlw;
+          Tlw <<  1, 0, 0, 0,
+                  0, 1, 0, 0,
+                  0, 0,-1, 0,
+                  0, 0, 0, 1;
+
+
 
           it->second.m_dSensorPose = Sophus::SE3d(T) * (it->second.m_dToffset * Twc);
+          // ^^MochaGui.cpp/_LocalizerReadFunc()/m_Localizer.GetPose()
+
+          //std::cout << it->second.m_dSensorPose << std::endl; //debugging
 
           //now calculate the time derivative
           //used to be the next line, but now is modified for hal::PosysMsg.
@@ -232,6 +261,7 @@ void Localizer::_ThreadFunction(Localizer *pV) {
       //signal that the object has been update
       it->second.m_bPoseUpdated = true;
       it->second.m_PoseUpdated.notify_all();
+      //LOG(INFO) << "Pose Updated";
     }
 
     boost::this_thread::interruption_point();

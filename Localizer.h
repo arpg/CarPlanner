@@ -16,6 +16,8 @@
 
 #include <node/Node.h>
 #include <HAL/Messages.pb.h>
+#include <HAL/Messages/Pose.h>
+#include <HAL/Messages/Matrix.h>
 #include <vector>
 #include "CarPlannerCommon.h"
 
@@ -48,20 +50,20 @@ class Localizer
 
         struct TrackerObject
         {
-            Sophus::SE3d                        m_dSensorPose;
-            Sophus::SE3d                        m_dToffset;
-            double                                 m_dTime;
-            bool																m_bNodeSubscribed;
-            Localizer*                                 m_pLocalizerObject;
-            boost::mutex                           m_Mutex;
-            boost::condition                       m_PoseUpdated;
+            Sophus::SE3d        m_dSensorPose;
+            Sophus::SE3d        m_dToffset;
+            double              m_dTime;
+            bool		        m_bNodeSubscribed;
+            Localizer*          m_pLocalizerObject;
+            boost::mutex        m_Mutex;
+            boost::condition    m_PoseUpdated;
 
             //metrics
-            double                                  m_dLastTime;
-            int                                     m_nNumPoses;
-            double                                  m_dPoseRate;
-            bool                                    m_bRobotFrame;
-            bool                                    m_bPoseUpdated;
+            double              m_dLastTime;
+            int                 m_nNumPoses;
+            double              m_dPoseRate;
+            bool                m_bRobotFrame;
+            bool                m_bPoseUpdated;
             TrackerObject() : m_dLastTime(-1), m_nNumPoses(-1) , m_bPoseUpdated(false)
             {
             }
@@ -72,14 +74,13 @@ class Localizer
                 m_dSensorPose = obj.m_dSensorPose;
                 m_dTime = obj.m_dTime;
                 m_pLocalizerObject = obj.m_pLocalizerObject;
-
             }
         };
 
         std::map< std::string,  TrackerObject >     m_mObjects;
-        node::node*																	m_pNode;
+        node::node*                                 m_pNode;
         bool                                        m_bIsStarted;
-        boost::thread*															m_pThread;
+        boost::thread*								m_pThread;
 };
 
 #endif	/* LOCALIZER_H */
