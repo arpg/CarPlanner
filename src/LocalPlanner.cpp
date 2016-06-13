@@ -1,5 +1,6 @@
-#include "CVarHelpers.h"
-#include "LocalPlanner.h"
+#include <math.h>
+#include <CarPlanner/CVarHelpers.h>
+#include <CarPlanner/LocalPlanner.h>
 
 static bool& g_bUseCentralDifferences = CVarUtils::CreateGetUnsavedCVar("debug.UseCentralDifferences",true);
 static double& g_dSuccessNorm = CVarUtils::CreateGetUnsavedCVar("debug.SuccessNorm",0.01);
@@ -521,8 +522,8 @@ void LocalPlanner::SampleAcceleration(std::vector<ControlCommand>& vCommands,
         Eigen::Vector3d dTorques = Eigen::Vector3d::Zero();
         if(t >= problem.m_dTorqueStartTime && problem.m_dTorqueStartTime != -1 && t <= (endTime)){
             dTorques(1) = problem.m_dCoefs(0) + problem.m_dCoefs(1)*(t-problem.m_dTorqueStartTime) +
-                          problem.m_dCoefs(2)*powi((t-problem.m_dTorqueStartTime),2) +
-                          problem.m_dCoefs(3)*powi((t-problem.m_dTorqueStartTime),3);
+                          problem.m_dCoefs(2)*pow((t-problem.m_dTorqueStartTime),2) +
+                          problem.m_dCoefs(3)*pow((t-problem.m_dTorqueStartTime),3);
         }
         vCommands.push_back(ControlCommand(problem.m_vAccelProfile[accelIndex].m_dAccel+(problem.m_CurrentSolution.m_dOptParams[OPT_ACCEL_DIM]/problem.m_dSegmentTime),curvature,dTorques,actualDt,0));
     }
@@ -832,9 +833,9 @@ void LocalPlanner::CalculateTorqueCoefficients(LocalProblem& problem,
         Eigen::Vector4d B;
 
         A << 1, 0              ,0                     ,0,
-                1, dAirTime, powi(dAirTime,2), powi(dAirTime,3),
-                dAirTime, powi(dAirTime,2)/2,powi(dAirTime,3)/3,powi(dAirTime,4)/4,
-                powi(dAirTime,2)/2,  powi(dAirTime,3)/6,powi(dAirTime,4)/12,powi(dAirTime,5)/20;
+                1, dAirTime, pow(dAirTime,2), pow(dAirTime,3),
+                dAirTime, pow(dAirTime,2)/2,pow(dAirTime,3)/3,pow(dAirTime,4)/4,
+                pow(dAirTime,2)/2,  pow(dAirTime,3)/6,pow(dAirTime,4)/12,pow(dAirTime,5)/20;
 
             Eigen::Matrix4d Ainertia = A / dInertia(1);
             B << problem.m_dStartTorques(1),0, -omega_v(1), angles(1) - omega_v(1)*dAirTime;

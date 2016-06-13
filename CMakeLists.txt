@@ -36,7 +36,6 @@ find_package(Sophus REQUIRED)
 
 set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${Node_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} ${assimp_LIBRARIES} )
 set( _INCLUDE_DIRS
-        ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIR}
         ${Node_INCLUDE_DIRS}
@@ -46,8 +45,8 @@ set( _INCLUDE_DIRS
         ${SceneGraph_INCLUDE_DIRS}
         ${Pangolin_INCLUDE_DIRS}
         ${HAL_INCLUDE_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/src
         )
 
 include_directories( ${_INCLUDE_DIRS} )
@@ -55,10 +54,10 @@ include_directories( ${_INCLUDE_DIRS} )
 #link_libraries( CarPlanner   OpenGLSupport )
 
 # expose these for third parties
-set( CAR_PLANNER_INCLUDE_DIRS ${_INCLUDE_DIRS}  CACHE INTERNAL "" FORCE )
-set( CAR_PLANNER_LIBRARIES  ${_LIBRARIES} CACHE INTERNAL "" FORCE )
+set( CarPlanner_INCLUDE_DIRS ${_INCLUDE_DIRS}  CACHE INTERNAL "" FORCE )
+set( CarPlanner_LIBRARIES ${_LIBRARIES} CACHE INTERNAL "" FORCE )
 
-include_directories( ${CAR_PLANNER_INCLUDE_DIRS} )
+include_directories( ${CarPlanner_INCLUDE_DIRS} )
 
 set( SRCS
         src/ApplyVelocitiesFunctor.cpp
@@ -74,6 +73,7 @@ set( SRCS
         src/CarController.cpp
         src/Localizer.cpp
         src/DirectBoundarySolver.cpp
+        src/RpgUtils.h
    )
 
 set( HDRS
@@ -104,10 +104,9 @@ install_package(
     VERSION 2.1
     DESCRIPTION "CarPlanner library."
     INSTALL_INCLUDE_DIR true
-    INSTALL_GENERATED_HEADERS ${GENERATED_HEADERS}
     DESTINATION ${CMAKE_INSTALL_PREFIX}
-    INCLUDE_DIRS ${_INCLUDE_DIRS}
-    LINK_LIBS ${_LIBRARIES}
+    INCLUDE_DIRS ${CarPlanner_INCLUDE_DIRS}
+    LINK_LIBS ${CarPlanner_LIBRARIES}
     )
 
 ###########################
