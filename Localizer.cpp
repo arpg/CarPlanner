@@ -225,14 +225,6 @@ void Localizer::_ThreadFunction(Localizer *pV) {
           //get the pose and transform it as necessary
           Sophus::SE3d Twc( Sophus::SO3d(Quat), Pos );
 
-          Eigen::Matrix4d Tlw;
-          Tlw <<  1, 0, 0, 0,
-                  0, 1, 0, 0,
-                  0, 0,-1, 0,
-                  0, 0, 0, 1;
-
-
-
           it->second.m_dSensorPose = Sophus::SE3d(T) * (it->second.m_dToffset * Twc);
           // ^^MochaGui.cpp/_LocalizerReadFunc()/m_Localizer.GetPose()
 
