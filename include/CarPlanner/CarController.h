@@ -26,6 +26,8 @@ public:
                             ControlCommand& command,
                             Eigen::Vector3d& targetVel,
                             Sophus::SE3d &dT_target);
+    float* GetMaxControlPlanTimePtr(){ return &m_dMaxControlPlanTime; }
+    float* GetLookaheadTimePtr(){ return &m_dLookaheadTime; }
     double GetLastPlanStartTime();
     bool PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut);
     static double AdjustStartingSample(const std::vector<MotionSample>& segmentSamples,
@@ -57,6 +59,8 @@ private:
     bool m_bStopping;
     bool m_bPoseUpdated;
     bool m_bFirstPose;
+    float m_dMaxControlPlanTime;
+    float m_dLookaheadTime;
     std::thread* m_pControlPlannerThread;
 
     PlanPtrList m_lControlPlans;
@@ -71,8 +75,6 @@ private:
     Eigen::Vector5d m_dLastDelta;
 
 public:
-    float m_dMaxControlPlanTime;
-    float m_dLookaheadTime;
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 
