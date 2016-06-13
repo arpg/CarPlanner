@@ -73,7 +73,6 @@ set( SRCS
         src/CarController.cpp
         src/Localizer.cpp
         src/DirectBoundarySolver.cpp
-        src/RpgUtils.h
    )
 
 set( HDRS
@@ -91,6 +90,7 @@ set( HDRS
         include/CarPlanner/RigidBody.h
         include/CarPlanner/SE3.h
         include/CarPlanner/CarPlannerCommon.h
+        include/CarPlanner/RpgUtils.h
    )
 
 string( TOLOWER ${PROJECT_NAME} LIBRARY_NAME )
