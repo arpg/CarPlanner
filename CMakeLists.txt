@@ -61,33 +61,36 @@ set( CAR_PLANNER_LIBRARIES  ${_LIBRARIES} CACHE INTERNAL "" FORCE )
 include_directories( ${CAR_PLANNER_INCLUDE_DIRS} )
 
 set( SRCS
-        ApplyVelocitiesFunctor.cpp
-        BulletCarModel.cpp
-        CarRegressor.cpp
-        LocalPlanner.cpp
-        WheelInfo.cpp
-        CarParameters.cpp
-        GLDebugDrawer.cpp
-        RaycastVehicle.cpp
-        BezierBoundarySolver.cpp
-        MochaException.cpp
-        CarController.cpp
-        Localizer.cpp
-        DirectBoundarySolver.cpp
+        src/ApplyVelocitiesFunctor.cpp
+        src/BulletCarModel.cpp
+        src/CarRegressor.cpp
+        src/LocalPlanner.cpp
+        src/WheelInfo.cpp
+        src/CarParameters.cpp
+        src/GLDebugDrawer.cpp
+        src/RaycastVehicle.cpp
+        src/BezierBoundarySolver.cpp
+        src/MochaException.cpp
+        src/CarController.cpp
+        src/Localizer.cpp
+        src/DirectBoundarySolver.cpp
    )
 
 set( HDRS
-        ApplyVelocitiesFunctor.h
-        CarPlannerCommon.h
-        BulletCarModel.h
-        Localizer.h
-        CarWheel.h
-        CarRegressor.h
-        CarController.h
-        GLDebugDrawer.h
-        CarParameters.h
-        DirectBoundarySolver.h
-        CVarHelpers.h
+  include/CarPlanner/ApplyVelocitiesFunctor.h
+        include/CarPlanner/CarPlannerCommon.h
+        include/CarPlanner/BulletCarModel.h
+        include/CarPlanner/Localizer.h
+        include/CarPlanner/CarWheel.h
+        include/CarPlanner/CarRegressor.h
+        include/CarPlanner/CarController.h
+        include/CarPlanner/GLDebugDrawer.h
+        include/CarPlanner/CarParameters.h
+        include/CarPlanner/DirectBoundarySolver.h
+        include/CarPlanner/CVarHelpers.h
+        include/CarPlanner/RigidBody.h
+        include/CarPlanner/SE3.h
+        include/CarPlanner/CarPlannerCommon.h
    )
 
 string( TOLOWER ${PROJECT_NAME} LIBRARY_NAME )
