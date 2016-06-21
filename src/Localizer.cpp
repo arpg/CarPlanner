@@ -57,7 +57,7 @@ void Localizer::TrackObject(
     pObj->m_bNodeSubscribed = false;
 
     if( !pObj->m_bNodeSubscribed ) {
-      while( m_pNode->subscribe( sUri ) == false ) { // changed if to while
+      if( m_pNode->subscribe( sUri ) == false ) { // changed if to while
         LOG(ERROR) << "Could not subscribe to " << sUri;
         this_thread::sleep_for( std::chrono::seconds(1) );
       }
@@ -217,7 +217,7 @@ void Localizer::_ThreadFunction(Localizer *pV) {
           T = Eigen::Matrix4d::Identity();
         }
 
-          Eigen::Vector3d Pos(posys.pose().data(0), posys.pose().data(1), -posys.pose().data(2));
+          Eigen::Vector3d Pos(posys.pose().data(0), -posys.pose().data(1), -posys.pose().data(2));
           Eigen::Quaterniond Quat(posys.pose().data(3), posys.pose().data(4),
               posys.pose().data(5), posys.pose().data(6));
 
