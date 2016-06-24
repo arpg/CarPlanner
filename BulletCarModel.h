@@ -22,6 +22,13 @@
 #include "RaycastVehicle.h"
 #include "sophus/se3.hpp"
 
+#include <Node/Node.h>
+#include <HAL/Messages.pb.h>
+#include <HAL/Messages/Command.h>
+#include <HAL/Messages/Matrix.h>
+
+
+
 #define CAR_UP_AXIS 2   //this is the index for the bullet Z axis
 #define CAR_FORWARD_AXIS 0   //this is the index for the bullet X axis
 #define CAR_RIGHT_AXIS 1   //this is the index for the bullet Y axis
@@ -329,6 +336,7 @@ public:
     double GetTotalWheelFriction(int worldId, double dt);
     double _CalculateWheelFriction(int wheelNum, BulletWorldInstance* pInstance, double dt);
     /////////////////////////////////////////////////////////////////////////////////////////
+    void UpdateStateFromNode();
     void UpdateState(const int &worldId,
                      const ControlCommand command,
                      const double forceDt = -1,
@@ -378,6 +386,7 @@ protected:
 
     std::vector< BulletWorldInstance * > m_vWorlds;
     //HeightMap *m_pHeightMap;
+    node::node m_Node;  // Node for receiving car commands
 
     Eigen::Vector3d m_dGravity;
     unsigned int m_nNumWorlds;

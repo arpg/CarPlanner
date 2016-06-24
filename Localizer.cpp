@@ -58,7 +58,7 @@ void Localizer::TrackObject(
     pObj->m_bNodeSubscribed = false;
 
     if( !pObj->m_bNodeSubscribed ) {
-      while( m_pNode->subscribe( sUri ) == false ) { // changed if to while
+      if( m_pNode->subscribe( sUri ) == false ) { // changed if to while
         LOG(ERROR) << "Could not subscribe to " << sUri;
         this_thread::sleep_for( std::chrono::seconds(1) );
       }
@@ -191,7 +191,7 @@ void Localizer::_ThreadFunction(Localizer *pV) {
 
       if( m_pNode->receive( topic_resource, posys ) ) { // replaced it->first with topic_resource
         if(posys.type() == hal::PoseMsg::Type::PoseMsg_Type_SE3) {
-          LOG(INFO) << "Received Posys message"; /* with data: "
+          /*LOG(INFO) << "Received Posys message"; / with data: "
                      << posys.pose().data(0) << " "
                      << posys.pose().data(1) << " "
                      << posys.pose().data(2);*/

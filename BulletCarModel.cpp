@@ -97,6 +97,9 @@ void BulletCarModel::GenerateStaticHull( const struct aiScene *pAIScene, const s
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds )
 {
+    //initialize commands node
+    m_Node.init( "BulletCarModel" );
+
     m_nNumWorlds = numWorlds;
     //initialize a number of worlds
     for(size_t ii = 0 ; ii < m_nNumWorlds ; ii++) {
@@ -116,6 +119,9 @@ void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dM
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &parameters, unsigned int numWorlds )
 {
+    //initialize commands node
+    m_Node.init( "BulletCarModel" );
+
     aiNode *pAINode = pAIScene->mRootNode;
 
     //generate the triangle mesh
@@ -398,6 +404,131 @@ double BulletCarModel::GetTotalGravityForce(BulletWorldInstance* pWorld)
     return -force;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+void BulletCarModel::UpdateStateFromNode()
+{
+    // Read in current command using Node
+    //////////////////////////////
+    hal::CommanderMsg cmd;
+    int worldId;
+    double force, curvature, dt, phi;
+    Eigen::Vector3d torques;
+    double forceDt = -1;
+    bool bNoDelay;
+    bool bNoUpdate;
+
+    // MochaGui is the node in MochaGui.cpp
+    // Commands is the topic on which that node is broadcasting commands
+    while ( !m_Node.receive( "MochaGui/Commands", cmd ) )
+    {
+        usleep(1000);
+        LOG(ERROR) << "Did not receive command";
+    }
+
+    hal::ReadCommand( cmd, &worldId, &force, &curvature, &torques, &dt, &phi, &bNoDelay, &bNoUpdate);
+    ControlCommand command(force, curvature, torques, dt, phi);
+    //////////////////////////////
+
+    ControlCommand delayedCommands;
+    BulletWorldInstance* pWorld = GetWorldInstance(worldId);
+
+    if(pWorld->m_dTime == -1 && forceDt == -1 )   {
+        pWorld->m_dTime = Tic();
+        return;
+    }
+
+    //calculate the time since the last iteration
+    double dT = Toc( pWorld->m_dTime );
+    pWorld->m_dTime = Tic();
+
+    if( forceDt != -1 ){
+        dT = forceDt;
+    }
+
+    delayedCommands = command;
+    delayedCommands.m_dT = dT;
+    if(bNoDelay == false){
+        PushDelayedControl(worldId,delayedCommands);
+        //get the delayed command
+        _GetDelayedControl(worldId, pWorld->m_Parameters[CarParameters::ControlDelay],delayedCommands);
+    }
+    //get the delayed commands for execution and remove the offsets
+    double dCorrectedForce = delayedCommands.m_dForce- pWorld->m_Parameters[CarParameters::AccelOffset]*SERVO_RANGE;
+    double dCorrectedPhi = delayedCommands.m_dPhi-pWorld->m_Parameters[CarParameters::SteeringOffset]*SERVO_RANGE;
+
+    //D.C. motor equations:
+    //torque = Pwm*Ts - slope*V
+    //TODO: make this velocity in the direction of travel
+    const double stallTorque = dCorrectedForce*pWorld->m_Parameters[CarParameters::StallTorqueCoef];
+    dCorrectedForce = sgn(stallTorque)*std::max(0.0,fabs(stallTorque) -
+                      pWorld->m_Parameters[CarParameters::TorqueSpeedSlope]*fabs(pWorld->m_state.m_dV.norm()));
+
+    //now apply the offset and scale values to the force and steering commands
+    dCorrectedPhi = dCorrectedPhi/(pWorld->m_Parameters[CarParameters::SteeringCoef]*SERVO_RANGE);
+
+    //clamp the steering
+    dCorrectedPhi = SoftMinimum(pWorld->m_Parameters[CarParameters::MaxSteering],
+                    SoftMaximum(dCorrectedPhi,-pWorld->m_Parameters[CarParameters::MaxSteering],10),10);
+
+    //steering needs to be flipped due to the way RayCastVehicle works
+    dCorrectedPhi *= -1;
+
+    //rate-limit the steering
+    double dCurrentSteering = pWorld->m_pVehicle->GetAckermanSteering();
+    double dRate = (dCorrectedPhi-dCurrentSteering)/dT;
+    //clamp the rate
+    dRate = sgn(dRate) * std::min(fabs(dRate),pWorld->m_Parameters[CarParameters::MaxSteeringRate]);
+    //apply the steering
+    dCorrectedPhi = dCurrentSteering+dRate*dT;
+
+    double wheelForce = dCorrectedForce/2;
+
+    int wheelIndex = 2;
+    pWorld->m_pVehicle->applyEngineForce(wheelForce,wheelIndex);
+    wheelIndex = 3;
+    pWorld->m_pVehicle->applyEngineForce(wheelForce,wheelIndex);
+
+    wheelIndex = 0;
+    //set the steering value
+    pWorld->m_pVehicle->SetAckermanSteering(dCorrectedPhi);
+
+    if (pWorld->m_pDynamicsWorld && bNoUpdate==false)
+    {
+        Eigen::Vector3d T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
+        btVector3 bTorques(T_w[0],T_w[1], T_w[2]);
+        pWorld->m_pVehicle->getRigidBody()->applyTorque(bTorques);
+        //dout("Sending torque vector " << T_w.transpose() << " to car.");
+        pWorld->m_pDynamicsWorld->stepSimulation(dT,1,dT);
+    }
+
+
+    //do this in a critical section
+    {
+        boost::mutex::scoped_lock lock(*pWorld);
+        //get chassis data from bullet
+        Eigen::Matrix4d Twv;
+        pWorld->m_pVehicle->getChassisWorldTransform().getOpenGLMatrix(Twv.data());
+        pWorld->m_state.m_dTwv = Sophus::SE3d(Twv);
+
+        if(pWorld->m_state.m_vWheelStates.size() != pWorld->m_pVehicle->getNumWheels()) {
+            pWorld->m_state.m_vWheelStates.resize(pWorld->m_pVehicle->getNumWheels());
+            pWorld->m_state.m_vWheelContacts.resize(pWorld->m_pVehicle->getNumWheels());
+        }
+        for(size_t ii = 0; ii < pWorld->m_pVehicle->getNumWheels() ; ii++) {
+            //m_pVehicle->updateWheelTransform(ii,true);
+            pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.getOpenGLMatrix(Twv.data());
+            pWorld->m_state.m_vWheelStates[ii] = Sophus::SE3d(Twv);
+            pWorld->m_state.m_vWheelContacts[ii] = pWorld->m_pVehicle->getWheelInfo(ii).m_raycastInfo.m_isInContact;
+        }
+
+        //get the velocity
+        pWorld->m_state.m_dV << pWorld->m_pVehicle->getRigidBody()->getLinearVelocity()[0], pWorld->m_pVehicle->getRigidBody()->getLinearVelocity()[1], pWorld->m_pVehicle->getRigidBody()->getLinearVelocity()[2];
+        pWorld->m_state.m_dW << pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[0], pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[1], pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[2];
+
+        //set the steering
+        pWorld->m_state.m_dSteering = pWorld->m_pVehicle->GetAckermanSteering();
+    }
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
