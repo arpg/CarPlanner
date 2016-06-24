@@ -1,4 +1,4 @@
-#include "CarController.h"
+#include <CarPlanner/CarController.h>
 
 
 static bool& g_bShow2DResult = CVarUtils::CreateGetUnsavedCVar("debug.Show2DResult",false);
@@ -492,11 +492,18 @@ void CarController::GetCurrentCommands(const double time,
     PlanPtrList::iterator nCurrentPlanIndex;
     double interpolationAmount;
     _GetCurrentPlanIndex(time,nCurrentPlanIndex,nCurrentSampleIndex,interpolationAmount);
+
+
+
     if( nCurrentSampleIndex == -1 || nCurrentPlanIndex == m_lControlPlans.end() ) {
+
         //dout("GetCurrentCommands returning last commands a:" << m_dLastAccel << " c:" << m_dLastTurnRate << " t:" << m_dLastTorques.transpose());
+        std::cout << "1" << std::endl;
         command.m_dForce = m_pModel->GetParameters(0)[CarParameters::AccelOffset]*SERVO_RANGE;
+        std::cout << "2" << std::endl;
         command.m_dPhi = m_pModel->GetParameters(0)[CarParameters::SteeringOffset]*SERVO_RANGE;
         command.m_dTorque = Eigen::Vector3d::Zero();//m_dLastTorques;
+
         //dout("Torque output of: [ " << torques.transpose() << "] from previous plan");
     }else {
         command.m_dForce = (1-interpolationAmount) * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex].m_dForce +
@@ -515,6 +522,8 @@ void CarController::GetCurrentCommands(const double time,
 
         //dout("v: " << m_vSegmentSamples[(*nCurrentPlanIndex)->m_nStartSegmentIndex].m_vStates[(*nCurrentPlanIndex)->m_nStartSampleIndex].m_dV.transpose());
         //calculate target values
+
+
 
         int currentSegIndex, currentSampleIndex;
         currentSegIndex = (*nCurrentPlanIndex)->m_nStartSegmentIndex;

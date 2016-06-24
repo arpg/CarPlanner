@@ -1,5 +1,5 @@
-#include "ApplyVelocitiesFunctor.h"
-#include "LocalPlanner.h"
+#include <CarPlanner/ApplyVelocitiesFunctor.h>
+#include <CarPlanner/LocalPlanner.h>
 #include "Eigen/StdVector"
 
 static bool& g_bSkidCompensationActive(CVarUtils::CreateCVar("debug.SkidCompensationActive", false, ""));
