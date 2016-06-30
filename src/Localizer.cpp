@@ -175,34 +175,37 @@ void Localizer::_ThreadFunction(Localizer *pV) {
     for( it = pV->m_mObjects.begin(); it != pV->m_mObjects.end(); it++ ) {
 
       it->second.m_bNodeSubscribed = false;
-      std::string host_name = "NinjaCar/";
+      // This must be changed to switch between Experiment and Experiment+SIM
+      std::string host_name = "BulletCarModel/";
       std::string topic_resource = host_name + it->first;
 
       // Subscribe to the Posys node.
       if( !it->second.m_bNodeSubscribed ) {
         if( m_pNode->subscribe( topic_resource ) == false ) { // changed if to while // replaced it->first with topic_resource
-          LOG(ERROR) << "Could not subscribe to " << topic_resource;
+          LOG(ERROR) << "Localizer could not subscribe to " << topic_resource;
         }
-        it->second.m_bNodeSubscribed = true;
-        //LOG(INFO) << "Subscribed to " << topic_resource << endl;
+        else {
+            it->second.m_bNodeSubscribed = true;
+            LOG(INFO) << "Localizer subscribed to " << topic_resource << endl;
+        }
       }
 
       hal::PoseMsg posys;
 
       if( m_pNode->receive( topic_resource, posys ) ) { // replaced it->first with topic_resource
         if(posys.type() == hal::PoseMsg::Type::PoseMsg_Type_SE3) {
-          /*LOG(INFO) << "Received Posys message"; / with data: "
+          LOG(INFO) << "Localizer received Posys message with data: "
                      << posys.pose().data(0) << " "
                      << posys.pose().data(1) << " "
-                     << posys.pose().data(2);*/
+                     << posys.pose().data(2);
         } else {
           LOG(ERROR) << "Incorrect Posys message type.";
         }
       } else if( m_pNode->subscribe( topic_resource ) == false ) { // replaced it->first with topic_resource
-        LOG(INFO) << "Could not re-subscribe to " << topic_resource;
+        LOG(INFO) << "Localizer could not re-subscribe to " << topic_resource;
         it->second.m_bNodeSubscribed = false;
       } else {
-        LOG(INFO) << "Did not get a message.";
+        LOG(INFO) << "Localizer did not get a message.";
       }
 
       {

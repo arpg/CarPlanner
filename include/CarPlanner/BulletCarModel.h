@@ -22,10 +22,14 @@
 #include "RaycastVehicle.h"
 #include "sophus/se3.hpp"
 
+#include <stdio.h>
+#include <chrono>
+#include <thread>
 #include <Node/Node.h>
 #include <HAL/Messages.pb.h>
 #include <HAL/Messages/Command.h>
 #include <HAL/Messages/Matrix.h>
+#include <HAL/Messages/Pose.h>
 
 
 
@@ -324,11 +328,15 @@ public:
     BulletCarModel();
     ~BulletCarModel();
 
+    void _PoseThreadFunc();
+    void _CommandThreadFunc();
+    std::string m_sTopic;
+
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);
     /////////////////////////////////////////////////////////////////////////////////////////
     static void GenerateStaticHull(const struct aiScene *pAIScene, const struct aiNode *pAINode, const aiMatrix4x4 parentTransform, const float flScale, btTriangleMesh &triangleMesh , btVector3& dMin, btVector3& dMax);
-    void Init(btCollisionShape *pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds );
-    void Init(const struct aiScene *pAIScene,CarParameterMap& parameters, unsigned int numWorlds );
+    void Init(btCollisionShape *pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds, bool real );
+    void Init(const struct aiScene *pAIScene,CarParameterMap& parameters, unsigned int numWorlds, bool real );
     void DebugDrawWorld(int worldId);
 
     std::pair<double, double> GetSteeringRequiredAndMaxForce(const int nWorldId, const int nWheelId, const double dPhi, const double dt);
@@ -386,7 +394,10 @@ protected:
 
     std::vector< BulletWorldInstance * > m_vWorlds;
     //HeightMap *m_pHeightMap;
-    node::node m_Node;  // Node for receiving car commands
+    node::node m_rNode;     // Node for receiving car commands
+    node::node m_sNode;     // Node for broadcasting pose data
+    boost::thread* m_pPoseThread;
+    boost::thread* m_pCommandThread;
 
     Eigen::Vector3d m_dGravity;
     unsigned int m_nNumWorlds;

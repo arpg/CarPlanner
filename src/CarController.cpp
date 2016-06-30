@@ -498,9 +498,7 @@ void CarController::GetCurrentCommands(const double time,
     if( nCurrentSampleIndex == -1 || nCurrentPlanIndex == m_lControlPlans.end() ) {
 
         //dout("GetCurrentCommands returning last commands a:" << m_dLastAccel << " c:" << m_dLastTurnRate << " t:" << m_dLastTorques.transpose());
-        std::cout << "1" << std::endl;
         command.m_dForce = m_pModel->GetParameters(0)[CarParameters::AccelOffset]*SERVO_RANGE;
-        std::cout << "2" << std::endl;
         command.m_dPhi = m_pModel->GetParameters(0)[CarParameters::SteeringOffset]*SERVO_RANGE;
         command.m_dTorque = Eigen::Vector3d::Zero();//m_dLastTorques;
 
