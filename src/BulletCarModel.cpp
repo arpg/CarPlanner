@@ -258,10 +258,10 @@ void BulletCarModel::_PoseThreadFunc()
         pose->set_data( 0, x);                // x
         pose->set_data( 1, y);                // y
         pose->set_data( 2, z);                // z
-        pose->set_data( 3, rpy.data()[0]);
-        pose->set_data( 4, rpy.data()[1]);
-        pose->set_data( 5, rpy.data()[2]);
-        pose->set_data( 6, rpy.data()[3]);
+        pose->set_data( 3, rpy.data()[0] );
+        pose->set_data( 4, rpy.data()[1] );
+        pose->set_data( 5, rpy.data()[2] );
+        pose->set_data( 6, rpy.data()[3] );
 
         message->set_id(m++);
         //message->set_device_time( std::chrono::system_clock.now() );
