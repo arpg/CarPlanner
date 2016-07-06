@@ -25,12 +25,22 @@
 #include <stdio.h>
 #include <chrono>
 #include <thread>
+#include <string.h>
+#include <unistd.h>
 #include <Node/Node.h>
 #include <HAL/Messages.pb.h>
 #include <HAL/Messages/Command.h>
 #include <HAL/Messages/Matrix.h>
 #include <HAL/Messages/Pose.h>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <google/protobuf/message.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 
 
 #define CAR_UP_AXIS 2   //this is the index for the bullet Z axis
@@ -330,7 +340,29 @@ public:
 
     void _PoseThreadFunc();
     void _CommandThreadFunc();
-    std::string m_sTopic;
+
+    // UDP values
+    unsigned m_CarPort;
+    unsigned m_LocPort;
+    unsigned m_ComPort;
+    unsigned m_MochPort;
+    struct sockaddr_in carAddr;
+    struct sockaddr_in locAddr;
+    struct sockaddr_in comAddr;
+    struct sockaddr_in mochAddr;
+    socklen_t addrLen = sizeof(locAddr);
+    int recvLen;
+    int comRecvLen;
+    int sockFD;
+    int comSockFD;
+    unsigned char buf[2048];
+    unsigned char comBuf[2048];
+    unsigned int msgSize = 0;
+    unsigned int comMsgSize = 0;
+    hal::CommanderMsg* cmd;
+    hal::PoseMsg* message;
+    hal::VectorMsg* pose;
+    hal::MatrixMsg* covar;
 
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);
     /////////////////////////////////////////////////////////////////////////////////////////

@@ -11,13 +11,12 @@
 BulletCarModel::BulletCarModel()
 {
     m_dGravity << 0,0,BULLET_MODEL_GRAVITY;
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 BulletCarModel::~BulletCarModel()
 {
-
+    close(sockFD);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -97,12 +96,40 @@ void BulletCarModel::GenerateStaticHull( const struct aiScene *pAIScene, const s
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds, bool real )
 {
-    m_sTopic = "Compass";
-    //initialize commands node
-    m_rNode.init( "rBulletCarModel" );
-    m_sNode.init( "sBulletCarModel" );
-    if ( !m_sNode.advertise( m_sTopic ) ) LOG(ERROR) << "Error advertising topic";
-    else LOG(INFO) << "sBulletCarModel/Compass advertised";
+    if ( real ) {
+        //////////////////
+        m_CarPort = 1640;
+        m_LocPort = 1641;
+        m_ComPort = 1642;
+        m_MochPort = 1643;
+
+        if ( ( comSockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+        if ( ( sockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+
+        memset( (char*)&carAddr, 0, addrLen );
+        carAddr.sin_family = AF_INET;
+        carAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        carAddr.sin_port = htons( m_CarPort );
+
+        memset( (char*)&comAddr, 0, addrLen );
+        comAddr.sin_family = AF_INET;
+        comAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        comAddr.sin_port = htons( m_ComPort );
+
+        if ( bind( sockFD, (struct sockaddr*)&carAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_CarPort;
+        if ( bind( comSockFD, (struct sockaddr*)&comAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_ComPort;
+
+        memset( (char*)&locAddr, 0, addrLen );
+        locAddr.sin_family = AF_INET;
+        locAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        locAddr.sin_port = htons( m_LocPort );
+
+        memset( (char*)&mochAddr, 0, addrLen );
+        mochAddr.sin_family = AF_INET;
+        mochAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        mochAddr.sin_port = htons( m_MochPort );
+        //////////////////
+    }
 
     m_nNumWorlds = numWorlds;
     //initialize a number of worlds
@@ -128,12 +155,40 @@ void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dM
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &parameters, unsigned int numWorlds, bool real )
 {
-    m_sTopic = "Compass";
-    //initialize commands node
-    m_rNode.init( "rBulletCarModel" );
-    m_sNode.init( "sBulletCarModel" );
-    if ( !m_sNode.advertise( m_sTopic ) ) LOG(ERROR) << "Error advertising topic";
-    else LOG(INFO) << "sBulletCarModel/Compass advertised";
+    if ( real ) {
+        //////////////////
+        m_CarPort = 1640;
+        m_LocPort = 1641;
+        m_ComPort = 1642;
+        m_MochPort = 1643;
+
+        if ( ( comSockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+        if ( ( sockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+
+        memset( (char*)&carAddr, 0, addrLen );
+        carAddr.sin_family = AF_INET;
+        carAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        carAddr.sin_port = htons( m_CarPort );
+
+        memset( (char*)&comAddr, 0, addrLen );
+        comAddr.sin_family = AF_INET;
+        comAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        comAddr.sin_port = htons( m_ComPort );
+
+        if ( bind( sockFD, (struct sockaddr*)&carAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_CarPort;
+        if ( bind( comSockFD, (struct sockaddr*)&comAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_ComPort;
+
+        memset( (char*)&locAddr, 0, addrLen );
+        locAddr.sin_family = AF_INET;
+        locAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        locAddr.sin_port = htons( m_LocPort );
+
+        memset( (char*)&mochAddr, 0, addrLen );
+        mochAddr.sin_family = AF_INET;
+        mochAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        mochAddr.sin_port = htons( m_MochPort );
+        //////////////////
+    }
 
     aiNode *pAINode = pAIScene->mRootNode;
 
@@ -173,11 +228,9 @@ void BulletCarModel::_PoseThreadFunc()
     float x = 0, y = 0, z = 0, i = 0, j = 0, k = 0;
     VehicleState state;
 
-    hal::PoseMsg* message = new hal::PoseMsg(); // New pose message
-    hal::VectorMsg* pose = new hal::VectorMsg(); // Vector for holding pose
-    hal::MatrixMsg* covar = new hal::MatrixMsg(); // Matrix for holding covariance (column major)
-
-    message->set_type( hal::PoseMsg_Type_SE3 ); // Set pose to Sophus SE3 data type ( ijkw | xyz )
+    message = new hal::PoseMsg(); // New pose message
+    pose = new hal::VectorMsg(); // Vector for holding pose
+    covar = new hal::MatrixMsg(); // Matrix for holding covariance (column major)
 
     pose->add_data(0);  // i
     pose->add_data(0);  // j
@@ -255,19 +308,24 @@ void BulletCarModel::_PoseThreadFunc()
 
         Sophus::SO3d rpy(i,j,k);
 
-        pose->set_data( 0, x);                // x
-        pose->set_data( 1, y);                // y
-        pose->set_data( 2, z);                // z
+        pose->set_data( 0, x );                // x
+        pose->set_data( 1, y );                // y
+        pose->set_data( 2, z );                // z
         pose->set_data( 3, rpy.data()[0] );
         pose->set_data( 4, rpy.data()[1] );
         pose->set_data( 5, rpy.data()[2] );
         pose->set_data( 6, rpy.data()[3] );
 
         message->set_id(m++);
-        //message->set_device_time( std::chrono::system_clock.now() );
-        //cout << "Sending Pose (" << x << "," << y << "," << z <<") on " << nodeName << "/" << topic << endl;
-        m_sNode.publish( m_sTopic, *message ); // Publish PoseMsg to topic
-        //this_thread::sleep_for( chrono::milliseconds( (int)((1/(double)30.0) * 1000) ) ); // Wait for update rate to simulate desired baud
+        message->set_type( hal::PoseMsg_Type_SE3 ); // Set pose to Sophus SE3 data type ( ijkw | xyz )
+
+        unsigned char buffer[message->ByteSize() + 4];
+
+        google::protobuf::io::ArrayOutputStream aos( buffer, sizeof(buffer) );
+        google::protobuf::io::CodedOutputStream coded_output( &aos );
+        coded_output.WriteVarint32( message->ByteSize() );
+        message->SerializeToCodedStream( &coded_output );
+        if ( sendto( sockFD, (char*)buffer, coded_output.ByteCount(), 0, (struct sockaddr*)&locAddr, addrLen ) < 0 ) LOG(ERROR) << "Did not send message";
         usleep( (int)( ( 1 / (double)30.0 ) * 1000 ) );
     }
 }
@@ -283,12 +341,25 @@ void BulletCarModel::_CommandThreadFunc()
     double forceDt = -1;
     bool bNoDelay;
     bool bNoUpdate;
-    bool m_bIsSubscribed = false;
 
     while(1)
     {
-        m_bIsSubscribed = false;
+        cmd = new hal::CommanderMsg();
 
+        //UDP receive cmd from MochaGui
+        comRecvLen = recvfrom( comSockFD, comBuf, 2048, 0, (struct sockaddr*)&mochAddr, &addrLen );
+        if ( comRecvLen > 0 ) {
+            buf[comRecvLen] = 0;
+            google::protobuf::io::ArrayInputStream ais( comBuf, comRecvLen );
+            google::protobuf::io::CodedInputStream coded_input( &ais );
+            coded_input.ReadVarint32( &comMsgSize );
+            google::protobuf::io::CodedInputStream::Limit limit = coded_input.PushLimit( comMsgSize );
+            cmd->ParseFromCodedStream( &coded_input );
+            coded_input.PopLimit( limit );
+        }
+
+        /*
+        m_bIsSubscribed = false;
         if ( !m_bIsSubscribed )
         {
             if ( !m_rNode.subscribe( "MochaGui/Commands" ) ) {
@@ -321,8 +392,8 @@ void BulletCarModel::_CommandThreadFunc()
         }
 
         std::cout << "Reading Command" << std::endl;
-
-        hal::ReadCommand( cmd, &worldId, &force, &curvature, &torques, &dt, &phi, &bNoDelay, &bNoUpdate);
+        */
+        hal::ReadCommand( *cmd, &worldId, &force, &curvature, &torques, &dt, &phi, &bNoDelay, &bNoUpdate);
         ControlCommand command(force, curvature, torques, dt, phi);
         //////////////////////////////
 

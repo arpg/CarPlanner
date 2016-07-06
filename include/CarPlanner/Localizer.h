@@ -19,7 +19,18 @@
 #include <HAL/Messages/Pose.h>
 #include <HAL/Messages/Matrix.h>
 #include <vector>
+#include <string.h>
+#include <unistd.h>
 #include "CarPlannerCommon.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <google/protobuf/message.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 
 
 //struct MochaEntity
@@ -45,6 +56,18 @@ class Localizer
 
     private:
         void _ThreadFunction(Localizer *pVT);
+
+        // UDP values
+        unsigned m_CarPort;
+        unsigned m_LocPort;
+        struct sockaddr_in locAddr;
+        struct sockaddr_in carAddr;
+        socklen_t addrLen = sizeof(locAddr);
+        int recvLen;
+        int sockFD;
+        unsigned char buf[2048];
+        unsigned int msgSize = 0;
+        hal::PoseMsg posys;
 
     private:
 

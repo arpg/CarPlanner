@@ -22,11 +22,19 @@
 //////////////////////////////////////////////////////////////////
 Localizer::Localizer()
 {
-    m_pNode = new node::node;
-    m_pNode->init( "Localizer" );
-    /*if( m_pNode->advertise("poses") == false ){
-      LOG(ERROR) << "Error advertisizing topic.";
-    }*/
+    //////////////////
+    m_CarPort = 1640;
+    m_LocPort = 1641;
+
+    if ( ( sockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+
+    memset( (char*)&locAddr, 0, addrLen );
+    locAddr.sin_family = AF_INET;
+    locAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+    locAddr.sin_port = htons( m_LocPort );
+
+    if ( ::bind( sockFD, (struct sockaddr*)&locAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_LocPort;
+    //////////////////
 
     LOG(INFO) << "New Localizer created.";
 
@@ -57,7 +65,7 @@ void Localizer::TrackObject(
 
     pObj->m_bNodeSubscribed = false;
 
-    if( !pObj->m_bNodeSubscribed ) {
+    /*if( !pObj->m_bNodeSubscribed ) {
       if( m_pNode->subscribe( sUri ) == false ) { // changed if to while
         LOG(ERROR) << "Could not subscribe to " << sUri;
         this_thread::sleep_for( std::chrono::seconds(1) );
@@ -65,7 +73,7 @@ void Localizer::TrackObject(
       pObj->m_bNodeSubscribed = true;
       LOG(INFO) << "Subscribed to " << sUri << endl;
 
-    }
+    }*/
 
     pObj->m_dToffset = dToffset;
     pObj->m_bRobotFrame = bRobotFrame;
@@ -104,6 +112,8 @@ void Localizer::Stop()
 
     m_pThread->interrupt();
     m_pThread->join();
+
+    close(sockFD);
 
     m_bIsStarted = false;
 
@@ -174,7 +184,25 @@ void Localizer::_ThreadFunction(Localizer *pV) {
     std::map< std::string, TrackerObject >::iterator it;
     for( it = pV->m_mObjects.begin(); it != pV->m_mObjects.end(); it++ ) {
 
-      it->second.m_bNodeSubscribed = false;
+      //it->second.m_bNodeSubscribed = false;
+      recvLen = recvfrom( sockFD, buf, 2048, 0, (struct sockaddr*)&carAddr, &addrLen );
+      if (recvLen > 0) {
+          buf[recvLen] = 0;
+          google::protobuf::io::ArrayInputStream ais( buf, recvLen );
+          google::protobuf::io::CodedInputStream coded_input( &ais );
+          if ( !coded_input.ReadVarint32( &msgSize ) ) LOG(ERROR) << "Did not receive full message";
+          google::protobuf::io::CodedInputStream::Limit limit = coded_input.PushLimit( msgSize );
+          posys.ParseFromCodedStream( &coded_input );
+          coded_input.PopLimit( limit );
+          LOG(INFO) << "Localizer received Posys message with data: "
+                      << posys.pose().data(0) << " "
+                      << posys.pose().data(1) << " "
+                      << posys.pose().data(2);
+      }
+
+
+
+      /*
       // This must be changed to switch between Experiment and Experiment+SIM
       std::string host_name = "BulletCarModel/";
       std::string topic_resource = host_name + it->first;
@@ -207,6 +235,7 @@ void Localizer::_ThreadFunction(Localizer *pV) {
       } else {
         LOG(INFO) << "Localizer did not get a message.";
       }
+      */
 
       {
         boost::mutex::scoped_lock lock(it->second.m_Mutex);
