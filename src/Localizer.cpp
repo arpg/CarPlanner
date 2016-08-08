@@ -194,10 +194,10 @@ void Localizer::_ThreadFunction(Localizer *pV) {
           google::protobuf::io::CodedInputStream::Limit limit = coded_input.PushLimit( msgSize );
           posys.ParseFromCodedStream( &coded_input );
           coded_input.PopLimit( limit );
-          LOG(INFO) << "Localizer received Posys message with data: "
+          /*LOG(INFO) << "Localizer received Posys message with data: "
                       << posys.pose().data(0) << " "
                       << posys.pose().data(1) << " "
-                      << posys.pose().data(2);
+                      << posys.pose().data(2);*/
       }
 
 
