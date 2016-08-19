@@ -1,4 +1,4 @@
-#include "DirectBoundarySolver.h"
+#include <CarPlanner/DirectBoundarySolver.h>
 
 DirectBoundarySolver::DirectBoundarySolver()
 {

@@ -16,8 +16,21 @@
 
 #include <node/Node.h>
 #include <HAL/Messages.pb.h>
+#include <HAL/Messages/Pose.h>
+#include <HAL/Messages/Matrix.h>
 #include <vector>
+#include <string.h>
+#include <unistd.h>
 #include "CarPlannerCommon.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <google/protobuf/message.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 
 
 //struct MochaEntity
@@ -44,24 +57,36 @@ class Localizer
     private:
         void _ThreadFunction(Localizer *pVT);
 
+        // UDP values
+        unsigned m_CarPort;
+        unsigned m_LocPort;
+        struct sockaddr_in locAddr;
+        struct sockaddr_in carAddr;
+        socklen_t addrLen = sizeof(locAddr);
+        int recvLen;
+        int sockFD;
+        unsigned char buf[2048];
+        unsigned int msgSize = 0;
+        hal::PoseMsg posys;
+
     private:
 
         struct TrackerObject
         {
-            Sophus::SE3d                        m_dSensorPose;
-            Sophus::SE3d                        m_dToffset;
-            double                                 m_dTime;
-            bool																m_bNodeSubscribed;
-            Localizer*                                 m_pLocalizerObject;
-            boost::mutex                           m_Mutex;
-            boost::condition                       m_PoseUpdated;
+            Sophus::SE3d        m_dSensorPose;
+            Sophus::SE3d        m_dToffset;
+            double              m_dTime;
+            bool		        m_bNodeSubscribed;
+            Localizer*          m_pLocalizerObject;
+            boost::mutex        m_Mutex;
+            boost::condition    m_PoseUpdated;
 
             //metrics
-            double                                  m_dLastTime;
-            int                                     m_nNumPoses;
-            double                                  m_dPoseRate;
-            bool                                    m_bRobotFrame;
-            bool                                    m_bPoseUpdated;
+            double              m_dLastTime;
+            int                 m_nNumPoses;
+            double              m_dPoseRate;
+            bool                m_bRobotFrame;
+            bool                m_bPoseUpdated;
             TrackerObject() : m_dLastTime(-1), m_nNumPoses(-1) , m_bPoseUpdated(false)
             {
             }
@@ -72,14 +97,13 @@ class Localizer
                 m_dSensorPose = obj.m_dSensorPose;
                 m_dTime = obj.m_dTime;
                 m_pLocalizerObject = obj.m_pLocalizerObject;
-
             }
         };
 
         std::map< std::string,  TrackerObject >     m_mObjects;
-        node::node*																	m_pNode;
+        node::node*                                 m_pNode;
         bool                                        m_bIsStarted;
-        boost::thread*															m_pThread;
+        boost::thread*								m_pThread;
 };
 
 #endif	/* LOCALIZER_H */

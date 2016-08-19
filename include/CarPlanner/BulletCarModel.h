@@ -22,6 +22,27 @@
 #include "RaycastVehicle.h"
 #include "sophus/se3.hpp"
 
+#include <stdio.h>
+#include <chrono>
+#include <thread>
+#include <string.h>
+#include <unistd.h>
+#include <Node/Node.h>
+#include <HAL/Messages.pb.h>
+#include <HAL/Messages/Command.h>
+#include <HAL/Messages/Matrix.h>
+#include <HAL/Messages/Pose.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <google/protobuf/message.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+
+
 #define CAR_UP_AXIS 2   //this is the index for the bullet Z axis
 #define CAR_FORWARD_AXIS 0   //this is the index for the bullet X axis
 #define CAR_RIGHT_AXIS 1   //this is the index for the bullet Y axis
@@ -317,11 +338,37 @@ public:
     BulletCarModel();
     ~BulletCarModel();
 
+    void _PoseThreadFunc();
+    void _CommandThreadFunc();
+
+    // UDP values
+    unsigned m_CarPort;
+    unsigned m_LocPort;
+    unsigned m_ComPort;
+    unsigned m_MochPort;
+    struct sockaddr_in carAddr;
+    struct sockaddr_in locAddr;
+    struct sockaddr_in comAddr;
+    struct sockaddr_in mochAddr;
+    socklen_t addrLen = sizeof(locAddr);
+    int recvLen;
+    int comRecvLen;
+    int sockFD;
+    int comSockFD;
+    unsigned char buf[2048];
+    unsigned char comBuf[2048];
+    unsigned int msgSize = 0;
+    unsigned int comMsgSize = 0;
+    hal::CommanderMsg* cmd;
+    hal::PoseMsg* message;
+    hal::VectorMsg* pose;
+    hal::MatrixMsg* covar;
+
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);
     /////////////////////////////////////////////////////////////////////////////////////////
     static void GenerateStaticHull(const struct aiScene *pAIScene, const struct aiNode *pAINode, const aiMatrix4x4 parentTransform, const float flScale, btTriangleMesh &triangleMesh , btVector3& dMin, btVector3& dMax);
-    void Init(btCollisionShape *pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds );
-    void Init(const struct aiScene *pAIScene,CarParameterMap& parameters, unsigned int numWorlds );
+    void Init(btCollisionShape *pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds, bool real=false );
+    void Init(const struct aiScene *pAIScene,CarParameterMap& parameters, unsigned int numWorlds, bool real=false );
     void DebugDrawWorld(int worldId);
 
     std::pair<double, double> GetSteeringRequiredAndMaxForce(const int nWorldId, const int nWheelId, const double dPhi, const double dt);
@@ -329,6 +376,7 @@ public:
     double GetTotalWheelFriction(int worldId, double dt);
     double _CalculateWheelFriction(int wheelNum, BulletWorldInstance* pInstance, double dt);
     /////////////////////////////////////////////////////////////////////////////////////////
+    void UpdateStateFromNode();
     void UpdateState(const int &worldId,
                      const ControlCommand command,
                      const double forceDt = -1,
@@ -378,6 +426,10 @@ protected:
 
     std::vector< BulletWorldInstance * > m_vWorlds;
     //HeightMap *m_pHeightMap;
+    node::node m_rNode;     // Node for receiving car commands
+    node::node m_sNode;     // Node for broadcasting pose data
+    boost::thread* m_pPoseThread;
+    boost::thread* m_pCommandThread;
 
     Eigen::Vector3d m_dGravity;
     unsigned int m_nNumWorlds;

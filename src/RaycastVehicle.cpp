@@ -10,7 +10,7 @@
 */
 
 #include "LinearMath/btVector3.h"
-#include "RaycastVehicle.h"
+#include <CarPlanner/RaycastVehicle.h>
 
 #include "BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.h"
 #include "BulletDynamics/ConstraintSolver/btJacobianEntry.h"
@@ -20,7 +20,7 @@
 #include "LinearMath/btIDebugDraw.h"
 #include "BulletDynamics/ConstraintSolver/btContactConstraint.h"
 #include "BulletDynamics/ConstraintSolver/btContactSolverInfo.h"
-#include "CarPlannerCommon.h"
+#include <CarPlanner/CarPlannerCommon.h>
 
 #define ROLLING_INFLUENCE_FIX
 

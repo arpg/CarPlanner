@@ -164,11 +164,11 @@
 //}
 
 
-#include "./threadpool/future.hpp"
-#include "./threadpool/pool.hpp"
+#include "threadpool/future.hpp"
+#include "threadpool/pool.hpp"
 
-#include "./threadpool/pool_adaptors.hpp"
-#include "./threadpool/task_adaptors.hpp"
+#include "threadpool/pool_adaptors.hpp"
+#include "threadpool/task_adaptors.hpp"
 
 
 #endif // THREADPOOL_HPP_INCLUDED

@@ -1,5 +1,5 @@
-#include "CVarHelpers.h"
-#include "LocalPlanner.h"
+#include <CarPlanner/CVarHelpers.h>
+#include <CarPlanner/LocalPlanner.h>
 
 static bool& g_bUseCentralDifferences = CVarUtils::CreateGetUnsavedCVar("debug.UseCentralDifferences",true);
 static double& g_dSuccessNorm = CVarUtils::CreateGetUnsavedCVar("debug.SuccessNorm",0.01);
@@ -145,7 +145,7 @@ Eigen::Vector6d  LocalPlanner::_TransformGoalPose(const Eigen::Vector6d& dGoalPo
     Eigen::Vector3d pt;
     pt << dGoalPose[0], dGoalPose[1], 1;
     pt = problem.m_dTinv * pt;
-    result << pt[0], pt[1],dGoalPose[2], rpg::AngleWrap( dGoalPose[3] - problem.m_dStartPose[3] ), dGoalPose[4], dGoalPose[5];
+    result << pt[0], pt[1], dGoalPose[2], rpg::AngleWrap( dGoalPose[3] - problem.m_dStartPose[3] ), dGoalPose[4], dGoalPose[5];
     return result;
 }
 

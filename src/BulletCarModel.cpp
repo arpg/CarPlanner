@@ -1,23 +1,22 @@
-#include "CarPlannerCommon.h"
-#include "BulletCarModel.h"
+#include <CarPlanner/CarPlannerCommon.h>
+#include <CarPlanner/BulletCarModel.h>
 #include "cvars/CVar.h"
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/material.h>
-
+#include <CarPlanner/BulletCarModel.h>
 
 
 BulletCarModel::BulletCarModel()
 {
     m_dGravity << 0,0,BULLET_MODEL_GRAVITY;
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 BulletCarModel::~BulletCarModel()
 {
-
+    close(sockFD);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -95,8 +94,43 @@ void BulletCarModel::GenerateStaticHull( const struct aiScene *pAIScene, const s
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds )
+void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds, bool real )
 {
+    if ( real ) {
+        //////////////////
+        m_CarPort = 1640;
+        m_LocPort = 1641;
+        m_ComPort = 1642;
+        m_MochPort = 1643;
+
+        if ( ( comSockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+        if ( ( sockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+
+        memset( (char*)&carAddr, 0, addrLen );
+        carAddr.sin_family = AF_INET;
+        carAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        carAddr.sin_port = htons( m_CarPort );
+
+        memset( (char*)&comAddr, 0, addrLen );
+        comAddr.sin_family = AF_INET;
+        comAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        comAddr.sin_port = htons( m_ComPort );
+
+        if ( bind( sockFD, (struct sockaddr*)&carAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_CarPort;
+        if ( bind( comSockFD, (struct sockaddr*)&comAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_ComPort;
+
+        memset( (char*)&locAddr, 0, addrLen );
+        locAddr.sin_family = AF_INET;
+        locAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        locAddr.sin_port = htons( m_LocPort );
+
+        memset( (char*)&mochAddr, 0, addrLen );
+        mochAddr.sin_family = AF_INET;
+        mochAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        mochAddr.sin_port = htons( m_MochPort );
+        //////////////////
+    }
+
     m_nNumWorlds = numWorlds;
     //initialize a number of worlds
     for(size_t ii = 0 ; ii < m_nNumWorlds ; ii++) {
@@ -110,12 +144,52 @@ void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dM
 
         m_vWorlds.push_back(pWorld);
     }
+
+    if (real) {
+        m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
+        m_pCommandThread = new boost::thread( std::bind( &BulletCarModel::_CommandThreadFunc, this ));
+    }
 }
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &parameters, unsigned int numWorlds )
+void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &parameters, unsigned int numWorlds, bool real )
 {
+    if ( real ) {
+        //////////////////
+        m_CarPort = 1640;
+        m_LocPort = 1641;
+        m_ComPort = 1642;
+        m_MochPort = 1643;
+
+        if ( ( comSockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+        if ( ( sockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+
+        memset( (char*)&carAddr, 0, addrLen );
+        carAddr.sin_family = AF_INET;
+        carAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        carAddr.sin_port = htons( m_CarPort );
+
+        memset( (char*)&comAddr, 0, addrLen );
+        comAddr.sin_family = AF_INET;
+        comAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        comAddr.sin_port = htons( m_ComPort );
+
+        if ( bind( sockFD, (struct sockaddr*)&carAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_CarPort;
+        if ( bind( comSockFD, (struct sockaddr*)&comAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_ComPort;
+
+        memset( (char*)&locAddr, 0, addrLen );
+        locAddr.sin_family = AF_INET;
+        locAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        locAddr.sin_port = htons( m_LocPort );
+
+        memset( (char*)&mochAddr, 0, addrLen );
+        mochAddr.sin_family = AF_INET;
+        mochAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        mochAddr.sin_port = htons( m_MochPort );
+        //////////////////
+    }
+
     aiNode *pAINode = pAIScene->mRootNode;
 
     //generate the triangle mesh
@@ -141,8 +215,156 @@ void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &param
         m_vWorlds.push_back(pWorld);
     }
 
+    if (real) {
+        m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
+        m_pCommandThread = new boost::thread( std::bind( &BulletCarModel::_CommandThreadFunc, this ));
+    }
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+void BulletCarModel::_PoseThreadFunc()
+{
+    std::int32_t m = 1;
+    float x = 0, y = 0, z = 0, i = 0, j = 0, k = 0;
+    VehicleState state;
+
+    message = new hal::PoseMsg(); // New pose message
+    pose = new hal::VectorMsg(); // Vector for holding pose
+    covar = new hal::MatrixMsg(); // Matrix for holding covariance (column major)
+
+    pose->add_data(0);  // i
+    pose->add_data(0);  // j
+    pose->add_data(1);  // k
+    pose->add_data(0);  // w
+    pose->add_data(10); // x
+    pose->add_data(10); // y
+    pose->add_data(0);  // z
+
+    covar->set_rows(6); // Set number of rows in covariance matrix
+
+    // row 1
+    covar->add_data(1);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+
+    // row 2
+    covar->add_data(0);
+    covar->add_data(1);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+
+    // row 3
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(1);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+
+    // row 4
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(1);
+    covar->add_data(0);
+    covar->add_data(0);
+
+    // row 5
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(1);
+    covar->add_data(0);
+
+    // row 6
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(0);
+    covar->add_data(1);
+
+    message->set_allocated_pose(pose); // Set pose
+    message->set_allocated_covariance(covar); // Set covariance
+
+    while(1)
+    {
+        GetVehicleState( 0, state );
+
+        Eigen::Vector6d poseVec = state.ToPose();
+
+        x = poseVec[0];
+        y = poseVec[1];
+        z = poseVec[2];
+        i = poseVec[3];
+        j = poseVec[4];
+        k = poseVec[5];
+
+        Sophus::SO3d rpy(i,j,k);
+
+        pose->set_data( 0, x );                // x
+        pose->set_data( 1, y );                // y
+        pose->set_data( 2, z );                // z
+        pose->set_data( 3, rpy.data()[0] );
+        pose->set_data( 4, rpy.data()[1] );
+        pose->set_data( 5, rpy.data()[2] );
+        pose->set_data( 6, rpy.data()[3] );
+
+        message->set_id(m++);
+        message->set_type( hal::PoseMsg_Type_SE3 ); // Set pose to Sophus SE3 data type ( ijkw | xyz )
+
+        unsigned char buffer[message->ByteSize() + 4];
+
+        google::protobuf::io::ArrayOutputStream aos( buffer, sizeof(buffer) );
+        google::protobuf::io::CodedOutputStream coded_output( &aos );
+        coded_output.WriteVarint32( message->ByteSize() );
+        message->SerializeToCodedStream( &coded_output );
+        if ( sendto( sockFD, (char*)buffer, coded_output.ByteCount(), 0, (struct sockaddr*)&locAddr, addrLen ) < 0 ) LOG(ERROR) << "Did not send message";
+        /*else LOG(INFO) << "BCM sent Posys message with data: " << x << " " << y << " " << z;*/
+        usleep( (int)( ( 1 / (double)30.0 ) * 1000 ) );
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+void BulletCarModel::_CommandThreadFunc()
+{
+    // Read in current command using Node
+    //////////////////////////////
+    int worldId;
+    double force, curvature, dt, phi;
+    Eigen::Vector3d torques;
+    bool bNoDelay;
+    bool bNoUpdate;
+
+    while(1)
+    {
+        cmd = new hal::CommanderMsg();
+
+        //UDP receive cmd from MochaGui
+        comRecvLen = recvfrom( comSockFD, comBuf, 2048, 0, (struct sockaddr*)&mochAddr, &addrLen );
+        if ( comRecvLen > 0 ) {
+            buf[comRecvLen] = 0;
+            google::protobuf::io::ArrayInputStream ais( comBuf, comRecvLen );
+            google::protobuf::io::CodedInputStream coded_input( &ais );
+            coded_input.ReadVarint32( &comMsgSize );
+            google::protobuf::io::CodedInputStream::Limit limit = coded_input.PushLimit( comMsgSize );
+            cmd->ParseFromCodedStream( &coded_input );
+            coded_input.PopLimit( limit );
+            LOG(INFO) << "Received Command";
+        }
+
+        hal::ReadCommand( *cmd, &worldId, &force, &curvature, &torques, &dt, &phi, &bNoDelay, &bNoUpdate);
+        ControlCommand command(force, curvature, torques, dt, phi);
+        UpdateState( 0, command, dt, bNoDelay, bNoUpdate );
+        //////////////////////////////
+    }
+}
 
 //////////////////////////////////////////////s///////////////////////////////////////////
 void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedCommands)
@@ -167,7 +389,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-//std::vector<RegressionParameter> & BulletCarModel::GetLearningParameterVector(int index)
+/*/std::vector<RegressionParameter> & BulletCarModel::GetLearningParameterVector(int index)
 //{
 //    BulletWorldInstance* pWorld = GetWorldInstance(index);
 //    //update the parameter vector
@@ -190,7 +412,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 //{
 //    BulletWorldInstance* pWorld = GetWorldInstance(index);
 //    pWorld->m_vLearningParameters = params;
-//}
+//}*/
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_GetDelayedControl(int worldId, double timeDelay, ControlCommand& delayedCommands)
@@ -398,8 +620,6 @@ double BulletCarModel::GetTotalGravityForce(BulletWorldInstance* pWorld)
     return -force;
 }
 
-
-
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::UpdateState(  const int& worldId,
                                    const ControlCommand command,
@@ -470,11 +690,14 @@ void BulletCarModel::UpdateState(  const int& worldId,
     //set the steering value
     pWorld->m_pVehicle->SetAckermanSteering(dCorrectedPhi);
 
+    // Simulation mode -> this causes the car to move on the screen
+    // Experiment mode + SIL -> this causes the car to go +z forever and spin on it's y-axis (through the length of the car)
+    // if bNoUpdate is true, then car does not move in both modes
     if (pWorld->m_pDynamicsWorld && bNoUpdate==false)
     {
         Eigen::Vector3d T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
-        btVector3 bTorques(T_w[0],T_w[1], T_w[2]);
-        pWorld->m_pVehicle->getRigidBody()->applyTorque(bTorques);
+        btVector3 bTorques( T_w[0], T_w[1], T_w[2] );
+        pWorld->m_pVehicle->getRigidBody()->applyTorque( bTorques );
         //dout("Sending torque vector " << T_w.transpose() << " to car.");
         pWorld->m_pDynamicsWorld->stepSimulation(dT,1,dT);
     }

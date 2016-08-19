@@ -24,7 +24,7 @@ set(BOOST_LIBS thread date_time system timer)
 
 
 find_package( Eigen3 REQUIRED )
-find_package(Pangolin REQUIRED)
+find_package( Pangolin REQUIRED )
 find_package( Node REQUIRED )
 find_package( SceneGraph REQUIRED )
 find_package( CVars REQUIRED )
@@ -47,48 +47,47 @@ set( _INCLUDE_DIRS
         ${SceneGraph_INCLUDE_DIRS}
         ${Pangolin_INCLUDE_DIRS}
         ${HAL_INCLUDE_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
         )
-
-include_directories( ${_INCLUDE_DIRS} )
 
 #link_libraries( CarPlanner   OpenGLSupport )
 
 # expose these for third parties
-set( CAR_PLANNER_INCLUDE_DIRS ${_INCLUDE_DIRS}  CACHE INTERNAL "" FORCE )
-set( CAR_PLANNER_LIBRARIES  ${_LIBRARIES} CACHE INTERNAL "" FORCE )
+set( CarPlanner_INCLUDE_DIRS ${_INCLUDE_DIRS}  CACHE INTERNAL "" FORCE )
+set( CarPlanner_LIBRARIES  ${_LIBRARIES} CACHE INTERNAL "" FORCE )
 
-include_directories( ${CAR_PLANNER_INCLUDE_DIRS} )
+include_directories( ${CarPlanner_INCLUDE_DIRS} )
 
 set( SRCS
-        ApplyVelocitiesFunctor.cpp
-        BulletCarModel.cpp
-        CarRegressor.cpp
-        LocalPlanner.cpp
-        WheelInfo.cpp
-        CarParameters.cpp
-        GLDebugDrawer.cpp
-        RaycastVehicle.cpp
-        BezierBoundarySolver.cpp
-        MochaException.cpp
-        CarController.cpp
-        Localizer.cpp
-        DirectBoundarySolver.cpp
+        src/ApplyVelocitiesFunctor.cpp
+        src/BulletCarModel.cpp
+        src/CarRegressor.cpp
+        src/LocalPlanner.cpp
+        src/WheelInfo.cpp
+        src/CarParameters.cpp
+        src/GLDebugDrawer.cpp
+        src/RaycastVehicle.cpp
+        src/BezierBoundarySolver.cpp
+        src/MochaException.cpp
+        src/CarController.cpp
+        src/Localizer.cpp
+        src/DirectBoundarySolver.cpp
    )
 
 set( HDRS
-        ApplyVelocitiesFunctor.h
-        CarPlannerCommon.h
-        BulletCarModel.h
-        Localizer.h
-        CarWheel.h
-        CarRegressor.h
-        CarController.h
-        GLDebugDrawer.h
-        CarParameters.h
-        DirectBoundarySolver.h
-        CVarHelpers.h
+        include/CarPlanner/ApplyVelocitiesFunctor.h
+        include/CarPlanner/CarPlannerCommon.h
+        include/CarPlanner/BulletCarModel.h
+        include/CarPlanner/Localizer.h
+        include/CarPlanner/CarWheel.h
+        include/CarPlanner/CarRegressor.h
+        include/CarPlanner/CarController.h
+        include/CarPlanner/GLDebugDrawer.h
+        include/CarPlanner/CarParameters.h
+        include/CarPlanner/DirectBoundarySolver.h
+        include/CarPlanner/CVarHelpers.h
+        include/CarPlanner/RpgUtils.h
    )
 
 
@@ -103,8 +102,8 @@ install_package(
     INSTALL_INCLUDE_DIR true
     INSTALL_GENERATED_HEADERS ${GENERATED_HEADERS}
     DESTINATION ${CMAKE_INSTALL_PREFIX}
-    INCLUDE_DIRS ${_INCLUDE_DIRS}
-    LINK_LIBS ${_LIBRARIES}
+    INCLUDE_DIRS ${CarPlanner_INCLUDE_DIRS}
+    LINK_LIBS ${CarPlanner_LIBRARIES}
     )
 
 ###########################
