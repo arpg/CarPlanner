@@ -78,7 +78,7 @@ public:
 
     }
     ControlCommand(const double& force,const double& curvature,
-                    const Eigen::Vector3d& torques, const double& dt, const double& dPhi){
+                    const Eigen::Vector3f& torques, const double& dt, const double& dPhi){
 
         m_dForce = force;
         //m_dControlAccel = accel;
@@ -93,7 +93,7 @@ public:
     double m_dCurvature;
     double m_dT;
     double m_dPhi;
-    Eigen::Vector3d m_dTorque;
+    Eigen::Vector3f m_dTorque;
     double m_dTime;
 
 public:
@@ -108,7 +108,7 @@ struct VehicleState
 {
     VehicleState()
     {
-        m_dTwv = Sophus::SE3d();
+        m_dTwv = Sophus::SE3f();
         m_dV.setZero();
         m_dW.setZero();
         m_dSteering = 0;
@@ -116,11 +116,11 @@ struct VehicleState
         m_dTime = 0;
     }
 
-    VehicleState(const Sophus::SE3d& dTwv, const double dV, double dCurvature = 0)
+    VehicleState(const Sophus::SE3f& dTwv, const float dV, double dCurvature = 0)
     {
         m_dCurvature = dCurvature;
         m_dTwv = dTwv;
-        Eigen::Vector3d vecV;
+        Eigen::Vector3f vecV;
         vecV << dV,0,0;
         m_dV = m_dTwv.so3()*vecV;
         m_dW << 0,0,0;
@@ -144,9 +144,9 @@ struct VehicleState
                 stateOut.m_dSteering = interpolation*state2.m_dSteering + (1-interpolation)*state1.m_dSteering;
                 stateOut.m_dV = interpolation*state2.m_dV + (1-interpolation)*state1.m_dV;
                 stateOut.m_dW = interpolation*state2.m_dW + (1-interpolation)*state1.m_dW;
-                Eigen::Vector3d trans = interpolation*state2.m_dTwv.translation() + (1-interpolation)*state1.m_dTwv.translation();
-                Eigen::Quaterniond rot = state1.m_dTwv.so3().unit_quaternion().slerp(interpolation,state2.m_dTwv.so3().unit_quaternion());
-                stateOut.m_dTwv = Sophus::SE3d(rot,trans);
+                Eigen::Vector3f trans = interpolation*state2.m_dTwv.translation() + (1-interpolation)*state1.m_dTwv.translation();
+                Eigen::Quaternionf rot = state1.m_dTwv.so3().unit_quaternion().slerp(interpolation,state2.m_dTwv.so3().unit_quaternion());
+                stateOut.m_dTwv = Sophus::SE3f(rot,trans);
                 break;
             }else{
                 currTime = vStates[ii+1].m_dTime;
@@ -155,26 +155,26 @@ struct VehicleState
         return stateOut;
     }
 
-    void UpdateWheels(const std::vector<Sophus::SE3d>& vWheelTransforms){
-        Sophus::SE3d bodyT = m_dTwv;
+    void UpdateWheels(const std::vector<Sophus::SE3f>& vWheelTransforms){
+        Sophus::SE3f bodyT = m_dTwv;
         m_vWheelContacts.resize(4);
         m_vWheelStates.resize(4);
         for(size_t ii = 0 ; ii < m_vWheelContacts.size() ; ii++){
             //position the wheels with respect to the body
             fflush(stdout);
-            Sophus::SE3d T = bodyT* vWheelTransforms[ii];
+            Sophus::SE3f T = bodyT* vWheelTransforms[ii];
             m_vWheelStates[ii] = T;
         }
     }
 
-    static void AlignWithVelocityVector(Sophus::SE3d& Twv, const Eigen::Vector3d& dV)
+    static void AlignWithVelocityVector(Sophus::SE3f& Twv, const Eigen::Vector3f& dV)
     {
-        Eigen::Vector3d vel = dV.normalized();
-        Eigen::Matrix3d R = Twv.so3().matrix();
+        Eigen::Vector3f vel = dV.normalized();
+        Eigen::Matrix3f R = Twv.so3().matrix();
         R.block<3,1>(0,0) = vel;
         R.block<3,1>(0,2) = R.block<3,1>(0,0).cross(R.block<3,1>(0,1)).normalized();
         R.block<3,1>(0,1) = R.block<3,1>(0,2).cross(R.block<3,1>(0,0)).normalized();
-        Twv.so3() = Sophus::SO3d(R);
+        Twv.so3() = Sophus::SO3f(R);
     }
 
     void AlignWithVelocityVector()
@@ -198,14 +198,14 @@ struct VehicleState
     }
 
     /// Uses the VehicleStateToPose function to convert the
-    Eigen::Vector6d ToPose(){
+    Eigen::Vector6f ToPose(){
         return VehicleStateToPose(*this);
     }
 
     double GetTheta() const
     {
         //calculate theta
-        Eigen::Vector3d down,right,forward, trueForward;
+        Eigen::Vector3f down,right,forward, trueForward;
         down << 0,0,1;
         trueForward << 1,0,0;
         forward = GetBasisVector(m_dTwv,0); //get the forward
@@ -214,12 +214,12 @@ struct VehicleState
 
     /// This function gets a vehicle state and returns a 5d pose vector which is parametrized as
     /// [x,y,t,k,v] where t is the 2d angle, k is the path curvature and v is the velocity
-    static Eigen::Vector6d VehicleStateToPose(const VehicleState& state //< The given state to construct the pose from
+    static Eigen::Vector6f VehicleStateToPose(const VehicleState& state //< The given state to construct the pose from
                                               )
     {
         //Eigen::Vector6d dPose = mvl::T2Cart(state.m_dTwv);
         //angle = dPose[5];
-        Eigen::Vector6d poseOut;
+        Eigen::Vector6f poseOut;
         poseOut << state.m_dTwv.translation()[0],
                    state.m_dTwv.translation()[1],
                    state.m_dTwv.translation()[2],
@@ -231,12 +231,12 @@ struct VehicleState
 
 
 
-    Sophus::SE3d m_dTwv;                     //< 4x4 matrix denoting the state of the car
-    std::vector<Sophus::SE3d> m_vWheelStates;   //< 4x4 matrices which denote the pose of each wheel
+    Sophus::SE3f m_dTwv;                     //< 4x4 matrix denoting the state of the car
+    std::vector<Sophus::SE3f> m_vWheelStates;   //< 4x4 matrices which denote the pose of each wheel
     std::vector<bool> m_vWheelContacts;         //< Angular velocity of the vehicle in world coordinates
 
-    Eigen::Vector3d m_dV;                       //< Linear velocity of the vehicle in world coordinates
-    Eigen::Vector3d m_dW;                       //< Angular velocity of the vehicle in world coordinates
+    Eigen::Vector3f m_dV;                       //< Linear velocity of the vehicle in world coordinates
+    Eigen::Vector3f m_dW;                       //< Angular velocity of the vehicle in world coordinates
 
     double m_dCurvature;                        //< The curvature at this point in the path
     double m_dSteering;                         //< The steering command given to the car at this point (used to reset rate limitations)
@@ -292,7 +292,7 @@ struct BulletWorldInstance : public boost::mutex
         }
     }
 
-    std::vector<Sophus::SE3d> m_vWheelTransforms;
+    std::vector<Sophus::SE3f> m_vWheelTransforms;
     double m_dTime;
 
     btScalar *m_pHeightfieldData;
@@ -385,22 +385,22 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////////
     virtual void GetVehicleState(int worldId, VehicleState &stateOut);
     //virtual VehicleState GetVehicleStateAsync(int worldId);
-    Eigen::Vector3d GetVehicleLinearVelocity(int worldId);
-    Eigen::Vector3d GetVehicleAngularVelocity(int worldId);
-    Eigen::Vector3d GetVehicleInertiaTensor(int worldId);
+    Eigen::Vector3f GetVehicleLinearVelocity(int worldId);
+    Eigen::Vector3f GetVehicleAngularVelocity(int worldId);
+    Eigen::Vector3f GetVehicleInertiaTensor(int worldId);
     virtual void SetState(int nWorldId,  const VehicleState& state );
     //virtual void SetState( int worldId,  const Eigen::Matrix4d& vState  );
-    virtual void SetStateNoReset(BulletWorldInstance *pWorld, const Sophus::SE3d &Twv );
+    virtual void SetStateNoReset(BulletWorldInstance *pWorld, const Sophus::SE3f &Twv );
     BulletWorldInstance *GetWorldInstance(int id){ return m_vWorlds[id]; }
     const BulletWorldInstance *GetWorldInstance(int id) const { return m_vWorlds[id]; }
     const int GetWorldCount() const { return m_vWorlds.size(); }
 
     double GetCorrectedSteering(double& dCurvature, int index);
     double  GetSteeringAngle(const double dcurvature, double& dCorrectedCurvature, int index, double steeringCoef /*= 1*/);
-    std::vector<Sophus::SE3d> GetWheelTransforms(const int worldIndex);
+    std::vector<Sophus::SE3f> GetWheelTransforms(const int worldIndex);
 
     //getter functions
-    Eigen::Vector3d     GetGravity() { return m_dGravity; }
+    Eigen::Vector3f     GetGravity() { return m_dGravity; }
     //HeightMap*          GetHeightMap() { return m_pHeightMap; }
     void                GetCommandHistory(int worldId,CommandList &previousCommandsOut);
     void                ResetCommandHistory(int worldId);
@@ -409,7 +409,7 @@ public:
     CarParameterMap& GetParameters(int index) { return GetWorldInstance(index)->m_Parameters; }
     const CarParameterMap& GetParameters(int index) const  { return GetWorldInstance(index)->m_Parameters; }
     void                SetCommandHistory(const int &worldId, const CommandList &previousCommands);
-    bool RayCast(const Eigen::Vector3d& dSource, const Eigen::Vector3d& dRayVector, Eigen::Vector3d& dIntersect, const bool &biDirectional, int index = 0);
+    bool RayCast(const Eigen::Vector3f& dSource, const Eigen::Vector3f& dRayVector, Eigen::Vector3f& dIntersect, const bool &biDirectional, int index = 0);
 
     void UpdateParameters(const std::vector<RegressionParameter>& vNewParams);
     void UpdateParameters(const std::vector<RegressionParameter>& vNewParams, BulletWorldInstance *pWorld);
@@ -431,7 +431,7 @@ protected:
     boost::thread* m_pPoseThread;
     boost::thread* m_pCommandThread;
 
-    Eigen::Vector3d m_dGravity;
+    Eigen::Vector3f m_dGravity;
     unsigned int m_nNumWorlds;
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

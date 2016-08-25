@@ -14,11 +14,11 @@ struct BezierBoundaryProblem : BoundaryProblem
         m_bSolved(false),
         m_dAggressiveness(1.2) { }
 
-    std::vector<double> m_vDistances;      //< Output: The distances alon
+    std::vector<float> m_vDistances;      //< Output: The distances alon
     Eigen::VectorXd m_xVals;            //< The x values of the control handles for the bezier curve
     Eigen::VectorXd m_yVals;            //< The y values of the control handles for the bezier curve
-    Eigen::Vector4d m_dSolvedGoalPose;  //< if m_bSolved is true, this vector contains the goal pose for which the bezier was solved
-    Eigen::Vector4d m_dParams;          //< The parameters that define how the control points relate
+    Eigen::Vector4f m_dSolvedGoalPose;  //< if m_bSolved is true, this vector contains the goal pose for which the bezier was solved
+    Eigen::Vector4f m_dParams;          //< The parameters that define how the control points relate
     bool m_bSolved;                     //< Boolean value indicating whether or not the problem has already been solved.
     double          m_dAggressiveness;
     double          m_dSegLength;
@@ -42,7 +42,7 @@ private:
     /// Given the boundary problem, this function fills in the bezier xVals and yVals to string the bezier between the given
     /// start and end goal positions
     void _Get5thOrderBezier(BezierBoundaryProblem* pProblem,
-                           const Eigen::Vector4d& params //< Parameter vector composed of a1,b1,a2,b2
+                           const Eigen::Vector4f& params //< Parameter vector composed of a1,b1,a2,b2
                            );
 
     static const int m_nOrder = 5; //< The order of the bezier cubic that is used to generate the control law
@@ -50,7 +50,7 @@ private:
     /// This function returns the maximum curvature of an already sample bezier curve
     double _GetMaximumCurvature(const BezierBoundaryProblem* pProblem);
 
-    void _IterateCurvatureReduction(BezierBoundaryProblem* pProblem, Eigen::Vector4d &params);
+    void _IterateCurvatureReduction(BezierBoundaryProblem* pProblem, Eigen::Vector4f &params);
 };
 
 #endif // BEZIERBOUNDARYSOLVER_H

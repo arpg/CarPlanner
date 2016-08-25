@@ -297,7 +297,7 @@ void BulletCarModel::_PoseThreadFunc()
     {
         GetVehicleState( 0, state );
 
-        Eigen::Vector6d poseVec = state.ToPose();
+        Eigen::Vector6f poseVec = state.ToPose();
 
         x = poseVec[0];
         y = poseVec[1];
@@ -306,7 +306,7 @@ void BulletCarModel::_PoseThreadFunc()
         j = poseVec[4];
         k = poseVec[5];
 
-        Sophus::SO3d rpy(i,j,k);
+        Sophus::SO3f rpy(i,j,k);
 
         pose->set_data( 0, x );                // x
         pose->set_data( 1, y );                // y
@@ -338,7 +338,7 @@ void BulletCarModel::_CommandThreadFunc()
     //////////////////////////////
     int worldId;
     double force, curvature, dt, phi;
-    Eigen::Vector3d torques;
+    Eigen::Vector3f torques;
     bool bNoDelay;
     bool bNoUpdate;
 
@@ -359,9 +359,9 @@ void BulletCarModel::_CommandThreadFunc()
             LOG(INFO) << "Received Command";
         }
 
-        hal::ReadCommand( *cmd, &worldId, &force, &curvature, &torques, &dt, &phi, &bNoDelay, &bNoUpdate);
-        ControlCommand command(force, curvature, torques, dt, phi);
-        UpdateState( 0, command, dt, bNoDelay, bNoUpdate );
+        //hal::ReadCommand( *cmd, &worldId, &force, &curvature, &torques, &dt, &phi, &bNoDelay, &bNoUpdate);
+        //ControlCommand command(force, curvature, torques, dt, phi);
+        //UpdateState( 0, command, dt, bNoDelay, bNoUpdate );
         //////////////////////////////
     }
 }
@@ -695,7 +695,7 @@ void BulletCarModel::UpdateState(  const int& worldId,
     // if bNoUpdate is true, then car does not move in both modes
     if (pWorld->m_pDynamicsWorld && bNoUpdate==false)
     {
-        Eigen::Vector3d T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
+        Eigen::Vector3f T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
         btVector3 bTorques( T_w[0], T_w[1], T_w[2] );
         pWorld->m_pVehicle->getRigidBody()->applyTorque( bTorques );
         //dout("Sending torque vector " << T_w.transpose() << " to car.");
@@ -707,9 +707,9 @@ void BulletCarModel::UpdateState(  const int& worldId,
     {
         boost::mutex::scoped_lock lock(*pWorld);
         //get chassis data from bullet
-        Eigen::Matrix4d Twv;
+        Eigen::Matrix4f Twv;
         pWorld->m_pVehicle->getChassisWorldTransform().getOpenGLMatrix(Twv.data());
-        pWorld->m_state.m_dTwv = Sophus::SE3d(Twv);
+        pWorld->m_state.m_dTwv = Sophus::SE3f(Twv);
 
         if(pWorld->m_state.m_vWheelStates.size() != pWorld->m_pVehicle->getNumWheels()) {
             pWorld->m_state.m_vWheelStates.resize(pWorld->m_pVehicle->getNumWheels());
@@ -717,8 +717,8 @@ void BulletCarModel::UpdateState(  const int& worldId,
         }
         for(size_t ii = 0; ii < pWorld->m_pVehicle->getNumWheels() ; ii++) {
             //m_pVehicle->updateWheelTransform(ii,true);
-            pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.getOpenGLMatrix(Twv.data());
-            pWorld->m_state.m_vWheelStates[ii] = Sophus::SE3d(Twv);
+            pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.getOpenGLMatrix(                                                                                  (Twv.data()));
+            pWorld->m_state.m_vWheelStates[ii] = Sophus::SE3f(Twv);
             pWorld->m_state.m_vWheelContacts[ii] = pWorld->m_pVehicle->getWheelInfo(ii).m_raycastInfo.m_isInContact;
         }
 
@@ -733,34 +733,34 @@ void BulletCarModel::UpdateState(  const int& worldId,
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-Eigen::Vector3d BulletCarModel::GetVehicleLinearVelocity(int worldId)
+Eigen::Vector3f BulletCarModel::GetVehicleLinearVelocity(int worldId)
 {
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
     btVector3 v = pWorld->m_pVehicle->getRigidBody()->getLinearVelocity();
-    Eigen::Vector3d dV;
+    Eigen::Vector3f dV;
     dV << v.x(), v.y(), v.z();
     return dV;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-Eigen::Vector3d BulletCarModel::GetVehicleAngularVelocity(int worldId)
+Eigen::Vector3f BulletCarModel::GetVehicleAngularVelocity(int worldId)
 {
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
     btVector3 v = pWorld->m_pVehicle->getRigidBody()->getAngularVelocity();
-    Eigen::Vector3d dV;
+    Eigen::Vector3f dV;
     dV << v.x(), v.y(), v.z();
     return dV;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-Eigen::Vector3d BulletCarModel::GetVehicleInertiaTensor(int worldId)
+Eigen::Vector3f BulletCarModel::GetVehicleInertiaTensor(int worldId)
 {
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
 
     btVector3 bVec = pWorld->m_pVehicle->getRigidBody()->getInvInertiaDiagLocal();
-    Eigen::Vector3d res;
+    Eigen::Vector3f res;
     for(int ii = 0 ; ii < 3 ; ii++) {
         res(ii) = (bVec[ii] == 0 ? 0 : 1/bVec[ii]);
     }
@@ -781,10 +781,10 @@ void BulletCarModel::GetVehicleState(int worldId,VehicleState& stateOut)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::SetStateNoReset( BulletWorldInstance *pWorld , const Sophus::SE3d& Twv)
+void BulletCarModel::SetStateNoReset( BulletWorldInstance *pWorld , const Sophus::SE3f& Twv)
 {
     btTransform trans;
-    trans.setFromOpenGLMatrix(Twv.matrix().data());
+    trans.setFromOpenGLMatrix(const_cast<float*>(Twv.matrix().data()));
     pWorld->m_pCarChassis->setAngularVelocity(btVector3(0,0,0));
     pWorld->m_pCarChassis->setLinearVelocity(btVector3(0,0,0));
     pWorld->m_pCarChassis->setCenterOfMassTransform(trans);
@@ -801,7 +801,7 @@ void BulletCarModel::SetState( int nWorldId,  const VehicleState& state )
     //set the wheel positions and contact
     for(size_t ii = 0; ii < state.m_vWheelStates.size() ; ii++) {
         //m_pVehicle->updateWheelTransform(ii,true);
-        pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.setFromOpenGLMatrix(state.m_vWheelStates[ii].data());
+        pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.setFromOpenGLMatrix(const_cast<float*>(state.m_vWheelStates[ii].data()));
         pWorld->m_pVehicle->getWheelInfo(ii).m_raycastInfo.m_isInContact = state.m_vWheelContacts[ii];
     }
 
@@ -811,7 +811,7 @@ void BulletCarModel::SetState( int nWorldId,  const VehicleState& state )
     btVector3 w(state.m_dW[0], state.m_dW[1], state.m_dW[2]);
 
     //set the state 4x4 matrix, however offset the body up to account for the wheel columns
-    Sophus::SE3d T = state.m_dTwv;
+    Sophus::SE3f T = state.m_dTwv;
     T.translation() -= GetBasisVector(T,2)*
                         (pWorld->m_Parameters[CarParameters::SuspRestLength] +
                         pWorld->m_Parameters[CarParameters::WheelRadius]+
@@ -938,8 +938,7 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
     {
         WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
         wheel.m_rollInfluence = pWorld->m_Parameters[CarParameters::RollInfluence];
-        Sophus::SE3d wheelTransform(Sophus::SO3d(),
-                                    Eigen::Vector3d(wheel.m_chassisConnectionPointCS[0],wheel.m_chassisConnectionPointCS[1],wheel.m_chassisConnectionPointCS[2] /*+ wheel.getSuspensionRestLength()/2*/));
+        Sophus::SE3f wheelTransform(Sophus::SO3f(), Eigen::Vector3f( wheel.m_chassisConnectionPointCS[0], wheel.m_chassisConnectionPointCS[1], wheel.m_chassisConnectionPointCS[2] /*+ wheel.getSuspensionRestLength()/2*/ ) );
         pWorld->m_vWheelTransforms.push_back(wheelTransform);
     }
 
@@ -971,7 +970,7 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-std::vector<Sophus::SE3d> BulletCarModel::GetWheelTransforms(const int worldIndex){
+std::vector<Sophus::SE3f> BulletCarModel::GetWheelTransforms(const int worldIndex){
     BulletWorldInstance *pWorld = GetWorldInstance(worldIndex);
     return pWorld->m_vWheelTransforms;
 }
@@ -1055,7 +1054,7 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-bool BulletCarModel::RayCast(const Eigen::Vector3d& dSource,const Eigen::Vector3d& dRayVector, Eigen::Vector3d& dIntersect, const bool& biDirectional, int index /*= 0*/)
+bool BulletCarModel::RayCast(const Eigen::Vector3f& dSource,const Eigen::Vector3f& dRayVector, Eigen::Vector3f& dIntersect, const bool& biDirectional, int index /*= 0*/)
 {
     btVector3 source(dSource[0],dSource[1],dSource[2]);
     btVector3 vec(dRayVector[0],dRayVector[1],dRayVector[2]);
@@ -1070,8 +1069,8 @@ bool BulletCarModel::RayCast(const Eigen::Vector3d& dSource,const Eigen::Vector3
     if(pInstance->m_pVehicleRayCaster->castRay(source,target,results) == 0){
         return false;
     }else{
-        Eigen::Vector3d dNewSource(source[0],source[1],source[2]);
-        dIntersect = dNewSource + results.m_distFraction* (biDirectional ? (Eigen::Vector3d)(dRayVector*2) : dRayVector);
+        Eigen::Vector3f dNewSource(source[0],source[1],source[2]);
+        dIntersect = dNewSource + results.m_distFraction* (biDirectional ? (Eigen::Vector3f)(dRayVector*2) : dRayVector);
         return true;
     }  
 }

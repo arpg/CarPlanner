@@ -105,10 +105,14 @@ namespace Eigen {
 
     typedef Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> MatrixXdRowMaj;
     typedef Matrix<double,5,1> Vector5d ;
+    typedef Matrix<float,5,1> Vector5f;
     typedef Matrix<double,6,1> Vector6d ;
+    typedef Matrix<float,6,1> Vector6f;
     typedef Matrix<double,7,1> Vector7d ;
+    typedef Matrix<float,7,1> Vector7f;
 
     typedef Matrix<double,6,6> Matrix6d;
+    typedef Matrix<float,6,6> Matrix6f;
 
 
     typedef std::vector<Eigen::Vector6d,Eigen::aligned_allocator<Eigen::Vector6d> > Vector6dAlignedVec;
@@ -119,6 +123,16 @@ namespace Eigen {
     typedef std::vector<Eigen::Vector7d,Eigen::aligned_allocator<Eigen::Vector7d> > Vector7dAlignedVec;
     typedef std::vector<Eigen::VectorXd,Eigen::aligned_allocator<Eigen::VectorXd> > VectorXdAlignedVec;
     typedef std::vector<Eigen::Matrix4d,Eigen::aligned_allocator<Eigen::Matrix4d> > Matrix4dAlignedVec;
+
+typedef std::vector<Eigen::Vector6f,Eigen::aligned_allocator<Eigen::Vector6f> > Vector6fAlignedVec;
+typedef std::vector<Eigen::Vector5f,Eigen::aligned_allocator<Eigen::Vector5f> > Vector5fAlignedVec;
+typedef std::vector<Eigen::Vector3f,Eigen::aligned_allocator<Eigen::Vector3f> > Vector3fAlignedVec;
+typedef std::vector<Eigen::Vector2f,Eigen::aligned_allocator<Eigen::Vector2f> > Vector2fAlignedVec;
+typedef std::vector<Eigen::Vector4f,Eigen::aligned_allocator<Eigen::Vector4f> > Vector4fAlignedVec;
+typedef std::vector<Eigen::Vector7f,Eigen::aligned_allocator<Eigen::Vector7f> > Vector7fAlignedVec;
+typedef std::vector<Eigen::VectorXf,Eigen::aligned_allocator<Eigen::VectorXf> > VectorXfAlignedVec;
+typedef std::vector<Eigen::Matrix4f,Eigen::aligned_allocator<Eigen::Matrix4f> > Matrix4fAlignedVec;
+
     typedef std::vector<Eigen::MatrixXdRowMaj,Eigen::aligned_allocator<Eigen::MatrixXdRowMaj> > MatrixXdRowMajAlignedVec;
 
     typedef std::vector<std::pair<Eigen::VectorPose,Eigen::VectorPose> > ErrorVec;
@@ -126,10 +140,10 @@ namespace Eigen {
 
 template<typename T>
 inline const Eigen::Matrix<T,3,1> GetBasisVector(Sophus::SE3Group<T> rot, int n){ return rot.matrix().block<3,1>(0,n); }
-inline const Eigen::Vector3d GetBasisVector(Sophus::SE3d rot, int n){ return rot.matrix().block<3,1>(0,n); }
+inline const Eigen::Vector3f GetBasisVector(Sophus::SE3f rot, int n){ return rot.matrix().block<3,1>(0,n); }
 template<typename T>
 inline const Eigen::Matrix<T,3,1> GetBasisVector(Sophus::SO3Group<T> rot, int n){ return rot.matrix().block<3,1>(0,n); }
-inline const Eigen::Vector3d GetBasisVector(Sophus::SO3d rot, int n){ return rot.matrix().block<3,1>(0,n); }
+inline const Eigen::Vector3f GetBasisVector(Sophus::SO3f rot, int n){ return rot.matrix().block<3,1>(0,n); }
 
 
 inline void current_utc_time(struct timespec *ts) {

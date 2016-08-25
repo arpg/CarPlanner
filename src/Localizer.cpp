@@ -46,14 +46,14 @@ void Localizer::TrackObject(
         const std::string& sHost,
         bool bRobotFrame /*= true*/
         ){
-    TrackObject(sObjectName,sHost,Sophus::SE3d(),bRobotFrame);
+    TrackObject(sObjectName,sHost,Sophus::SE3f(),bRobotFrame);
 }
 
 //////////////////////////////////////////////////////////////////
 void Localizer::TrackObject(
         const std::string& sObjectName,
         const std::string& sHost,
-        Sophus::SE3d dToffset,
+        Sophus::SE3f dToffset,
         bool bRobotFrame /*= true*/
         )
 {
@@ -122,7 +122,7 @@ void Localizer::Stop()
 
 //////////////////////////////////////////////////////////////////
 //
-Sophus::SE3d Localizer::GetPose( const std::string& sObjectName, bool blocking/* = false */,
+Sophus::SE3f Localizer::GetPose( const std::string& sObjectName, bool blocking/* = false */,
                                           double* time /*= NULL*/, double* rate /*= NULL*/)
 {
 
@@ -139,7 +139,7 @@ Sophus::SE3d Localizer::GetPose( const std::string& sObjectName, bool blocking/*
     }
     obj.m_bPoseUpdated = false;
 
-    Sophus::SE3d pose = obj.m_dSensorPose;
+    Sophus::SE3f pose = obj.m_dSensorPose;
     if(time != NULL){
         *time = m_mObjects[sObjectName].m_dTime;
     }
@@ -240,24 +240,24 @@ void Localizer::_ThreadFunction(Localizer *pV) {
       {
         boost::mutex::scoped_lock lock(it->second.m_Mutex);
 
-        Eigen::Matrix4d T;
+        Eigen::Matrix4f T;
         if(it->second.m_bRobotFrame){
           T << 1, 0, 0, 0,
               0, -1, 0, 0,
               0, 0, 1, 0,
               0, 0 , 0, 1;
         } else {
-          T = Eigen::Matrix4d::Identity();
+          T = Eigen::Matrix4f::Identity();
         }
 
-          Eigen::Vector3d Pos(posys.pose().data(0), posys.pose().data(1), -posys.pose().data(2));
-          Eigen::Quaterniond Quat(posys.pose().data(3), posys.pose().data(4),
+          Eigen::Vector3f Pos(posys.pose().data(0), posys.pose().data(1), -posys.pose().data(2));
+          Eigen::Quaternionf Quat(posys.pose().data(3), posys.pose().data(4),
               posys.pose().data(5), posys.pose().data(6));
 
           //get the pose and transform it as necessary
-          Sophus::SE3d Twc( Sophus::SO3d(Quat), Pos );
+          Sophus::SE3f Twc( Sophus::SO3f(Quat), Pos );
 
-          Eigen::Matrix4d Tlw;
+          Eigen::Matrix4f Tlw;
           Tlw <<  1, 0, 0, 0,
                   0, 1, 0, 0,
                   0, 0,-1, 0,
@@ -265,7 +265,7 @@ void Localizer::_ThreadFunction(Localizer *pV) {
 
 
 
-          it->second.m_dSensorPose = Sophus::SE3d(T) * (it->second.m_dToffset * Twc);
+          it->second.m_dSensorPose = Sophus::SE3f(T) * (it->second.m_dToffset * Twc);
           // ^^MochaGui.cpp/_LocalizerReadFunc()/m_Localizer.GetPose()
 
           //std::cout << it->second.m_dSensorPose << std::endl; //debugging

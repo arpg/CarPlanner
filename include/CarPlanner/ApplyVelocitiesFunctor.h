@@ -60,9 +60,9 @@ struct MotionSample
 
     const VehicleState& GetLastPose() const { return m_vStates.back(); }
 
-    std::vector<Sophus::SE3d> GetMotionSample() const
+    std::vector<Sophus::SE3f> GetMotionSample() const
     {
-        std::vector<Sophus::SE3d> vPoses;
+        std::vector<Sophus::SE3f> vPoses;
         vPoses.reserve(m_vStates.size());
         for(const VehicleState& state : m_vStates){
             vPoses.push_back(state.m_dTwv);
@@ -93,7 +93,7 @@ struct MotionSample
     {
         double dist = 0;
         if(m_vStates.empty() == false){
-            Eigen::Vector3d lastPos = m_vStates[0].m_dTwv.translation();
+            Eigen::Vector3f lastPos = m_vStates[0].m_dTwv.translation();
             for(const VehicleState& state : m_vStates){
                 dist += (state.m_dTwv.translation()-lastPos).norm();
                 lastPos = state.m_dTwv.translation();
@@ -160,8 +160,8 @@ public:
     double m_dNorm;
     MotionSample m_Sample;
 
-    Sophus::SE3d m_dStartPose;
-    Sophus::SE3d m_dEndPose;
+    Sophus::SE3f m_dStartPose;
+    Sophus::SE3f m_dEndPose;
 
     int m_nStartSegmentIndex;   //the segment at which this plan starts
     int m_nStartSampleIndex; //the sample in the segment at which this control plan starts
@@ -191,7 +191,7 @@ class ApplyVelocitesFunctor5d
 {
 public:
     ApplyVelocitesFunctor5d(BulletCarModel *pCarModel,
-                            Eigen::Vector3d dInitTorques,
+                            Eigen::Vector3f dInitTorques,
                             CommandList* pPreviousCommands = NULL);
 
     VehicleState ApplyVelocities(const VehicleState &startState,
@@ -222,7 +222,7 @@ public:
     bool SetNoDelay(bool bNoDelay){ return (m_bNoDelay = bNoDelay); }
 private:
     BulletCarModel *m_pCarModel;
-    Eigen::Vector3d m_dInitTorques;
+    Eigen::Vector3f m_dInitTorques;
     CommandList m_lPreviousCommands;
     bool m_bNoDelay;
 };

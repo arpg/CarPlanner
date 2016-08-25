@@ -4,7 +4,7 @@
 
 namespace rpg
 {
-    inline double AngleWrap( double d )
+    inline float AngleWrap( float d )
     {
         while( d > M_PI ) {
             d -= 2*M_PI;
@@ -16,9 +16,9 @@ namespace rpg
     }
 
     ///////////////////////////////////////////////////////////////////////
-    inline Eigen::Matrix3d	TInv( const Eigen::Matrix3d& T )
+    inline Eigen::Matrix3f	TInv( const Eigen::Matrix3f& T )
     {
-        Eigen::Matrix3d Tinv;
+        Eigen::Matrix3f Tinv;
         Tinv(0, 0) = T(0, 0);
         Tinv(0, 1) = T(1, 0);
         Tinv(1, 1) = T(1, 1);
@@ -33,9 +33,9 @@ namespace rpg
     }
 
     ///////////////////////////////////////////////////////////////////////
-    inline Eigen::Matrix3d Cart2T( double x, double y, double theta )
+    inline Eigen::Matrix3f Cart2T( float x, float y, float theta )
     {
-        Eigen::Matrix3d T;
+        Eigen::Matrix3f T;
 
         T(0, 0) =  cos(theta);
         T(0, 1) = -sin(theta);
@@ -50,9 +50,9 @@ namespace rpg
     }
 
     ///////////////////////////////////////////////////////////////////////
-    inline Eigen::Vector3d R2Cart( Eigen::Matrix3d R )
+    inline Eigen::Vector3f R2Cart( Eigen::Matrix3f R )
     {
-        Eigen::Vector3d Cart_angles;
+        Eigen::Vector3f Cart_angles;
 
         Cart_angles(0) = atan2(R(2,1),R(2,2));
         Cart_angles(1) = atan2(-R(2,0),sqrt(pow(R(2,1),2)+pow(R(2,2),2)));

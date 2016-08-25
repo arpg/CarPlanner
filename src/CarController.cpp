@@ -71,12 +71,12 @@ bool CarController::_SampleControlPlan(ControlPlan* pPlan,LocalProblem& problem)
 
     if(g_bShow2DResult) {
         //ONLY FOR VISUALIZATION. REMOVE WHEN NO LONGER NEEDED
-       Eigen::Vector3dAlignedVec samples;
+       Eigen::Vector3fAlignedVec samples;
 
         m_pPlanner->SamplePath(problem,samples,true);
         pPlan->m_Sample.m_vStates.reserve(samples.size());
-        for(const Eigen::Vector3d& pos : samples){
-            Sophus::SE3d Twv(Sophus::SO3d(),pos);
+        for(const Eigen::Vector3f& pos : samples){
+            Sophus::SE3f Twv(Sophus::SO3f(),pos);
             pPlan->m_Sample.m_vStates.push_back(VehicleState(Twv,0));
         }
     }else{
@@ -195,7 +195,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
         int nCurrentSampleIndex;
         double interpolationAmount;
         double planStartCurvature;
-        Eigen::Vector3d planStartTorques = Eigen::Vector3d::Zero();
+        Eigen::Vector3f planStartTorques = Eigen::Vector3f::Zero();
         PlanPtrList::iterator nCurrentPlanIndex;
         ControlPlan* pPlan = NULL;
 
@@ -299,8 +299,8 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
             pPlan->m_StartState = delaySample.m_vStates.back();
             m_LastCommand = delaySample.m_vCommands.back();
         }else{
-            Eigen::Vector3d targetVel;
-            Sophus::SE3d targetPos;
+            Eigen::Vector3f targetVel;
+            Sophus::SE3f targetPos;
             GetCurrentCommands(dPlanStartTime,m_LastCommand,targetVel,targetPos);
             pPlan->m_StartState = currentState;
         }
@@ -435,7 +435,7 @@ VehicleState CarController::GetCurrentPose() {
 /////////////////////////////////////////////////////////////////////////////////////////
 void CarController::SetCurrentPoseFromCarModel(BulletCarModel* pModel, int nWorldId) {
     boost::mutex::scoped_lock lock(m_PoseMutex);
-    //Sophus::SE3d oldTwv = m_CurrentState.m_dTwv;
+    //Sophus::SE3f oldTwv = m_CurrentState.m_dTwv;
     pModel->GetVehicleState(0,m_CurrentState);
     //remove the car offset from the car state
     //m_CurrentState.m_dTwv.block<3,1>(0,3) += m_CurrentState.m_dTwv.block<3,1>(0,2)*CAR_HEIGHT_OFFSET;
@@ -476,16 +476,16 @@ double CarController::GetLastPlanStartTime()
 void CarController::GetCurrentCommands(const double time,
                                        ControlCommand& command)
 {
-    Eigen::Vector3d targetVel;
-    Sophus::SE3d dT_target;
+    Eigen::Vector3f targetVel;
+    Sophus::SE3f dT_target;
     GetCurrentCommands(time,command,targetVel,dT_target);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CarController::GetCurrentCommands(const double time,
                                        ControlCommand& command,
-                                       Eigen::Vector3d& targetVel,
-                                       Sophus::SE3d& dT_target)
+                                       Eigen::Vector3f& targetVel,
+                                       Sophus::SE3f& dT_target)
 {
     boost::mutex::scoped_lock lock(m_PlanMutex);
     int nCurrentSampleIndex;
@@ -500,7 +500,7 @@ void CarController::GetCurrentCommands(const double time,
         //dout("GetCurrentCommands returning last commands a:" << m_dLastAccel << " c:" << m_dLastTurnRate << " t:" << m_dLastTorques.transpose());
         command.m_dForce = m_pModel->GetParameters(0)[CarParameters::AccelOffset]*SERVO_RANGE;
         command.m_dPhi = m_pModel->GetParameters(0)[CarParameters::SteeringOffset]*SERVO_RANGE;
-        command.m_dTorque = Eigen::Vector3d::Zero();//m_dLastTorques;
+        command.m_dTorque = Eigen::Vector3f::Zero();//m_dLastTorques;
 
         //dout("Torque output of: [ " << torques.transpose() << "] from previous plan");
     }else {
@@ -602,7 +602,7 @@ double CarController::AdjustStartingSample(const std::vector<MotionSample>& segm
     int currentSampleIndex = sampleIndex;
     double minDistance = DBL_MAX;
     const VehicleState& currentState = segmentSamples[currentSegmentIndex].m_vStates[currentSampleIndex];
-    Eigen::Vector3d distVect = currentState.m_dTwv.translation() - state.m_dTwv.translation();
+    Eigen::Vector3f distVect = currentState.m_dTwv.translation() - state.m_dTwv.translation();
 
     int minSegmentIndex = segmentIndex;
     int minSampleIndex = sampleIndex;

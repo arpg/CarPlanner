@@ -12,7 +12,7 @@ static bool& g_bTrajectoryCost(CVarUtils::CreateGetUnsavedCVar("debug.Trajectory
 static int& g_nTrajectoryCostSegments(CVarUtils::CreateGetUnsavedCVar("debug.TrajectoryCostSegments", 10,""));
 
 struct ApplyCommandsThreadFunctor {
-    ApplyCommandsThreadFunctor(LocalPlanner *pPlanner, LocalProblem& problem,const int index , Eigen::Vector6d& poseOut,Eigen::VectorXd& errorOut,
+    ApplyCommandsThreadFunctor(LocalPlanner *pPlanner, LocalProblem& problem,const int index , Eigen::Vector6f& poseOut,Eigen::VectorXf& errorOut,
                                MotionSample& sample, const bool bSolveBoundary = false) :
         m_pPlanner(pPlanner),
         m_Problem(problem),
@@ -39,18 +39,18 @@ struct ApplyCommandsThreadFunctor {
     //const double m_dt;
     LocalProblem& m_Problem;
     const int m_index;    
-    Eigen::Vector6d& m_poseOut;
-    Eigen::VectorXd& m_dErrorOut;
+    Eigen::Vector6f& m_poseOut;
+    Eigen::VectorXf& m_dErrorOut;
     MotionSample& m_Sample;
     bool m_bSolveBoundary;
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-inline Eigen::VectorXd GetPointLineError(const Eigen::Vector6d& line1,const Eigen::Vector6d& line2, const Eigen::Vector6d& point, double& dInterpolationFactor)
+inline Eigen::VectorXf GetPointLineError(const Eigen::Vector6f& line1,const Eigen::Vector6f& line2, const Eigen::Vector6f& point, double& dInterpolationFactor)
 {
-    Eigen::Vector3d vAB = (line2.head(3) - line1.head(3));
-    Eigen::Vector3d vAC = (point.head(3) - line1.head(3));
+    Eigen::Vector3f vAB = (line2.head(3) - line1.head(3));
+    Eigen::Vector3f vAC = (point.head(3) - line1.head(3));
     double dAB = vAB.norm();
     double dProjection = vAC.dot(vAB.normalized());
 //    if(dProjection < 0){
@@ -62,11 +62,11 @@ inline Eigen::VectorXd GetPointLineError(const Eigen::Vector6d& line1,const Eige
 //        dout("Point/line interpolation factor out of bounds at " << interpolation << "Interpolating between [" << line1.head(3).transpose() << "], [" << line2.head(3).transpose() << "] and [" << point.head(3).transpose());
 //    }
     //now calculate the interpolated value
-    Eigen::Vector6d intVal = (1.0-dInterpolationFactor)*line1 + (dInterpolationFactor)*line2;
+    Eigen::Vector6f intVal = (1.0-dInterpolationFactor)*line1 + (dInterpolationFactor)*line2;
     intVal[3] = rpg::AngleWrap(intVal[3]);
 
     //and now we can calculate the error to the interpolated pose
-    Eigen::VectorXd intError(TRAJ_UNIT_ERROR_TERMS);
+    Eigen::VectorXf intError(TRAJ_UNIT_ERROR_TERMS);
     intError.head(3) = intVal.head(3) - point.head(3);
     intError[3] = rpg::AngleWrap(intVal[3] - point[3]);
     intError[4] = intVal[5] - point[5];
@@ -75,15 +75,15 @@ inline Eigen::VectorXd GetPointLineError(const Eigen::Vector6d& line1,const Eige
 
 LocalPlanner::LocalPlanner() :
     m_dEps(CVarUtils::CreateUnsavedCVar("planner.Epsilon", 1e-6, "Epsilon value used in finite differences.")),
-    m_dPointWeight(CVarUtils::CreateUnsavedCVar("planner.PointCostWeights",Eigen::MatrixXd(1,1))),
-    m_dTrajWeight(CVarUtils::CreateUnsavedCVar("planner.TrajCostWeights",Eigen::MatrixXd(1,1))),
+    m_dPointWeight(CVarUtils::CreateUnsavedCVar("planner.PointCostWeights",Eigen::MatrixXf(1,1))),
+    m_dTrajWeight(CVarUtils::CreateUnsavedCVar("planner.TrajCostWeights",Eigen::MatrixXf(1,1))),
     m_nPlanCounter(0)
 {
     m_ThreadPool.size_controller().resize(8);
 
     //weight matrix
-    m_dPointWeight = Eigen::MatrixXd(POINT_COST_ERROR_TERMS,1);
-    m_dTrajWeight = Eigen::MatrixXd(TRAJ_EXTRA_ERROR_TERMS+TRAJ_UNIT_ERROR_TERMS,1);
+    m_dPointWeight = Eigen::MatrixXf(POINT_COST_ERROR_TERMS,1);
+    m_dTrajWeight = Eigen::MatrixXf(TRAJ_EXTRA_ERROR_TERMS+TRAJ_UNIT_ERROR_TERMS,1);
     m_dPointWeight.setIdentity();
     m_dTrajWeight.setIdentity();
 
@@ -105,14 +105,14 @@ LocalPlanner::LocalPlanner() :
 }
 
 ///////////////////////////////////////////////////////////////////////
-void LocalPlanner::SamplePath(const LocalProblem& problem, Eigen::Vector3dAlignedVec& vSamples, bool bBestSolution /* = true */ )
+void LocalPlanner::SamplePath(const LocalProblem& problem, Eigen::Vector3fAlignedVec& vSamples, bool bBestSolution /* = true */ )
 {
     vSamples.clear();
     BezierBoundaryProblem boundaryProblem = problem.m_BoundaryProblem;
-    Sophus::SE2d T_start(Sophus::SO2(problem.m_dStartPose[3]),problem.m_dStartPose.head(2));
+    Sophus::SE2f T_start(Sophus::SO2f(problem.m_dStartPose[3]),problem.m_dStartPose.head(2));
     vSamples.reserve(boundaryProblem.m_vPts.size());
-    for(const Eigen::Vector2d& pt : boundaryProblem.m_vPts) {
-        Eigen::Vector3d dPos(pt[0],pt[1],0);
+    for(const Eigen::Vector2f& pt : boundaryProblem.m_vPts) {
+        Eigen::Vector3f dPos(pt[0],pt[1],0);
         dPos.head(2) = T_start*dPos.head(2);
 
         //now transform this into the proper 3d pose
@@ -122,11 +122,11 @@ void LocalPlanner::SamplePath(const LocalProblem& problem, Eigen::Vector3dAligne
 }
 
 ///////////////////////////////////////////////////////////////////////
-Eigen::Vector6d LocalPlanner::_Transform3dGoalPose(const VehicleState& state, const LocalProblem &problem) const
+Eigen::Vector6f LocalPlanner::_Transform3dGoalPose(const VehicleState& state, const LocalProblem &problem) const
 {
     //also transfer this pose into the 3d projected space we are working on
-    const Sophus::SE3d dPose = problem.m_dT3d * state.m_dTwv;
-    Eigen::Vector6d untransformedPose;
+    const Sophus::SE3f dPose = problem.m_dT3d * state.m_dTwv;
+    Eigen::Vector6f untransformedPose;
     untransformedPose << dPose.translation()[0],
                          dPose.translation()[1],
                          dPose.translation()[2],
@@ -139,10 +139,10 @@ Eigen::Vector6d LocalPlanner::_Transform3dGoalPose(const VehicleState& state, co
 
 
 ///////////////////////////////////////////////////////////////////////
-Eigen::Vector6d  LocalPlanner::_TransformGoalPose(const Eigen::Vector6d& dGoalPose,const LocalProblem& problem) const
+Eigen::Vector6f  LocalPlanner::_TransformGoalPose(const Eigen::Vector6f& dGoalPose,const LocalProblem& problem) const
 {
-    Eigen::Vector6d result;
-    Eigen::Vector3d pt;
+    Eigen::Vector6f result;
+    Eigen::Vector3f pt;
     pt << dGoalPose[0], dGoalPose[1], 1;
     pt = problem.m_dTinv * pt;
     result << pt[0], pt[1], dGoalPose[2], rpg::AngleWrap( dGoalPose[3] - problem.m_dStartPose[3] ), dGoalPose[4], dGoalPose[5];
@@ -150,20 +150,20 @@ Eigen::Vector6d  LocalPlanner::_TransformGoalPose(const Eigen::Vector6d& dGoalPo
 }
 
 ///////////////////////////////////////////////////////////////////////
-Eigen::VectorXd LocalPlanner::_GetTrajectoryError(const MotionSample& sample,
-                                                  const Eigen::Vector6dAlignedVec& vTransformedPoses,
-                                                  const Eigen::Vector6d& endPose,
+Eigen::VectorXf LocalPlanner::_GetTrajectoryError(const MotionSample& sample,
+                                                  const Eigen::Vector6fAlignedVec& vTransformedPoses,
+                                                  const Eigen::Vector6f& endPose,
                                                   double& dMinTime) const
 {
-    Eigen::VectorXd error(TRAJ_UNIT_ERROR_TERMS);
+    Eigen::VectorXf error(TRAJ_UNIT_ERROR_TERMS);
     int nTrajSize = sample.m_vStates.size();
-    Eigen::Vector6d minPose, minPoseBefore, minPoseAfter;
+    Eigen::Vector6f minPose, minPoseBefore, minPoseAfter;
     int nMinIdx = -1;
     //now find the closes point in the trajectory to our current position
     double dMinDist = DBL_MAX;
     for(int ii = 0; ii < nTrajSize ; ii++){
         //find the closest point to our current location
-        Eigen::Vector3d cartError = vTransformedPoses[ii].head(3) - endPose.head(3);
+        Eigen::Vector3f cartError = vTransformedPoses[ii].head(3) - endPose.head(3);
         double norm = (cartError).norm();
         if(norm < dMinDist){
             dMinTime = sample.m_vStates[ii].m_dTime;
@@ -185,7 +185,7 @@ Eigen::VectorXd LocalPlanner::_GetTrajectoryError(const MotionSample& sample,
 
     //now calculate the distance on both sides and find the minimum
     double dInterpolationFactor;
-    Eigen::VectorXd beforeError;
+    Eigen::VectorXf beforeError;
     if(minPose != minPoseBefore){
         beforeError = GetPointLineError(minPoseBefore,minPose,endPose,dInterpolationFactor);
         if(beforeError.head(3).norm() < error.head(3).norm()){
@@ -195,7 +195,7 @@ Eigen::VectorXd LocalPlanner::_GetTrajectoryError(const MotionSample& sample,
     }
 
 
-    Eigen::VectorXd afterError;
+    Eigen::VectorXf afterError;
     if(minPose != minPoseAfter){
         afterError = GetPointLineError(minPose,minPoseAfter,endPose,dInterpolationFactor);
         if(afterError.head(3).norm() < error.head(3).norm()){
@@ -211,11 +211,11 @@ Eigen::VectorXd LocalPlanner::_GetTrajectoryError(const MotionSample& sample,
 }
 
 ///////////////////////////////////////////////////////////////////////
-Eigen::VectorXd LocalPlanner::_GetWeightVector(const LocalProblem& problem)
+Eigen::VectorXf LocalPlanner::_GetWeightVector(const LocalProblem& problem)
 {
     int errorVecSize = problem.m_eCostMode == eCostPoint ? POINT_COST_ERROR_TERMS : TRAJ_UNIT_ERROR_TERMS*g_nTrajectoryCostSegments+TRAJ_EXTRA_ERROR_TERMS;
-    Eigen::VectorXd dW;
-    Eigen::VectorXd trajW(errorVecSize);
+    Eigen::VectorXf dW;
+    Eigen::VectorXf trajW(errorVecSize);
     if(problem.m_eCostMode == eCostTrajectory){
         double dFactor = 1.0/((double)g_nTrajectoryCostSegments);
         for(int ii = 0; ii < g_nTrajectoryCostSegments ; ii++){
@@ -232,39 +232,39 @@ Eigen::VectorXd LocalPlanner::_GetWeightVector(const LocalProblem& problem)
 }
 
 ///////////////////////////////////////////////////////////////////////
-double LocalPlanner::_CalculateErrorNorm(const LocalProblem& problem,const Eigen::VectorXd& dError)
+double LocalPlanner::_CalculateErrorNorm(const LocalProblem& problem,const Eigen::VectorXf& dError)
 {
-    Eigen::VectorXd dW = _GetWeightVector(problem);
-    Eigen::VectorXd error = dError;
+    Eigen::VectorXf dW = _GetWeightVector(problem);
+    Eigen::VectorXf error = dError;
     //dout("error vector is " << error.transpose());
     error.array() *= dW.array();
     return error.norm();
 }
 
 ///////////////////////////////////////////////////////////////////////
-Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, LocalProblem& problem, double& dMinTrajTime) const
+Eigen::VectorXf LocalPlanner::_CalculateSampleError(const MotionSample& sample, LocalProblem& problem, double& dMinTrajTime) const
 {
     int errorVecSize = problem.m_eCostMode == eCostPoint ? POINT_COST_ERROR_TERMS : TRAJ_UNIT_ERROR_TERMS*g_nTrajectoryCostSegments+TRAJ_EXTRA_ERROR_TERMS;
-    Eigen::VectorXd error;
+    Eigen::VectorXf error;
     if(sample.m_vStates.size() == 0 ){
         dout(problem.m_nPlanId << ":Sample with size 0 detected. Aborting.");
-        error = Eigen::VectorXd(errorVecSize);
+        error = Eigen::VectorXf(errorVecSize);
         error.setOnes();
         error *= DBL_MAX;
         return error;
     }
     //get the normalized velocity
     VehicleState state = sample.m_vStates.back();
-    Eigen::Vector3d dW_goal = problem.m_GoalState.m_dTwv.so3().inverse()* state.m_dW;
+    Eigen::Vector3f dW_goal = problem.m_GoalState.m_dTwv.so3().inverse()* state.m_dW;
     //double dPrevAngle = state.GetTheta();
     if(state.IsAirborne()){
         state.AlignWithVelocityVector();
         //dout("End state transformed from " << dPrevAngle << " to " << state.GetTheta());
     }
 
-    Eigen::Vector6d endPose = _Transform3dGoalPose(state,problem);
+    Eigen::Vector6f endPose = _Transform3dGoalPose(state,problem);
     if(problem.m_eCostMode == eCostPoint){
-        error =Eigen::VectorXd(errorVecSize);
+        error =Eigen::VectorXf(errorVecSize);
         //Eigen::Vector3d cartError = T2Cart_2D(Cart2T_2D(problem.m_dTransformedGoal.head(3))*Tinv_2D(Cart2T_2D(endPose.head(3))));
         //error.head(3) = cartError;
         //transform the angular velocity into the plane of goal pose
@@ -279,7 +279,7 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, 
         //error.array() *= m_dPointWeight.block<POINT_COST_ERROR_TERMS,1>(0,0).array();
         //dout("Error vector is " << error.transpose() << " weights are " << m_dPointWeight.transpose());
     }else if(problem.m_eCostMode == eCostTrajectory){
-        error =Eigen::VectorXd(errorVecSize);
+        error =Eigen::VectorXf(errorVecSize);
 
         if(problem.m_vTransformedTrajectory.empty()){
             int nTrajSize = problem.m_Trajectory.m_vStates.size();
@@ -310,7 +310,7 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, 
                    ii += dMinTrajTime/(double)g_nTrajectoryCostSegments ){
             //get the poses at this point in time
             //Eigen::Vector6d poseTraj = _Transform3dGoalPose(VehicleState::GetInterpolatedState(problem.m_Trajectory.m_vStates,nStartIndex,ii,nStartIndex),problem);
-            Eigen::Vector6d poseSample = _Transform3dGoalPose(VehicleState::GetInterpolatedState(sample.m_vStates,nStartIndex,ii,nStartIndex),problem);
+            Eigen::Vector6f poseSample = _Transform3dGoalPose(VehicleState::GetInterpolatedState(sample.m_vStates,nStartIndex,ii,nStartIndex),problem);
 
             double dMinTime;
             error.segment(TRAJ_UNIT_ERROR_TERMS*counter,TRAJ_UNIT_ERROR_TERMS) = _GetTrajectoryError(problem.m_Trajectory,
@@ -336,17 +336,17 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, 
 
 ///////////////////////////////////////////////////////////////////////
 bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
-                                      Eigen::VectorXd& dCurrentErrorVec,
+                                      Eigen::VectorXf& dCurrentErrorVec,
                                       LocalProblemSolution& coordinateDescent,
-                                      Eigen::MatrixXd& J)
+                                      Eigen::MatrixXf& J)
 {
     Eigen::IOFormat CleanFmt(8, 0, ", ", "\n", "[", "]");
-    Eigen::VectorXd errors[OPT_DIM*2],dCurrentError;
+    Eigen::VectorXf errors[OPT_DIM*2],dCurrentError;
     std::vector<std::shared_ptr<LocalProblem > > vCubicProblems;
     std::vector<std::shared_ptr<ApplyCommandsThreadFunctor > > vFunctors;
     vCubicProblems.resize(OPT_DIM*2);
     vFunctors.resize(OPT_DIM*2);
-    Eigen::Vector6d pPoses[OPT_DIM*2],dCurrentPose;
+    Eigen::Vector6f pPoses[OPT_DIM*2],dCurrentPose;
 
     const double dEps = m_dEps;// * problem.m_CurrentSolution.m_dNorm;
 
@@ -354,7 +354,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
     for( int ii = 0; ii < OPT_DIM; ii++ ){
         int plusIdx = ii*2, minusIdx = ii*2+1;
         vCubicProblems[plusIdx] = std::make_shared<LocalProblem>(problem);
-        Eigen::VectorXd delta(OPT_DIM);
+        Eigen::VectorXf delta(OPT_DIM);
         delta.setZero();
         delta(ii) += dEps;
         vCubicProblems[plusIdx]->UpdateOptParams(vCubicProblems[plusIdx]->m_CurrentSolution.m_dOptParams.head(OPT_DIM)+delta);
@@ -369,7 +369,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
 
         if(g_bUseCentralDifferences == true){
             vCubicProblems[minusIdx] = std::make_shared<LocalProblem>(problem);
-            Eigen::VectorXd delta(OPT_DIM);
+            Eigen::VectorXf delta(OPT_DIM);
             delta.setZero();
             delta(ii) -= dEps;
             vCubicProblems[minusIdx]->UpdateOptParams(vCubicProblems[minusIdx]->m_CurrentSolution.m_dOptParams.head(OPT_DIM)+delta);
@@ -431,7 +431,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
 
         //now that we have all the error terms, we can set this column of the jacobians
 
-        Eigen::VectorXd col = g_bUseCentralDifferences ? ((errors[plusIdx]) - (errors[minusIdx]))/(2.0*dEps) : ((errors[plusIdx]) - dCurrentErrorVec)/(dEps);
+        Eigen::VectorXf col = g_bUseCentralDifferences ? ((errors[plusIdx]) - (errors[minusIdx]))/(2.0*dEps) : ((errors[plusIdx]) - dCurrentErrorVec)/(dEps);
 
         J.col(ii) = -col;
         //if this term is NAN, sound the alarm
@@ -516,7 +516,7 @@ void LocalPlanner::SampleAcceleration(std::vector<ControlCommand>& vCommands, Lo
 
         //if needed, add torques
         double endTime = problem.m_dTorqueStartTime + problem.m_dTorqueDuration;
-        Eigen::Vector3d dTorques = Eigen::Vector3d::Zero();
+        Eigen::Vector3f dTorques = Eigen::Vector3f::Zero();
         if(t >= problem.m_dTorqueStartTime && problem.m_dTorqueStartTime != -1 && t <= (endTime)){
             dTorques(1) = problem.m_dCoefs(0) + problem.m_dCoefs(1)*(t-problem.m_dTorqueStartTime) +
                           problem.m_dCoefs(2)*powi((t-problem.m_dTorqueStartTime),2) +
@@ -539,7 +539,7 @@ void LocalPlanner::SampleAcceleration(std::vector<ControlCommand>& vCommands, Lo
 
 
 ///////////////////////////////////////////////////////////////////////
-Eigen::Vector6d LocalPlanner::SimulateTrajectory(MotionSample& sample,
+Eigen::Vector6f LocalPlanner::SimulateTrajectory(MotionSample& sample,
                                                  LocalProblem& problem,
                                                  const int nIndex /*= 0*/,
                                                  const bool& bBestSolution /* = false */)
@@ -560,7 +560,7 @@ Eigen::Vector6d LocalPlanner::SimulateTrajectory(MotionSample& sample,
         vState = problem.m_pFunctor->ApplyVelocities( problem.m_StartState, sample, nIndex, bUsingBestSolution);
     }
     //transform the result back
-    Eigen::Vector6d dRes = _Transform3dGoalPose(vState,problem);
+    Eigen::Vector6f dRes = _Transform3dGoalPose(vState,problem);
     return dRes;
 }
 
@@ -626,24 +626,24 @@ bool LocalPlanner::InitializeLocalProblem(LocalProblem& problem,
     problem.m_pFunctor->ResetPreviousCommands();
     problem.m_pFunctor->SetNoDelay(true);
 
-    Sophus::SE3d dTranslation(Sophus::SO3d(),-problem.m_StartState.m_dTwv.translation());
+    Sophus::SE3f dTranslation(Sophus::SO3d(),-problem.m_StartState.m_dTwv.translation());
 
     //first translate to base everything around dStartPose
-    Sophus::SE3d dFixedStart = problem.m_StartState.m_dTwv;
-    Sophus::SE3d dFixedGoal = problem.m_GoalState.m_dTwv;
+    Sophus::SE3f dFixedStart = problem.m_StartState.m_dTwv;
+    Sophus::SE3f dFixedGoal = problem.m_GoalState.m_dTwv;
 
     //now rotate everything to a frame inbetween the two
-    Eigen::Quaternion<double> dStartQuat = problem.m_StartState.m_dTwv.so3().unit_quaternion();
-    Eigen::Quaternion<double> dEndQuat = problem.m_GoalState.m_dTwv.so3().unit_quaternion();
+    Eigen::Quaternion<float> dStartQuat = problem.m_StartState.m_dTwv.so3().unit_quaternion();
+    Eigen::Quaternion<float> dEndQuat = problem.m_GoalState.m_dTwv.so3().unit_quaternion();
     //find the halfway rotation
-    Eigen::Quaternion<double> dMidQuat = dStartQuat.slerp(0.5,dEndQuat);
+    Eigen::Quaternion<float> dMidQuat = dStartQuat.slerp(0.5,dEndQuat);
     //dMidQuat.setIdentity();
 
     //now rotate both waypoints into this intermediate frame
-    Sophus::SE3d dRotation(Sophus::SO3d(dMidQuat.toRotationMatrix().transpose()),Eigen::Vector3d::Zero()); //we want the inverse rotation here
+    Sophus::SE3f dRotation(Sophus::SO3f(dMidQuat.toRotationMatrix().transpose()),Eigen::Vector3f::Zero()); //we want the inverse rotation here
     static bool& bFlatten2Dcurves = CVarUtils::CreateGetCVar("debug.flatten2Dcurves",false,"");
     if(bFlatten2Dcurves){
-        dRotation.so3() = Sophus::SO3d();
+        dRotation.so3() = Sophus::SO3f();
     }
 
     problem.m_dT3d = (dRotation*dTranslation);
@@ -658,8 +658,8 @@ bool LocalPlanner::InitializeLocalProblem(LocalProblem& problem,
     dStartStateFixed.m_dTwv = dFixedStart;
     dGoalStateFixed.m_dTwv = dFixedGoal;
     //and now we can project to 2d and get our 2d planner points
-    Eigen::Vector6d dStartPose2D = dStartStateFixed.ToPose();
-    Eigen::Vector6d dGoalPose2D = dGoalStateFixed.ToPose();
+    Eigen::Vector6f dStartPose2D = dStartStateFixed.ToPose();
+    Eigen::Vector6f dGoalPose2D = dGoalStateFixed.ToPose();
 
     //make sure we don't have start and end velocities of zero
     if(dStartPose2D[5] == 0 && dGoalPose2D[5] == 0){
@@ -673,11 +673,11 @@ bool LocalPlanner::InitializeLocalProblem(LocalProblem& problem,
     problem.m_dGoalPose = dGoalPose2D;
     problem.m_pBoundarySovler = &m_BoundarySolver;
 
-    problem.m_dTinv = rpg::TInv( rpg::Cart2T( problem.m_dStartPose[0], problem.m_dStartPose[1], problem.m_dStartPose[3] ));
-    Eigen::Vector6d dTemp = _TransformGoalPose(dStartPose2D,problem);
-    problem.m_BoundaryProblem.m_dStartPose = Eigen::Vector4d(dTemp[0],dTemp[1],dTemp[3],dTemp[4]);
+    problem.m_dTinv = Sophus::SE3f( rpg::TInv( rpg::Cart2T( problem.m_dStartPose[0], problem.m_dStartPose[1], problem.m_dStartPose[3] ) ) );
+    Eigen::Vector6f dTemp = _TransformGoalPose(dStartPose2D,problem);
+    problem.m_BoundaryProblem.m_dStartPose = Eigen::Vector4f(dTemp[0],dTemp[1],dTemp[3],dTemp[4]);
     dTemp  = _TransformGoalPose(dGoalPose2D,problem);
-    problem.m_BoundaryProblem.m_dGoalPose = Eigen::Vector4d(dTemp[0],dTemp[1],dTemp[3],dTemp[4]);
+    problem.m_BoundaryProblem.m_dGoalPose = Eigen::Vector4f(dTemp[0],dTemp[1],dTemp[3],dTemp[4]);
     problem.m_BoundaryProblem.m_nDiscretization = 50;
 
     if(pVelProfile == NULL){
@@ -743,7 +743,7 @@ bool LocalPlanner::Iterate(LocalProblem &problem )
 
             //calculate the distance
             double dMinLookahead;
-            Eigen::VectorXd error = _CalculateSampleError(problem,dMinLookahead);
+            Eigen::VectorXf error = _CalculateSampleError(problem,dMinLookahead);
             //dout(problem.m_nPlanId << ":Initial error is " << error.transpose());
             problem.m_CurrentSolution.m_dNorm = _CalculateErrorNorm(problem,error);
             if(std::isfinite(problem.m_CurrentSolution.m_dNorm) == false){
@@ -811,7 +811,7 @@ void LocalPlanner::CalculateTorqueCoefficients(LocalProblem& problem,MotionSampl
     //now calcualte the coefficients for this maneuver based on the angle error
     if(dAirTime > 0.05){
         //find the goal state based on the cost type
-        Sophus::SO3d dGoalState;
+        Sophus::SO3f dGoalState;
         if(problem.m_eCostMode == eCostPoint){
             dGoalState = problem.m_GoalState.m_dTwv.so3();
         }else{
@@ -828,19 +828,19 @@ void LocalPlanner::CalculateTorqueCoefficients(LocalProblem& problem,MotionSampl
             }
         }
         //calculate the change in angles necessary
-        const Sophus::SO3d Rw_dest = problem.m_GoalState.m_dTwv.so3();
-        const Sophus::SO3d Rw_init = pSample->m_vStates[nStartIndex].m_dTwv.so3();
+        const Sophus::SO3f Rw_dest = problem.m_GoalState.m_dTwv.so3();
+        const Sophus::SO3f Rw_init = pSample->m_vStates[nStartIndex].m_dTwv.so3();
 
         //const Sophus::SO3d Rinit_w = Rw_init.inverse();
         //const Sophus::SO3d Rinit_dest = Rinit_w * Rw_dest;
         //angle in body frame
-        const Eigen::Vector3d angles(0,
+        const Eigen::Vector3f angles(0,
                                      rpg::AngleWrap(rpg::R2Cart(Rw_dest.matrix())[1]-rpg::R2Cart(Rw_init.matrix())[1]),// - (problem.m_eCostMode == eCostPoint ? M_PI*2 : 0),
                                      0);// = Rinit_dest.log();
 
-        const Eigen::Vector3d dInertia = problem.m_pFunctor->GetCarModel()->GetVehicleInertiaTensor(0);
+        const Eigen::Vector3f dInertia = problem.m_pFunctor->GetCarModel()->GetVehicleInertiaTensor(0);
         //Eigen::Vector3d currentV = pSample->m_vStates[nStartIndex].m_dV;
-        const Sophus::SO3d Rwv = pSample->m_vStates[nStartIndex].m_dTwv.so3();
+        const Sophus::SO3f Rwv = pSample->m_vStates[nStartIndex].m_dTwv.so3();
         //angular velocities in body frame
         //create the inertia tensor
 //        Eigen::Matrix3d omega_w;
@@ -851,18 +851,18 @@ void LocalPlanner::CalculateTorqueCoefficients(LocalProblem& problem,MotionSampl
 
         //Sophus::SO3d dRwv = Sophus::SO3d::hat(pSample->m_vStates[nStartIndex].m_dW);
         //const Eigen::Vector3d omega_v =  Sophus::SO3d::vee((Rwv.inverse()*dRwv).matrix());
-        const Eigen::Vector3d omega_v = Rwv.inverse() * pSample->m_vStates[nStartIndex].m_dW;
+        const Eigen::Vector3f omega_v = Rwv.inverse() * pSample->m_vStates[nStartIndex].m_dW;
 
         //calculate the coefficients
-        Eigen::Matrix4d A;
-        Eigen::Vector4d B;
+        Eigen::Matrix4f A;
+        Eigen::Vector4f B;
 
         A << 1, 0              ,0                     ,0,
                 1, dAirTime, powi(dAirTime,2), powi(dAirTime,3),
                 dAirTime, powi(dAirTime,2)/2,powi(dAirTime,3)/3,powi(dAirTime,4)/4,
                 powi(dAirTime,2)/2,  powi(dAirTime,3)/6,powi(dAirTime,4)/12,powi(dAirTime,5)/20;
 
-            Eigen::Matrix4d Ainertia = A / dInertia(1);
+            Eigen::Matrix4f Ainertia = A / dInertia(1);
             B << problem.m_dStartTorques(1),0, -omega_v(1), angles(1) - omega_v(1)*dAirTime;
             problem.m_dCoefs = Ainertia.inverse() * B;
             problem.m_dTorqueStartTime = dStartTime;
@@ -909,19 +909,19 @@ void LocalPlanner::StressTest(LocalProblem &problem)
 bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
 {
     Eigen::IOFormat CleanFmt(8, 0, ", ", "\n", "[", "]");
-    Eigen::VectorXd dDeltaP;
+    Eigen::VectorXf dDeltaP;
     //        dout("Entered gauss-newton search with e = " << m_dCurrentEps);
     double bestDamping;
     unsigned int nBestDampingIdx = 0;
 
-    Eigen::VectorXd dWvec = _GetWeightVector(problem);
+    Eigen::VectorXf dWvec = _GetWeightVector(problem);
 
-    Eigen::MatrixXd J = Eigen::MatrixXd(dWvec.rows(),OPT_DIM);
+    Eigen::MatrixXf J = Eigen::MatrixXf(dWvec.rows(),OPT_DIM);
     //create an appropriate weighting matrix
-    Eigen::MatrixXd dW = dWvec.asDiagonal();
+    Eigen::MatrixXf dW = dWvec.asDiagonal();
 
     //double dMinLookahead;
-    Eigen::VectorXd error;// = _CalculateSampleError(problem,dMinLookahead);
+    Eigen::VectorXf error;// = _CalculateSampleError(problem,dMinLookahead);
 
     //dout(problem.m_nPlanId << ":Iteration error is" << error.transpose());
     LocalProblemSolution coordinateDescent;
@@ -946,16 +946,16 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
 
     //solve for the dDeltaP
     dDeltaP = J.transpose()*dW*error;
-    Eigen::MatrixXd JtJ = J.transpose()*dW*J;
+    Eigen::MatrixXf JtJ = J.transpose()*dW*J;
     //Do thikonov reguralization if there is a null column
     if(bZeroCols) {
-        JtJ += Eigen::Matrix<double,OPT_DIM,OPT_DIM>::Identity();
+        JtJ += Eigen::Matrix<float,OPT_DIM,OPT_DIM>::Identity();
     }
     (JtJ).llt().solveInPlace(dDeltaP);
 
     //this is a hack for now, but it should take care of large deltas
     if(dDeltaP.norm() > 100 ){
-        JtJ += Eigen::Matrix<double,OPT_DIM,OPT_DIM>::Identity();
+        JtJ += Eigen::Matrix<float,OPT_DIM,OPT_DIM>::Identity();
         dDeltaP = J.transpose()*dW*error;
         (JtJ).llt().solveInPlace(dDeltaP);
     }
@@ -992,8 +992,8 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
     //damp the gauss newton response
     //dout("Gauss newton delta is: [" << dDeltaP.transpose() << "] - Damping with lambda");
 
-    Eigen::Vector6d pDampingStates[DAMPING_STEPS];
-    Eigen::VectorXd pDampingErrors[DAMPING_STEPS];
+    Eigen::Vector6f pDampingStates[DAMPING_STEPS];
+    Eigen::VectorXf pDampingErrors[DAMPING_STEPS];
     //Eigen::VectorOpt pHypePs[DAMPING_STEPS];
     std::vector<std::shared_ptr<LocalProblem> > vCubicProblems;
     std::vector<std::shared_ptr<ApplyCommandsThreadFunctor> >vFunctors;
@@ -1009,7 +1009,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
         //create the damped problems and run the thread queue to sample them
         for(int ii = 0 ; ii < DAMPING_STEPS ; ii++) {
             dampings[ii] = damping;
-            Eigen::VectorXd delta = dDeltaP *damping;
+            Eigen::VectorXf delta = dDeltaP *damping;
             vCubicProblems[ii] = std::make_shared<LocalProblem>(problem);
             vCubicProblems[ii]->UpdateOptParams(vCubicProblems[ii]->m_CurrentSolution.m_dOptParams.head(OPT_DIM)+delta);
             vFunctors[ii] = std::make_shared<ApplyCommandsThreadFunctor>(this,

@@ -5,7 +5,7 @@
 static bool& g_bSkidCompensationActive(CVarUtils::CreateCVar("debug.SkidCompensationActive", false, ""));
 
 ////////////////////////////////////////////////////////////////
-ApplyVelocitesFunctor5d::ApplyVelocitesFunctor5d(BulletCarModel *pCarModel, Eigen::Vector3d dInitTorques, CommandList *pPreviousCommands /* = NULL */) :
+ApplyVelocitesFunctor5d::ApplyVelocitesFunctor5d(BulletCarModel *pCarModel, Eigen::Vector3f dInitTorques, CommandList *pPreviousCommands /* = NULL */) :
     m_pCarModel(pCarModel),
     m_dInitTorques(dInitTorques),
     m_bNoDelay(false)

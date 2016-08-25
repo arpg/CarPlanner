@@ -24,8 +24,8 @@ public:
     void SetCurrentPose(VehicleState pose, CommandList* pCommandList = NULL);
     void GetCurrentCommands(const double time,
                             ControlCommand& command,
-                            Eigen::Vector3d& targetVel,
-                            Sophus::SE3d &dT_target);
+                            Eigen::Vector3f& targetVel,
+                            Sophus::SE3f &dT_target);
     float* GetMaxControlPlanTimePtr(){ return &m_dMaxControlPlanTime; }
     float* GetLookaheadTimePtr(){ return &m_dLookaheadTime; }
     double GetLastPlanStartTime();
@@ -74,7 +74,7 @@ private:
     boost::mutex m_PlanMutex;
     boost::mutex m_PoseMutex;
 
-    Eigen::Vector5d m_dLastDelta;
+    Eigen::Vector5f m_dLastDelta;
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

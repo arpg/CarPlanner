@@ -46,10 +46,10 @@ class Localizer
         Localizer();
         virtual ~Localizer();
         void TrackObject(const std::string& sObjectName, const std::string& sHost , bool bRobotFrame = true);
-        void TrackObject(const std::string& sObjectName, const std::string& sHost , Sophus::SE3d dToffset, bool bRobotFrame = true);
+        void TrackObject(const std::string& sObjectName, const std::string& sHost , Sophus::SE3f dToffset, bool bRobotFrame = true);
         void Start();
         void Stop();
-        Sophus::SE3d GetPose(const std::string& sObjectName , bool blocking = false, double *time = NULL, double *rate = NULL);
+        Sophus::SE3f GetPose(const std::string& sObjectName , bool blocking = false, double *time = NULL, double *rate = NULL);
         //Eigen::Matrix<double,6,1> GetdPose( const std::string& sObjectName );
         eLocType WhereAmI( Eigen::Vector3d P );
         eLocType WhereAmI( Eigen::Vector6d P );
@@ -73,8 +73,8 @@ class Localizer
 
         struct TrackerObject
         {
-            Sophus::SE3d        m_dSensorPose;
-            Sophus::SE3d        m_dToffset;
+            Sophus::SE3f        m_dSensorPose;
+            Sophus::SE3f        m_dToffset;
             double              m_dTime;
             bool		        m_bNodeSubscribed;
             Localizer*          m_pLocalizerObject;

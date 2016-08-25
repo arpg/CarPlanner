@@ -20,7 +20,7 @@ public:
                          MotionSample &plan,
                          const std::vector<RegressionParameter>& params,
                          const int index,
-                         Eigen::Vector7d& errorOut,
+                         Eigen::Vector7f& errorOut,
                          int nStartIndex,
                          int nEndIndex,
                          std::vector<VehicleState> *pStatesOut = NULL,
@@ -28,7 +28,7 @@ public:
 
     void CalculateJacobian(ApplyVelocitesFunctor5d f, MotionSample &sample,
                             const std::vector<RegressionParameter>& params, std::vector<RegressionParameter>& vBestParams,
-                            double& dBestNorm, int &nBestDimension, Eigen::MatrixXd &JtJ, Eigen::VectorXd &Jb);
+                            double& dBestNorm, int &nBestDimension, Eigen::MatrixXf &JtJ, Eigen::VectorXf &Jb);
 
     double CalculateParamNorms(ApplyVelocitesFunctor5d f,
                                MotionSample& plan,
@@ -36,11 +36,11 @@ public:
                                std::vector<MotionSample> *pSamples = NULL,
                                std::vector<int> *pSampleIndices = NULL);
 
-    Eigen::MatrixXd FiniteDiffFunctor(ApplyVelocitesFunctor5d f,
+    Eigen::MatrixXf FiniteDiffFunctor(ApplyVelocitesFunctor5d f,
                                       MotionSample& plan,
                                       const std::vector<RegressionParameter>& params,
-                                      Eigen::VectorXd& vBestParams,
-                                      Eigen::Vector7d& dBaseError,
+                                      Eigen::VectorXf& vBestParams,
+                                      Eigen::Vector7f& dBaseError,
                                       double& dBestNorm,
                                       int& nBestDimension,
                                       int nStartIndex,
@@ -62,8 +62,8 @@ private:
     int m_nSegmentLength;
     int m_nStartIndex;
     std::fstream* m_pLogFile;
-    Eigen::MatrixXd m_dW;
-    Eigen::MatrixXd m_dPrior;
+    Eigen::MatrixXf m_dW;
+    Eigen::MatrixXf m_dPrior;
     std::vector<std::pair<int,int> > m_vSegmentIndices;
 };
 

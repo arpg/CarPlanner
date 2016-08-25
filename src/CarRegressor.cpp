@@ -10,7 +10,7 @@ struct ApplyParametersThreadFunctor {
                                  MotionSample &plan,
                                  const std::vector<RegressionParameter>& params,
                                  const int index,
-                                 Eigen::Vector7d& errorOut,
+                                 Eigen::Vector7f& errorOut,
                                  int nStartIndex,
                                  int nEndIndex,
                                  CommandList* pPreviousCommands,
@@ -42,7 +42,7 @@ struct ApplyParametersThreadFunctor {
     MotionSample& m_plan;
     const std::vector<RegressionParameter>& m_params;
     const int m_index;
-    Eigen::Vector7d& m_errorOut;
+    Eigen::Vector7f& m_errorOut;
     int m_nStartIndex;
     int m_nEndIndex;
     CommandList* m_pPreviousCommands;
@@ -58,7 +58,7 @@ CarRegressor::CarRegressor()
     g_bUseCentralDifferences = false;
 
     //initialize the weight matrix
-    m_dW = Eigen::MatrixXd::Identity(7,7);
+    m_dW = Eigen::MatrixXf::Identity(7,7);
     //give the position terms a higher weight
 //    m_dW(0,0) = m_dW(1,1) = m_dW(2,2) = XY_MULTIPLIER;
 //    m_dW(3,3) = m_dW(4,4) = m_dW(5,5) = THETA_MULTIPLIER;
@@ -167,7 +167,7 @@ double CarRegressor::CalculateParamNorms(ApplyVelocitesFunctor5d simFunctor,
     _RefreshIndices(sample,simFunctor);
 
     double dTotalNorm = 0;
-    Eigen::Vector7dAlignedVec dErrors;
+    Eigen::Vector7fAlignedVec dErrors;
     //reserve ample space
     dErrors.resize(m_vSegmentIndices.size());
     //reserve space for the motion samples if required
@@ -240,15 +240,15 @@ void CarRegressor::_OptimizeParametersGN(ApplyVelocitesFunctor5d& f,
     double dBestNorm = m_dCurrentNorm,dBestDamping;
     dParamsOut = dParams;
     int nBestDimension;
-    Eigen::VectorXd dDeltaParams;
+    Eigen::VectorXf dDeltaParams;
     std::vector<RegressionParameter> dBestParams, dHypeParams;
-    Eigen::MatrixXd JtJ = Eigen::MatrixXd::Zero(dParams.size(),dParams.size());
-    Eigen::VectorXd Jb = Eigen::MatrixXd::Zero(dParams.size(),1);
+    Eigen::MatrixXf JtJ = Eigen::MatrixXf::Zero(dParams.size(),dParams.size());
+    Eigen::VectorXf Jb = Eigen::MatrixXf::Zero(dParams.size(),1);
     CalculateJacobian(f,plan,dParams,dBestParams,dBestNorm,nBestDimension,JtJ,Jb);
 
     //if the prior has not been initialized, simply set it to identity to start
     if(m_dPrior.rows() != JtJ.rows()){
-        m_dPrior = Eigen::MatrixXd(JtJ.rows(),JtJ.cols());
+        m_dPrior = Eigen::MatrixXf(JtJ.rows(),JtJ.cols());
         m_dPrior.setIdentity();
     }
 
@@ -272,7 +272,7 @@ void CarRegressor::_OptimizeParametersGN(ApplyVelocitesFunctor5d& f,
         damping = 1.0;
         for(int ii = 0 ; ii < DAMPING_STEPS ; ii++) {
             dampings[ii] = damping;
-            Eigen::VectorXd delta = dDeltaParams *damping;
+            Eigen::VectorXf delta = dDeltaParams *damping;
             pHypeParams[ii] = dParams;
             //add the delta to the parameters
             for(int jj = 0 ; jj < delta.rows() ; jj++){
@@ -323,7 +323,7 @@ void CarRegressor::ApplyParameters(ApplyVelocitesFunctor5d f,
                                    MotionSample& plan,
                                    const std::vector<RegressionParameter>& params,
                                    const int index,
-                                   Eigen::Vector7d& errorOut,
+                                   Eigen::Vector7f& errorOut,
                                    int nStartIndex,
                                    int nEndIndex,
                                    std::vector<VehicleState>* pStatesOut  /*= NULL*/,
@@ -354,7 +354,7 @@ void CarRegressor::ApplyParameters(ApplyVelocitesFunctor5d f,
     errorOut.setZero();
     for(size_t ii = 0 ; ii < vStatesOut.size() ; ii+= 10){
 
-        Eigen::Vector6d error6d = (vStatesOut[ii].m_dTwv * plan.m_vStates[nStartIndex+ii].m_dTwv.inverse()).log();
+        Eigen::Vector6f error6d = (vStatesOut[ii].m_dTwv * plan.m_vStates[nStartIndex+ii].m_dTwv.inverse()).log();
         //dout("Error out " << error6d.transpose() << std::endl);
         errorOut.head(6) += error6d;
         errorOut[6] += (vStatesOut[ii].m_dV.norm() - plan.m_vStates[nStartIndex+ii].m_dV.norm());
@@ -368,16 +368,16 @@ void CarRegressor::CalculateJacobian(ApplyVelocitesFunctor5d functor,
                                      std::vector<RegressionParameter>& vBestParams,
                                      double& dBestNorm,
                                      int& nBestDimension,
-                                     Eigen::MatrixXd& JtJ,
-                                     Eigen::VectorXd& Jb)
+                                     Eigen::MatrixXf& JtJ,
+                                     Eigen::VectorXf& Jb)
 {
     Eigen::IOFormat CleanFmt(5, 0, ", ", "\n", "[", "]");
     //int nControlDelayParamIndex = -1;
-    Eigen::Vector7d dBaseError;
+    Eigen::Vector7f dBaseError;
     //create a copy of the parameter vector for perturvation
     std::vector<std::shared_ptr<ApplyParametersThreadFunctor> > vFunctors;
     std::vector<std::vector<RegressionParameter> > vParams;
-    Eigen::Vector7dAlignedVec vResults;
+    Eigen::Vector7fAlignedVec vResults;
     double baseNorm = 0;
     std::vector<double> vResultNorms;
 
@@ -405,8 +405,8 @@ void CarRegressor::CalculateJacobian(ApplyVelocitesFunctor5d functor,
         //dout("jacobian on dimension " << ii << " is with params:" << vParams[ii*2] << " and " << vParams[ii*2+1]);
     }
 
-    JtJ = Eigen::MatrixXd::Zero(params.size(),params.size());
-    Jb = Eigen::MatrixXd::Zero(params.size(),1);
+    JtJ = Eigen::MatrixXf::Zero(params.size(),params.size());
+    Jb = Eigen::MatrixXf::Zero(params.size(),1);
 
     //dout("JtJ " << JtJ << " Jb " << Jb);
     for(size_t jj = 0; jj < m_vSegmentIndices.size() ; jj++){
@@ -495,7 +495,7 @@ void CarRegressor::CalculateJacobian(ApplyVelocitesFunctor5d functor,
         //add to the base norm tally (with weight)
         baseNorm += dBaseError.norm();
 
-        Eigen::MatrixXd J = Eigen::MatrixXd(vResults[0].size(), params.size());
+        Eigen::MatrixXf J = Eigen::MatrixXf(vResults[0].size(), params.size());
         for(size_t ii = 0 ; ii < params.size() ; ii++) {
             int plusIdx = ii*2, minusIdx = ii*2+1;
             if(g_bUseCentralDifferences == true){

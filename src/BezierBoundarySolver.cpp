@@ -39,32 +39,32 @@ double BezierBoundarySolver::GetCurvature(const BoundaryProblem *pProblem, doubl
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BezierBoundarySolver::_Get5thOrderBezier(BezierBoundaryProblem *pProblem,const Eigen::Vector4d& params)
+void BezierBoundarySolver::_Get5thOrderBezier(BezierBoundaryProblem *pProblem,const Eigen::Vector4f& params)
 {
     //the order of the bezier
-    const double n = 5.0;
+    const float n = 5.0;
 
     //calculate the offsets
-    const double a1 = params[0];
-    const double b1 = params[1];
-    const double a2 = params[2];
-    const double b2 = params[3];
+    const float a1 = params[0];
+    const float b1 = params[1];
+    const float a2 = params[2];
+    const float b2 = params[3];
 
     //create the handle x and y arrays
 
     pProblem->m_xVals = Eigen::VectorXd(n+1);
     pProblem->m_yVals = Eigen::VectorXd(n+1);
 
-    const double kInit = pProblem->m_dStartPose[3] / pProblem->m_dAggressiveness;
-    const double tGoal = pProblem->m_dGoalPose[2];
-    const double kGoal = pProblem->m_dGoalPose[3] / pProblem->m_dAggressiveness;
+    const float kInit = pProblem->m_dStartPose[3] / pProblem->m_dAggressiveness;
+    const float tGoal = pProblem->m_dGoalPose[2];
+    const float kGoal = pProblem->m_dGoalPose[3] / pProblem->m_dAggressiveness;
     //dout("Getting b-curve with goal curvature of " << kGoal);
 
     //here we're assuming that tInit is always 0
     //so create a rotation matrix for the end goal
-    Eigen::Matrix2d Rgoal;
-    const double ct = cos(tGoal);
-    const double st = sin(tGoal);
+    Eigen::Matrix2f Rgoal;
+    const float ct = cos(tGoal);
+    const float st = sin(tGoal);
     Rgoal << ct, -st,
              st, ct;
 
@@ -76,7 +76,7 @@ void BezierBoundarySolver::_Get5thOrderBezier(BezierBoundaryProblem *pProblem,co
     pProblem->m_yVals[1] = 0;
 
     //offset the third point using the initial curvature
-    double h = kInit*powi(a1,2)*(n/(n+1));
+    float h = kInit*powi(a1,2)*(n/(n+1));
     pProblem->m_xVals[2] = pProblem->m_xVals[1] + b1;
     pProblem->m_yVals[2] = pProblem->m_yVals[1] + h;
 
@@ -85,7 +85,7 @@ void BezierBoundarySolver::_Get5thOrderBezier(BezierBoundaryProblem *pProblem,co
     pProblem->m_yVals[5] = pProblem->m_dGoalPose[1];
 
     //calculate the offset
-    Eigen::Vector2d offset(-a2,0);
+    Eigen::Vector2f offset(-a2,0);
     offset = Rgoal * offset;
     pProblem->m_xVals[4] = pProblem->m_xVals[5] + offset[0];
     pProblem->m_yVals[4] = pProblem->m_yVals[5] + offset[1];
@@ -115,7 +115,7 @@ void BezierBoundarySolver::Solve(BoundaryProblem *pProblem)
 
     bezierProblem->m_dSegLength = std::max(1e-2,std::min(bezierProblem->m_dSegLength,dist/2));
 
-    bezierProblem->m_dParams = Eigen::Vector4d(bezierProblem->m_dSegLength,bezierProblem->m_dSegLength,bezierProblem->m_dSegLength,bezierProblem->m_dSegLength);
+    bezierProblem->m_dParams = Eigen::Vector4f(bezierProblem->m_dSegLength,bezierProblem->m_dSegLength,bezierProblem->m_dSegLength,bezierProblem->m_dSegLength);
     _Get5thOrderBezier(bezierProblem,bezierProblem->m_dParams);
 
     //and now sample it
@@ -192,27 +192,27 @@ void BezierBoundarySolver::_Sample5thOrderBezier(BezierBoundaryProblem* pProblem
     pProblem->m_vPts.reserve(pProblem->m_nDiscretization+1);
     pProblem->m_dDistance = 0;
 
-    Eigen::Vector2d lastPt(pProblem->m_xVals[0],pProblem->m_yVals[0]);
+    Eigen::Vector2f lastPt(pProblem->m_xVals[0],pProblem->m_yVals[0]);
     double t = 0;
 
     for(int ii = 0 ; ii <= pProblem->m_nDiscretization ; ii++) {
         _GetCoefs(coefs,dCoefs,ddCoefs,t);
 
         //calculate the x and y position of the curve at this t
-        pProblem->m_vPts.push_back(Eigen::Vector2d(coefs.transpose()*pProblem->m_xVals, coefs.transpose()*pProblem->m_yVals));
+        pProblem->m_vPts.push_back(Eigen::Vector2f(coefs.transpose()*pProblem->m_xVals, coefs.transpose()*pProblem->m_yVals));
         pProblem->m_dDistance += (lastPt - pProblem->m_vPts.back()).norm();
         lastPt = pProblem->m_vPts.back();
 
         //calculate the derivatives of x and y
-        double dX = dCoefs.transpose()*pProblem->m_xVals;
-        double ddX = ddCoefs.transpose()*pProblem->m_xVals;
+        float dX = dCoefs.transpose()*pProblem->m_xVals;
+        float ddX = ddCoefs.transpose()*pProblem->m_xVals;
 
-        double dY = dCoefs.transpose()*pProblem->m_yVals;
-        double ddY = ddCoefs.transpose()*pProblem->m_yVals;
+        float dY = dCoefs.transpose()*pProblem->m_yVals;
+        float ddY = ddCoefs.transpose()*pProblem->m_yVals;
 
         //and now calculate the curvature
-        double sq = sqrt(powi(dX*dX + dY*dY,3));  //(dX^2+dY^2)^(3/2)
-        double curvature = (dX*ddY-dY*ddX)/sq;
+        float sq = sqrt(powi(dX*dX + dY*dY,3));  //(dX^2+dY^2)^(3/2)
+        float curvature = (dX*ddY-dY*ddX)/sq;
         pProblem->m_vCurvatures.push_back(curvature*pProblem->m_dAggressiveness);  //k = (dX*ddY - dY*ddX)/((dX^2 + dY^2)^(3/2))
         pProblem->m_vDistances.push_back(pProblem->m_dDistance);
 
@@ -234,33 +234,33 @@ double BezierBoundarySolver::_GetMaximumCurvature(const BezierBoundaryProblem* p
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BezierBoundarySolver::_IterateCurvatureReduction(BezierBoundaryProblem* pProblem,Eigen::Vector4d& params)
+void BezierBoundarySolver::_IterateCurvatureReduction(BezierBoundaryProblem* pProblem,Eigen::Vector4f& params)
 {
-    double epsilon = 0.0001;
+    float epsilon = 0.0001;
     //create a jacobian for the parameters by perturbing them
-    Eigen::Vector4d Jt; //transpose of the jacobian
+    Eigen::Vector4f Jt; //transpose of the jacobian
     BezierBoundaryProblem origProblem = *pProblem;
-    double maxK = _GetMaximumCurvature(pProblem);
+    float maxK = _GetMaximumCurvature(pProblem);
     for(int ii = 0; ii < 4 ; ii++){
-        Eigen::Vector4d epsilonParams = params;
+        Eigen::Vector4f epsilonParams = params;
         epsilonParams[ii] += epsilon;
         _Get5thOrderBezier(pProblem,epsilonParams);
         _Sample5thOrderBezier(pProblem);
-        double kPlus = _GetMaximumCurvature(pProblem);
+        float kPlus = _GetMaximumCurvature(pProblem);
 
         epsilonParams[ii] -= 2*epsilon;
         _Get5thOrderBezier(pProblem,epsilonParams);
         _Sample5thOrderBezier(pProblem);
-        double kMinus = _GetMaximumCurvature(pProblem);
+        float kMinus = _GetMaximumCurvature(pProblem);
         Jt[ii] = (kPlus-kMinus)/(2*epsilon);
     }
 
     //now that we have Jt, we can calculate JtJ
-    Eigen::Matrix4d JtJ = Jt*Jt.transpose();
+    Eigen::Matrix4f JtJ = Jt*Jt.transpose();
     //thikonov regularization
-    JtJ += Eigen::Matrix4d::Identity();
+    JtJ += Eigen::Matrix4f::Identity();
 
-    Eigen::Vector4d deltaParams = JtJ.inverse() * Jt*maxK;
+    Eigen::Vector4f deltaParams = JtJ.inverse() * Jt*maxK;
     params -= deltaParams;
     _Get5thOrderBezier(pProblem,params);
     _Sample5thOrderBezier(pProblem);
