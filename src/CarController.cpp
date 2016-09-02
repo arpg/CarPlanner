@@ -111,7 +111,7 @@ bool CarController::_SampleControlPlan(ControlPlan* pPlan,LocalProblem& problem)
     }
 
     if(pPlan->m_Sample.m_vCommands.empty()) {
-        dout("Empty control plan discovered...");
+        DLOG(ERROR) << "Empty control plan discovered...";
         return false;
     }
 
@@ -139,7 +139,7 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
     problem.m_Trajectory = trajectory;
 
     if( res == false ){
-        dout("2d planner failed to converge...");
+        DLOG(ERROR) << "2d planner failed to converge...";
         return false;
     }
 
@@ -180,7 +180,7 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
     m_dLastDelta = problem.m_CurrentSolution.m_dOptParams - problem.m_dInitOptParams;
 
     if(problem.m_CurrentSolution.m_dNorm > g_dMaxPlanNorm){
-        dout("Planned control plan with norm too high -> " << problem.m_CurrentSolution.m_dNorm  );
+        DLOG(ERROR) << "Planned control plan with norm too high -> " << problem.m_CurrentSolution.m_dNorm;
         res = false;
     }
 
@@ -208,7 +208,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
         {
             boost::mutex::scoped_lock lock(m_PoseMutex);
             if(m_bPoseUpdated == false) {
-                //dout("Pose not updated, exiting control.");
+                //DLOG(ERROR) << "Pose not updated, exiting control.";
                 return false;
             }else{
                 m_bPoseUpdated = false;
@@ -308,7 +308,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
         planStartTorques = m_LastCommand.m_dTorque;
         planStartCurvature = m_LastCommand.m_dCurvature;
 
-        //dout("Plan starting curvature: " << planStartCurvature);
+        //DLOG(INFO) << "Plan starting curvature: " << planStartCurvature;
 
         //double distanceToPath = 0;
         //if we do not have a plan, create new one from our
@@ -339,7 +339,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
         }else {
             if(nCurrentSampleIndex == -1) {
                 //if we have overshot the current plan, function must be called again to create a new plan
-                dout("Overshot plan.");
+                DLOG(ERROR) << "Overshot plan.";
                 return false;
             }else {
                 //get the curvature at the end of the projection to have a smooth transition in steering
@@ -375,7 +375,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
         //solve the control plan
         if( _SolveControlPlan(pPlan,problem,trajectorySample) == false ) {
             //do not use the plan
-            dout("Could not solve plan.");
+            DLOG(ERROR) << "Could not solve plan.";
             return false;
         }
 
@@ -383,18 +383,18 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
 
         //only need to sample the planner if the plan is not airborne
         if( _SampleControlPlan(pPlan,problem) == false ) {
-            dout("Failed to sample plan.");
+            DLOG(ERROR) << "Failed to sample plan.";
             return false;
         }
 
-        //dout("Plan start heading is " << pPlan->m_StartState.GetTheta() << " and goal heading is " << pPlan->m_GoalState.GetTheta() <<
-        //     " and traj end heading is " << pPlan->m_Sample.m_vStates.back().GetTheta());
+        //DLOG(INFO) << "Plan start heading is " << pPlan->m_StartState.GetTheta() << " and goal heading is " << pPlan->m_GoalState.GetTheta() <<
+        //     " and traj end heading is " << pPlan->m_Sample.m_vStates.back().GetTheta();
 
         //double controlDelay = problem.m_pFunctor->GetCarModel()->GetParameters(0)[CarParameters::ControlDelay];
         double newLookahead = std::max(std::min(problem.m_pBestSolution->m_dMinTrajectoryTime, g_dMaxLookaheadTime),g_dMinLookaheadTime);
         m_dLookaheadTime = g_dLookaheadEmaWeight*newLookahead + (1-g_dLookaheadEmaWeight)*m_dLookaheadTime;
 
-        //dout("Planned control with norm " << problem.m_dCurrentNorm << " and starting curvature " << pPlan->m_StartState.m_dCurvature);
+        //DLOG(INFO) << "Planned control with norm " << problem.m_dCurrentNorm << " and starting curvature " << pPlan->m_StartState.m_dCurvature;
         pPlan->m_dStartPose = pPlan->m_StartState.m_dTwv;
         pPlan->m_dEndPose = pPlan->m_GoalState.m_dTwv;
 
@@ -402,7 +402,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
         {
             boost::mutex::scoped_lock lock(m_PlanMutex);
             pPlan->m_nPlanId = rand() % 10000;
-            //dout("Created control plan id:" << pPlan->m_nPlanId << " with starting torques: " << planStartTorques.transpose() << "with norm " << m_pPlanner->GetCurrentNorm());
+            //DLOG(INFO) << "Created control plan id:" << pPlan->m_nPlanId << " with starting torques: " << planStartTorques.transpose() << "with norm " << m_pPlanner->GetCurrentNorm();
             m_lControlPlans.push_back(pPlan);
         }
 
@@ -419,7 +419,7 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
 
     }catch(...)
     {
-        dout("Exception caught while planning.");
+        DLOG(ERROR) << "Exception caught while planning.";
         return false;
     }
     return true;
@@ -497,28 +497,24 @@ void CarController::GetCurrentCommands(const double time,
 
     if( nCurrentSampleIndex == -1 || nCurrentPlanIndex == m_lControlPlans.end() ) {
 
-        //dout("GetCurrentCommands returning last commands a:" << m_dLastAccel << " c:" << m_dLastTurnRate << " t:" << m_dLastTorques.transpose());
+        //DLOG(INFO) << "GetCurrentCommands returning last commands a:" << m_dLastAccel << " c:" << m_dLastTurnRate << " t:" << m_dLastTorques.transpose();
         command.m_dForce = m_pModel->GetParameters(0)[CarParameters::AccelOffset]*SERVO_RANGE;
         command.m_dPhi = m_pModel->GetParameters(0)[CarParameters::SteeringOffset]*SERVO_RANGE;
         command.m_dTorque = Eigen::Vector3d::Zero();//m_dLastTorques;
 
-        //dout("Torque output of: [ " << torques.transpose() << "] from previous plan");
+        //DLOG(INFO) << "Torque output of: [ " << torques.transpose() << "] from previous plan";
     }else {
-        command.m_dForce = (1-interpolationAmount) * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex].m_dForce +
-                            interpolationAmount * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex+1].m_dForce;
+        command.m_dForce = (1-interpolationAmount) * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex].m_dForce + interpolationAmount * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex+1].m_dForce;
 
-        command.m_dPhi =   (1-interpolationAmount) * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex].m_dPhi +
-                           interpolationAmount * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex+1].m_dPhi;
+        command.m_dPhi =   (1-interpolationAmount) * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex].m_dPhi + interpolationAmount * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex+1].m_dPhi;
 
 
-        command.m_dCurvature = (1-interpolationAmount) * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex].m_dCurvature +
-                                interpolationAmount * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex+1].m_dCurvature;
+        command.m_dCurvature = (1-interpolationAmount) * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex].m_dCurvature + interpolationAmount * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex+1].m_dCurvature;
 
-        command.m_dTorque = (1-interpolationAmount) * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex].m_dTorque +
-                            interpolationAmount * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex+1].m_dTorque;
+        command.m_dTorque = (1-interpolationAmount) * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex].m_dTorque + interpolationAmount * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex+1].m_dTorque;
 
 
-        //dout("v: " << m_vSegmentSamples[(*nCurrentPlanIndex)->m_nStartSegmentIndex].m_vStates[(*nCurrentPlanIndex)->m_nStartSampleIndex].m_dV.transpose());
+        //DLOG(INFO) << "v: " << m_vSegmentSamples[(*nCurrentPlanIndex)->m_nStartSegmentIndex].m_vStates[(*nCurrentPlanIndex)->m_nStartSampleIndex].m_dV.transpose();
         //calculate target values
 
 
@@ -530,7 +526,7 @@ void CarController::GetCurrentCommands(const double time,
         dT_target =  m_vSegmentSamples[currentSegIndex].m_vStates[currentSampleIndex].m_dTwv;
         targetVel = m_vSegmentSamples[currentSegIndex].m_vStates[currentSampleIndex].m_dV;
 
-        //dout("GetCurrentCommands planid:" << (*nCurrentPlanIndex)->m_nPlanId << " sample index:" << nCurrentSampleIndex << " returning interpolation with i:" << interpolationAmount << " a:" << accel << " c:" << curvature << " t:" << torques.transpose());
+        //DLOG(INFO) << "GetCurrentCommands planid:" << (*nCurrentPlanIndex)->m_nPlanId << " sample index:" << nCurrentSampleIndex << " returning interpolation with i:" << interpolationAmount << " a:" << accel << " c:" << curvature << " t:" << torques.transpose();
 
         m_LastCommand.m_dForce = command.m_dForce;
         m_LastCommand.m_dCurvature = command.m_dCurvature;
@@ -716,7 +712,7 @@ void CarController::PrepareLookaheadTrajectory(const std::vector<MotionSample> &
 //            }else{
 //                interpolationAmount = transitionTime/totalTransitionSearchTime;
 //                m_pPlanner->m_dTrajWeight(3) = THETA_MULTIPLIER*4*(interpolationAmount) + THETA_MULTIPLIER*(1-interpolationAmount);
-//                dout("Transition in " << transitionTime << "s Setting theta weight to " << m_pPlanner->m_dTrajWeight(3) );
+//                DLOG(INFO) << "Transition in " << transitionTime << "s Setting theta weight to " << m_pPlanner->m_dTrajWeight(3);
 //            }
 
 

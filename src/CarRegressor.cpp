@@ -114,7 +114,7 @@ void CarRegressor::_RefreshIndices(MotionSample &sample,ApplyVelocitesFunctor5d&
         }
         //ensure we never exceed the end of the command array
         endIndex = std::min(endIndex,(int)sample.m_vCommands.size());
-        //dout("Indices for segment " << m_vSegmentIndices.size() << " are " << startIndex << " to " << endIndex);
+        //DLOG(INFO) << "Indices for segment " << m_vSegmentIndices.size() << " are " << startIndex << " to " << endIndex;
         m_vSegmentIndices.push_back(std::pair<int,int>(startIndex, endIndex));
         startIndex = endIndex;
     }
@@ -136,7 +136,7 @@ void CarRegressor::Regress(ApplyVelocitesFunctor5d& f,
     newParams = params;
     m_dCurrentNorm = CalculateParamNorms(f,sample,params);
 
-    dout("Staring regression on " << sample.m_vStates.size() << " data points starting with params=" << params );
+    DLOG(INFO) << "Staring regression on " << sample.m_vStates.size() << " data points starting with params=" << params ;
     m_bFailed = false;
     double dLastNorm = 0;
     int maxIter = 500;
@@ -144,17 +144,17 @@ void CarRegressor::Regress(ApplyVelocitesFunctor5d& f,
         dLastNorm = m_dCurrentNorm;
         _OptimizeParametersGN(f,sample,newParams,updatedParams,m_dCurrentNorm);
         //write the new parameters back
-        dout("parameter update: " << updatedParams << " norm:" << m_dCurrentNorm);
+        DLOG(INFO) << "parameter update: " << updatedParams << " norm:" << m_dCurrentNorm;
         newParams = updatedParams;
 
         //if the reduction is too little
         if(fabs(dLastNorm - m_dCurrentNorm)/dLastNorm < 0.000001){
-            dout("Norm changed too little. Exiting optimization.");
+            DLOG(INFO) << "Norm changed too little. Exiting optimization.";
             break;
         }
     }
 
-    dout("orig params: " << origParams << ". new params " << newParams << " norm:" << m_dCurrentNorm);
+    DLOG(INFO) << "orig params: " << origParams << ". new params " << newParams << " norm:" << m_dCurrentNorm;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -235,7 +235,7 @@ void CarRegressor::_OptimizeParametersGN(ApplyVelocitesFunctor5d& f,
                                          std::vector<RegressionParameter>& dParamsOut,
                                          double& dNewNorm)
 {
-    //        dout("Entered gauss-newton search with e = " << m_dCurrentEps);
+    //        DLOG(INFO) << "Entered gauss-newton search with e = " << m_dCurrentEps;
     Eigen::IOFormat CleanFmt(5, 0, ", ", "\n", "[", "]");
     double dBestNorm = m_dCurrentNorm,dBestDamping;
     dParamsOut = dParams;
@@ -265,7 +265,7 @@ void CarRegressor::_OptimizeParametersGN(ApplyVelocitesFunctor5d& f,
     double damping = 0;
     if(std::isfinite(dDeltaParams[0]) ){
         //damp the gauss newton response
-        dout("Gauss newton delta is : " << dDeltaParams.transpose().format(CleanFmt) << " norm: " << dBestNorm);
+        DLOG(INFO) << "Gauss newton delta is : " << dDeltaParams.transpose().format(CleanFmt) << " norm: " << dBestNorm;
         double dHypeNorms[DAMPING_STEPS];
         std::vector<RegressionParameter> pHypeParams[DAMPING_STEPS];
         double dampings[DAMPING_STEPS];
@@ -294,7 +294,7 @@ void CarRegressor::_OptimizeParametersGN(ApplyVelocitesFunctor5d& f,
             }
         }
     }else{
-        dout("NaN returned");
+        DLOG(ERROR) << "NaN returned";
         m_bFailed = true;
     }
 
@@ -305,7 +305,7 @@ void CarRegressor::_OptimizeParametersGN(ApplyVelocitesFunctor5d& f,
         }else{
             //steepest descent
             m_eCurrentTask = eGaussNewton;
-            dout("coord descent params: " << dBestParams << " norm: " << dBestNorm);
+            DLOG(INFO) << "coord descent params: " << dBestParams << " norm: " << dBestNorm;
         }
         dParamsOut = dBestParams;
         dNewNorm = dBestNorm;
@@ -314,7 +314,7 @@ void CarRegressor::_OptimizeParametersGN(ApplyVelocitesFunctor5d& f,
         dParamsOut = dHypeParams;
         dNewNorm = dHypeNorm;
         m_eCurrentTask = eGaussNewton;
-        dout("GN params: " << dHypeParams << " damping: " << dBestDamping <<  " norm: " << dHypeNorm);
+        DLOG(INFO) << "GN params: " << dHypeParams << " damping: " << dBestDamping <<  " norm: " << dHypeNorm;
     }
 }
 
@@ -346,16 +346,16 @@ void CarRegressor::ApplyParameters(ApplyVelocitesFunctor5d f,
                       true,
                       pPreviousCommands);
 
-//    dout("Starting wheel rotation:" <<
+//    DLOG(INFO) << "Starting wheel rotation:" <<
 //         mvl::T2Cart(plan.m_vStates[nStartIndex].m_dTwv.matrix())[5] <<
-//        " sim phi: " << mvl::T2Cart(vStatesOut.front().m_dTwv.matrix())[5]);
+//        " sim phi: " << mvl::T2Cart(vStatesOut.front().m_dTwv.matrix())[5];
 
     //Eigen::Vector6d error6d = mvl::T2Cart(vStatesOut.back().m_dTwv.matrix() * mvl::TInv(plan.m_vStates[nEndIndex-1].m_dTwv.matrix()));
     errorOut.setZero();
     for(size_t ii = 0 ; ii < vStatesOut.size() ; ii+= 10){
 
         Eigen::Vector6d error6d = (vStatesOut[ii].m_dTwv * plan.m_vStates[nStartIndex+ii].m_dTwv.inverse()).log();
-        //dout("Error out " << error6d.transpose() << std::endl);
+        //DLOG(INFO) << "Error out " << error6d.transpose() << std::endl;
         errorOut.head(6) += error6d;
         errorOut[6] += (vStatesOut[ii].m_dV.norm() - plan.m_vStates[nStartIndex+ii].m_dV.norm());
     }
@@ -402,13 +402,13 @@ void CarRegressor::CalculateJacobian(ApplyVelocitesFunctor5d functor,
             vParams[minusIdx] = params;
             vParams[minusIdx][ii].m_dVal -= m_dEpsilon;
         }
-        //dout("jacobian on dimension " << ii << " is with params:" << vParams[ii*2] << " and " << vParams[ii*2+1]);
+        //DLOG(INFO) << "jacobian on dimension " << ii << " is with params:" << vParams[ii*2] << " and " << vParams[ii*2+1];
     }
 
     JtJ = Eigen::MatrixXd::Zero(params.size(),params.size());
     Jb = Eigen::MatrixXd::Zero(params.size(),1);
 
-    //dout("JtJ " << JtJ << " Jb " << Jb);
+    //DLOG(INFO) << "JtJ " << JtJ << " Jb " << Jb;
     for(size_t jj = 0; jj < m_vSegmentIndices.size() ; jj++){
         int startIndex = m_vSegmentIndices[jj].first;
         int endIndex = m_vSegmentIndices[jj].second;
@@ -509,7 +509,7 @@ void CarRegressor::CalculateJacobian(ApplyVelocitesFunctor5d functor,
             }
 
             if(J.col(ii).norm() == 0){
-                dout("Jacobian column for parameter " << ii << "(" << params[ii].m_sName << ") for segment " << jj << " is zero.");
+                DLOG(INFO) << "Jacobian column for parameter " << ii << "(" << params[ii].m_sName << ") for segment " << jj << " is zero.";
             }
         }
 
@@ -521,7 +521,7 @@ void CarRegressor::CalculateJacobian(ApplyVelocitesFunctor5d functor,
         Jb += J.transpose()*dBaseError;
 
         vFunctors.clear();
-        //dout("J  " << J.format(CleanFmt) << " JtJ " << JtJ.format(CleanFmt) << " Jb " << Jb.transpose().format(CleanFmt) << "dBaseError" << dBaseError.transpose().format(CleanFmt));
+        //DLOG(INFO) << "J  " << J.format(CleanFmt) << " JtJ " << JtJ.format(CleanFmt) << " Jb " << Jb.transpose().format(CleanFmt) << "dBaseError" << dBaseError.transpose().format(CleanFmt);
     }
 
     //by default set the coordinate descent values to the base.

@@ -167,7 +167,7 @@ struct LocalProblem
         m_CurrentSolution.m_dOptParams.head(OPT_DIM) = dOptParams;
         m_BoundaryProblem.m_dGoalPose.head(3) = dOptParams.head(3);
         if(OPT_DIM > OPT_AGGR_DIM){
-            //dout("Setting opt params to " << dOptParams.transpose());
+            //DLOG(INFO) << "Setting opt params to " << dOptParams.transpose();
             m_BoundaryProblem.m_dAggressiveness = m_CurrentSolution.m_dOptParams[OPT_AGGR_DIM];
         }
     }

@@ -460,10 +460,10 @@ void BulletCarModel::_GetDelayedControl(int worldId, double timeDelay, ControlCo
             }
         }
     }else if(previousCommands.size() > 0){
-        dout("Command history list size < 2, using first command.");
+        DLOG(INFO) << "Command history list size < 2, using first command.";
         delayedCommands = previousCommands.front();
     }else{
-        dout("Command history list size == 0. Passing empty command");
+        DLOG(INFO) << "Command history list size == 0. Passing empty command";
         delayedCommands.m_dForce = pWorld->m_Parameters[CarParameters::AccelOffset]*SERVO_RANGE;
         delayedCommands.m_dCurvature = 0;
         delayedCommands.m_dPhi = pWorld->m_Parameters[CarParameters::SteeringOffset]*SERVO_RANGE;
@@ -518,7 +518,7 @@ void BulletCarModel::UpdateParameters(const std::vector<RegressionParameter>& vN
     for(size_t ii = 0; ii < vNewParams.size() ; ii++) {
         //pWorld->m_vLearningParameters[ii].m_dVal = vNewParams[ii].m_dVal;
         pWorld->m_Parameters[vNewParams[ii].m_nKey] = vNewParams[ii].m_dVal;
-        //dout("Updating parameter with key " << vNewParams[ii].m_nKey << " to " << pWorld->m_Parameters[vNewParams[ii].m_nKey]);
+        //DLOG(INFO) << "Updating parameter with key " << vNewParams[ii].m_nKey << " to " << pWorld->m_Parameters[vNewParams[ii].m_nKey];
     }
     _InternalUpdateParameters(pWorld);
 }
@@ -526,7 +526,7 @@ void BulletCarModel::UpdateParameters(const std::vector<RegressionParameter>& vN
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_InternalUpdateParameters(BulletWorldInstance* pWorld)
 {
-    //dout("updating parameters to " << pWorld->m_vParameters);
+    //DLOG(INFO) << "updating parameters to " << pWorld->m_vParameters;
 
     pWorld->m_bParametersChanged = true;
 
@@ -698,7 +698,7 @@ void BulletCarModel::UpdateState(  const int& worldId,
         Eigen::Vector3d T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
         btVector3 bTorques( T_w[0], T_w[1], T_w[2] );
         pWorld->m_pVehicle->getRigidBody()->applyTorque( bTorques );
-        //dout("Sending torque vector " << T_w.transpose() << " to car.");
+        //DLOG(INFO) << "Sending torque vector " << T_w.transpose() << " to car.";
         pWorld->m_pDynamicsWorld->stepSimulation(dT,1,dT);
     }
 

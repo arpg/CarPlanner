@@ -180,7 +180,7 @@ public:
     }
 
     ~ControlPlan(){
-        //dout("Deleting control plan.");
+        //DLOG(INFO) << "Deleting control plan.";
     }
 
 public:

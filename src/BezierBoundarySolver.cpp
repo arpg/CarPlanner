@@ -58,7 +58,7 @@ void BezierBoundarySolver::_Get5thOrderBezier(BezierBoundaryProblem *pProblem,co
     const double kInit = pProblem->m_dStartPose[3] / pProblem->m_dAggressiveness;
     const double tGoal = pProblem->m_dGoalPose[2];
     const double kGoal = pProblem->m_dGoalPose[3] / pProblem->m_dAggressiveness;
-    //dout("Getting b-curve with goal curvature of " << kGoal);
+    //DLOG(INFO) << "Getting b-curve with goal curvature of " << kGoal;
 
     //here we're assuming that tInit is always 0
     //so create a rotation matrix for the end goal
@@ -130,7 +130,7 @@ void BezierBoundarySolver::Solve(BoundaryProblem *pProblem)
     //indicate that the problem has been solved
     bezierProblem->m_bSolved = true;
 
-    //dout("2D solve with goal " << bezierProblem->m_dGoalPose.transpose() <<" took " << Toc(time) << " seconds.");
+    //DLOG(INFO) << "2D solve with goal " << bezierProblem->m_dGoalPose.transpose() <<" took " << Toc(time) << " seconds.";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -218,7 +218,7 @@ void BezierBoundarySolver::_Sample5thOrderBezier(BezierBoundaryProblem* pProblem
 
         t += dt;
     }
-    //dout("Sampling bezier. Final point " << pProblem->m_vPts.back().transpose());
+    //DLOG(INFO) << "Sampling bezier. Final point " << pProblem->m_vPts.back().transpose();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -266,7 +266,7 @@ void BezierBoundarySolver::_IterateCurvatureReduction(BezierBoundaryProblem* pPr
     _Sample5thOrderBezier(pProblem);
     //double finalMaxK = _GetMaximumCurvature(pProblem);
 
-    //dout("2D Iteration took k from " << maxK << " to " << finalMaxK);
+    //DLOG(INFO) << "2D Iteration took k from " << maxK << " to " << finalMaxK;
 }
 
 

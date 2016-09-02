@@ -635,7 +635,7 @@ void	RaycastVehicle::updateFriction(btScalar	timeStep)
                     btVector3 rel_pos1 = wheelInfo.m_raycastInfo.m_contactPointWS - m_chassisBody->getCenterOfMassPosition();
                     btVector3 vel_dir = m_chassisBody->getVelocityInLocalPoint(rel_pos1).normalized();
                     double slip = fabs(acos(fabs(vel_dir.dot(m_forwardWS[i]))));
-                    //dout("Current slip angle for wheel " << i << " is " << slip*180.0/M_PI << " degrees.");
+                    //DLOG(INFO) << "Current slip angle for wheel " << i << " is " << slip*180.0/M_PI << " degrees.";
 
 
                     //now calculate the maximum sideways impulse
