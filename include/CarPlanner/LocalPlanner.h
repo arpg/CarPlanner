@@ -230,7 +230,7 @@ private:
     /// Transforms a vehicle state so that it is on the 2D manifold specified by the problem struct
     Eigen::Vector6d _Transform3dGoalPose(const VehicleState& state, const LocalProblem &problem) const;
 
-    boost::threadpool::pool m_ThreadPool;                       //< Threadpool for multitasking in jacobians and damping calculation
+    //boost::threadpool::pool m_ThreadPool;                       //< Threadpool for multitasking in jacobians and damping calculation
     double& m_dEps;                                              //< The epsilon used in the calculation of the finite difference jacobian
 
 

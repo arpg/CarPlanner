@@ -26,7 +26,7 @@ struct ApplyCommandsThreadFunctor {
 
     void operator()()
     {
-        SetThreadName((boost::format("Bullet Simulation Thread #%d") % m_index).str().c_str());
+        //SetThreadName((boost::format("Bullet Simulation Thread #%d") % m_index).str().c_str());
         if(m_bSolveBoundary){
             m_Problem.m_pBoundarySovler->Solve(&m_Problem.m_BoundaryProblem);
         }
@@ -79,7 +79,7 @@ LocalPlanner::LocalPlanner() :
     m_dTrajWeight(CVarUtils::CreateUnsavedCVar("planner.TrajCostWeights",Eigen::MatrixXd(1,1))),
     m_nPlanCounter(0)
 {
-    m_ThreadPool.size_controller().resize(8);
+    //m_ThreadPool.size_controller().resize(8);
 
     //weight matrix
     m_dPointWeight = Eigen::MatrixXd(POINT_COST_ERROR_TERMS,1);
@@ -359,13 +359,14 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
         delta(ii) += dEps;
         vCubicProblems[plusIdx]->UpdateOptParams(vCubicProblems[plusIdx]->m_CurrentSolution.m_dOptParams.head(OPT_DIM)+delta);
         vFunctors[plusIdx] = std::make_shared<ApplyCommandsThreadFunctor>(this,
-                                                                          *vCubicProblems[plusIdx],
-                                                                          plusIdx,
-                                                                          pPoses[plusIdx],
-                                                                          errors[plusIdx],
-                                                                          (vCubicProblems[plusIdx]->m_CurrentSolution.m_Sample),
-                                                                          true);
-        m_ThreadPool.schedule(*vFunctors[plusIdx]);
+              *vCubicProblems[plusIdx],
+              plusIdx,
+              pPoses[plusIdx],
+              errors[plusIdx],
+              (vCubicProblems[plusIdx]->m_CurrentSolution.m_Sample),
+              true);
+        //m_ThreadPool.schedule(*vFunctors[plusIdx]);
+        vFunctors[plusIdx].get()->operator()();
 
         if(g_bUseCentralDifferences == true){
             vCubicProblems[minusIdx] = std::make_shared<LocalProblem>(problem);
@@ -374,13 +375,14 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
             delta(ii) -= dEps;
             vCubicProblems[minusIdx]->UpdateOptParams(vCubicProblems[minusIdx]->m_CurrentSolution.m_dOptParams.head(OPT_DIM)+delta);
             vFunctors[minusIdx] = std::make_shared<ApplyCommandsThreadFunctor>(this,
-                                                                               *vCubicProblems[minusIdx],
-                                                                               minusIdx,
-                                                                               pPoses[minusIdx],
-                                                                               errors[minusIdx],
-                                                                               (vCubicProblems[minusIdx]->m_CurrentSolution.m_Sample),
-                                                                               true);
-            m_ThreadPool.schedule(*vFunctors[minusIdx]);
+                   *vCubicProblems[minusIdx],
+                   minusIdx,
+                   pPoses[minusIdx],
+                   errors[minusIdx],
+                   (vCubicProblems[minusIdx]->m_CurrentSolution.m_Sample),
+                   true);
+            //m_ThreadPool.schedule(*vFunctors[minusIdx]);
+            vFunctors[minusIdx].get()->operator()();
         }
     }
 
@@ -393,11 +395,12 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
                                                      dCurrentError,
                                                      (currentProblem->m_CurrentSolution.m_Sample),
                                                      true);
-    m_ThreadPool.schedule(*currentFunctor);
+    //m_ThreadPool.schedule(*currentFunctor);
+    currentFunctor.get()->operator()();
 
 
     //wait for all simulations to finish
-    m_ThreadPool.wait();
+    //m_ThreadPool.wait();
 
     dCurrentErrorVec = dCurrentError;
 
@@ -1013,16 +1016,17 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
             vCubicProblems[ii] = std::make_shared<LocalProblem>(problem);
             vCubicProblems[ii]->UpdateOptParams(vCubicProblems[ii]->m_CurrentSolution.m_dOptParams.head(OPT_DIM)+delta);
             vFunctors[ii] = std::make_shared<ApplyCommandsThreadFunctor>(this,
-                                                                         *vCubicProblems[ii],
-                                                                         ii,
-                                                                         pDampingStates[ii],
-                                                                         pDampingErrors[ii],
-                                                                         vCubicProblems[ii]->m_CurrentSolution.m_Sample,
-                                                                         true);
-            m_ThreadPool.schedule(*vFunctors[ii]);
+                 *vCubicProblems[ii],
+                 ii,
+                 pDampingStates[ii],
+                 pDampingErrors[ii],
+                 vCubicProblems[ii]->m_CurrentSolution.m_Sample,
+                 true);
+            //m_ThreadPool.schedule(*vFunctors[ii]);
+            vFunctors[ii].get()->operator()();
             damping/= DAMPING_DIVISOR;
         }
-        m_ThreadPool.wait();
+        //m_ThreadPool.wait();
 
 
         if(g_bVerbose){
