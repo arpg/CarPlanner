@@ -22,7 +22,7 @@ ENDIF()
 #the boost libraries that we need
 set(BOOST_LIBS thread date_time system timer)
 
-
+find_package(PkgConfig REQUIRED)
 find_package( Eigen3 REQUIRED )
 find_package( Pangolin REQUIRED )
 find_package( Node REQUIRED )
@@ -34,8 +34,10 @@ find_package( HAL REQUIRED )
 find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
 find_package( QUATLIB REQUIRED )
 find_package(Sophus REQUIRED)
+find_package( assimp REQUIRED )
+pkg_check_modules(YAML_CPP yaml-cpp)
 
-set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${Node_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} ${assimp_LIBRARIES} )
+set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${Node_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} ${assimp_LIBRARIES} ${YAML_CPP_LIBRARIES} )
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIRS}
@@ -47,6 +49,7 @@ set( _INCLUDE_DIRS
         ${SceneGraph_INCLUDE_DIRS}
         ${Pangolin_INCLUDE_DIRS}
         ${HAL_INCLUDE_DIRS}
+        ${YAML_CPP_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         )
@@ -73,6 +76,7 @@ set( SRCS
         src/CarController.cpp
         src/Localizer.cpp
         src/DirectBoundarySolver.cpp
+        src/BulletPrim.cpp
    )
 
 set( HDRS
@@ -88,11 +92,14 @@ set( HDRS
         include/CarPlanner/DirectBoundarySolver.h
         include/CarPlanner/CVarHelpers.h
         include/CarPlanner/RpgUtils.h
+        include/CarPlanner/BulletPrim.h
    )
-
 
 add_library( ${LIBRARY_NAME} SHARED ${SRCS} ${HDRS} )
 target_link_libraries( ${LIBRARY_NAME} ${_LIBRARIES} )
+
+add_executable(BulletPrimTest tests/BulletPrimTest.cpp)
+target_link_libraries(BulletPrimTest ${LIBRARY_NAME})
 
 install_package(
     PKG_NAME ${PROJECT_NAME}
