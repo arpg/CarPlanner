@@ -18,7 +18,6 @@ IF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 ENDIF()
 
-
 #the boost libraries that we need
 set(BOOST_LIBS thread date_time system timer)
 
@@ -67,6 +66,7 @@ set( SRCS
         src/BulletCarModel.cpp
         src/CarRegressor.cpp
         src/LocalPlanner.cpp
+        src/LocalPlannerNoCVar.cpp
         src/WheelInfo.cpp
         src/CarParameters.cpp
         src/GLDebugDrawer.cpp
@@ -98,8 +98,8 @@ set( HDRS
 add_library( ${LIBRARY_NAME} SHARED ${SRCS} ${HDRS} )
 target_link_libraries( ${LIBRARY_NAME} ${_LIBRARIES} )
 
-add_executable(BulletPrimTest tests/BulletPrimTest.cpp)
-target_link_libraries(BulletPrimTest ${LIBRARY_NAME})
+
+add_subdirectory(tests)
 
 install_package(
     PKG_NAME ${PROJECT_NAME}

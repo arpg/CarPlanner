@@ -40,32 +40,10 @@ int main( int argc, char* argv[] )
   }
 
   //Get absolute path for different files
-  path path_mesh(absolute(path(FLAGS_mesh)));
-  path path_params(absolute(path(FLAGS_params)));
   path path_waypoints(absolute(path(FLAGS_waypoints)));
 
   //Check if the file exists and the right type
-  bool file_probs = false;
-  if(!exists(path_mesh)){
-    file_probs = true;
-    cout<<"path_mesh doesn't exist"<<endl;
-  }else if(path_mesh.extension().string().compare(".ply") ){
-    file_probs = true;
-    cout<<"path_mesh has the wrong extension:"<<endl;
-  }else{
-    cout<<"path_mesh: "<<path_mesh<<endl;
-  }
-
-  if(!exists(path_params)){
-    file_probs = true;
-    cout<<"path_params doesn't exist"<<endl;
-  }else if(path_params.extension().string().compare(".csv") ){
-    file_probs = true;
-    cout<<"path_params has the wrong extension:"<<endl;
-  }else{
-    cout<<"path_params: "<<path_params<<endl;
-  }
-
+  bool file_probs;
   if(!exists(path_waypoints)){
     file_probs = true;
     cout<<"path_waypoints doesn't exist"<<endl;
@@ -82,7 +60,7 @@ int main( int argc, char* argv[] )
     return -1;
 
   //Initialize the bullet primitive object
-  BulletPrim bullet_prim( path_mesh.string(), path_params.string() );
+  BulletPrim bullet_prim( FLAGS_mesh, FLAGS_params );
 
   // Read waypoints from file
   YAML::Node yaml_node_ = YAML::LoadFile(path_waypoints.string());
@@ -100,7 +78,7 @@ int main( int argc, char* argv[] )
     cout << "\t" << axyvs_start_goal.block<1,8>( i, 0 ) << endl;
     cout << "cost: "<<cost<<endl;
     cout<<" # of control points:"<<prim_ctrl.size()<<" and  # of path points"<<prim_path.size()<<endl;
-    for(int j=0; j <prim_ctrl.size(); j++){
+    for(size_t j=0; j <prim_ctrl.size(); j++){
       cout<<j<<": tau phi:"<<prim_ctrl[j].transpose()<<": axyv:"<<prim_path[j].transpose()<<endl;
     }
     cout << endl;

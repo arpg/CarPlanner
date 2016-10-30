@@ -9,13 +9,10 @@
 #ifndef BULLET_PRIM_H
 #define BULLET_PRIM_H
 
-#define WAYPOINT_VEL_INDEX 6
-
-// Eigen Includes
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
-#include "LocalPlanner.h"
+#include "LocalPlannerNoCVar.h"
 #include "BulletCarModel.h"
 
 #include <iostream>
@@ -39,9 +36,13 @@ public:
 class BulletPrim{
 public:
 
-    BulletPrim(const std::string& sMesh, const std::string& sParamsFile, const BulletPrimConfig& cfg = BulletPrimConfig() );
+    BulletPrim();
 
-    BulletPrim( btCollisionShape* pCollisionShape, const std::string& sParamsFile, const BulletPrimConfig& cfg = BulletPrimConfig() );
+    BulletPrim(const BulletPrim&);
+
+    BulletPrim(const std::string& sMeshFile, const std::string& sParamsFile, const BulletPrimConfig& cfg = BulletPrimConfig() );
+
+    void init(const std::string& sMeshFile, const std::string& sParamsFile, const BulletPrimConfig& cfg);
 
     ~BulletPrim();
 
@@ -69,9 +70,11 @@ private:
 
     BulletCarModel m_PlanCarModel; //! BulletCarModel for simulating planned paths for feasibility
 
-    LocalPlanner m_Planner; // Car planner
+    LocalPlannerNoCVar m_Planner; // Car planner
 
     BulletPrimConfig cfg_;
+
+    bool initialized;
 };
 
 #endif //BULLET_PRIM_H
