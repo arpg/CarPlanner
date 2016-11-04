@@ -93,6 +93,7 @@ set( HDRS
         include/CarPlanner/CVarHelpers.h
         include/CarPlanner/RpgUtils.h
         include/CarPlanner/BulletPrim.h
+        include/CarPlanner/yaml_eig_conv.h
    )
 
 add_library( ${LIBRARY_NAME} SHARED ${SRCS} ${HDRS} )

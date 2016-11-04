@@ -15,7 +15,7 @@
 #include <scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
-#include <yaml_eig_conv.h>
+#include <CarPlanner/yaml_eig_conv.h>
 #include <thread>
 #include <mutex>
 
