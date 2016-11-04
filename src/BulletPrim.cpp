@@ -75,6 +75,7 @@ void BulletPrim::init(const std::string& sMeshFile, const std::string& sParamsFi
 
   /// Initialize the planner car
   m_PlanCarModel.Init( pCollisionShape, dMin, dMax, m_mDefaultParameters,  LocalPlanner::GetNumWorldsRequired( OPT_DIM )  );
+  //m_PlanCarModel.Init( pCollisionShape, dMin, dMax, m_mDefaultParameters,  1  );
 
   initialized = true;
 }
@@ -167,10 +168,8 @@ double BulletPrim::getPrim( const Vector4d& axyv_start, const Vector4d& axyv_goa
     //update the path
     prim_path.resize(m_SegmentSample.m_vStates.size());
     for (size_t i = 0; i < prim_path.size(); i++ ){
-      prim_path[i] << m_SegmentSample.m_vStates[i].ToPose()[3],
-          m_SegmentSample.m_vStates[i].ToPose()[0],
-          m_SegmentSample.m_vStates[i].ToPose()[1],
-          m_SegmentSample.m_vStates[i].ToPose()[5];
+      Vector6d xyztcv = m_SegmentSample.m_vStates[i].ToPose();//x y z theta curvature velocity
+      prim_path[i] << xyztcv[3], xyztcv[0], xyztcv[1], xyztcv[5];
     }
 
     //return cost
