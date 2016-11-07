@@ -19,7 +19,7 @@ IF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 ENDIF()
 
 #the boost libraries that we need
-set(BOOST_LIBS thread date_time system timer)
+set(BOOST_LIBS thread date_time system timer filesystem)
 
 find_package(PkgConfig REQUIRED)
 find_package( Eigen3 REQUIRED )

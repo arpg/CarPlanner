@@ -57,6 +57,15 @@ public:
     double getPrim( const Vector4d& axyv_start, const Vector4d& axyv_goal, vector<Vector2d>& prim_ctrl, vector<Vector4d>& prim_path);
 
 
+    /**
+     * Solves the boundary value problem given a start state and goal state.
+     * @param axyv_start Start state as yaw, x, y and forward velocity.
+     * @param axyv_goal Goal state as yaw, x, y and forward velocity.
+     * @param motion_sample The solution to the BVP as vector of controls and trajectories
+     * @return Returns true if a solution was found
+     */
+    bool solveBVP(const Vector4d& axyv_start, const Vector4d& axyv_goal, MotionSample& motion_sample);
+
 private:
     /**
     * Converts a vector of ControlCommands to a cost
