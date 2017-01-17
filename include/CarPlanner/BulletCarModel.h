@@ -27,7 +27,6 @@
 #include <thread>
 #include <string.h>
 #include <unistd.h>
-#include <Node/Node.h>
 #include <HAL/Messages.pb.h>
 #include <HAL/Messages/Command.h>
 #include <HAL/Messages/Matrix.h>
@@ -426,8 +425,6 @@ protected:
 
     std::vector< BulletWorldInstance * > m_vWorlds;
     //HeightMap *m_pHeightMap;
-    node::node m_rNode;     // Node for receiving car commands
-    node::node m_sNode;     // Node for broadcasting pose data
     boost::thread* m_pPoseThread;
     boost::thread* m_pCommandThread;
 

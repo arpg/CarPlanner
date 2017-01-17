@@ -14,7 +14,6 @@
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
 
-#include <node/Node.h>
 #include <HAL/Messages.pb.h>
 #include <HAL/Messages/Pose.h>
 #include <HAL/Messages/Matrix.h>
@@ -76,7 +75,6 @@ class Localizer
             Sophus::SE3d        m_dSensorPose;
             Sophus::SE3d        m_dToffset;
             double              m_dTime;
-            bool		        m_bNodeSubscribed;
             Localizer*          m_pLocalizerObject;
             boost::mutex        m_Mutex;
             boost::condition    m_PoseUpdated;
@@ -101,7 +99,6 @@ class Localizer
         };
 
         std::map< std::string,  TrackerObject >     m_mObjects;
-        node::node*                                 m_pNode;
         bool                                        m_bIsStarted;
         boost::thread*								m_pThread;
 };

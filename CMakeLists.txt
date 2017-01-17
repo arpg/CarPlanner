@@ -24,7 +24,6 @@ set(BOOST_LIBS thread date_time system timer filesystem)
 find_package(PkgConfig REQUIRED)
 find_package( Eigen3 REQUIRED )
 find_package( Pangolin REQUIRED )
-find_package( Node REQUIRED )
 find_package( SceneGraph REQUIRED )
 find_package( CVars REQUIRED )
 find_package( Protobuf REQUIRED )
@@ -36,12 +35,11 @@ find_package(Sophus REQUIRED)
 find_package( assimp REQUIRED )
 pkg_check_modules(YAML_CPP yaml-cpp)
 
-set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${Node_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} ${assimp_LIBRARIES} ${YAML_CPP_LIBRARIES} )
+set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} ${assimp_LIBRARIES} ${YAML_CPP_LIBRARIES} )
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIR}
-        ${Node_INCLUDE_DIRS}
 				${CVars_INCLUDE_DIRS}
         ${BULLET_INCLUDE_DIR}
         ${assimp_INCLUDE_DIRS}

@@ -63,18 +63,6 @@ void Localizer::TrackObject(
 
     TrackerObject* pObj = &m_mObjects[ sObjectName ];
 
-    pObj->m_bNodeSubscribed = false;
-
-    /*if( !pObj->m_bNodeSubscribed ) {
-      if( m_pNode->subscribe( sUri ) == false ) { // changed if to while
-        LOG(ERROR) << "Could not subscribe to " << sUri;
-        this_thread::sleep_for( std::chrono::seconds(1) );
-      }
-      pObj->m_bNodeSubscribed = true;
-      LOG(INFO) << "Subscribed to " << sUri << endl;
-
-    }*/
-
     pObj->m_dToffset = dToffset;
     pObj->m_bRobotFrame = bRobotFrame;
     pObj->m_pLocalizerObject = this;
@@ -83,7 +71,6 @@ void Localizer::TrackObject(
 //////////////////////////////////////////////////////////////////
 Localizer::~Localizer()
 {
-  delete m_pNode;
 }
 
 //////////////////////////////////////////////////////////////////

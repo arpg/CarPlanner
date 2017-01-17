@@ -334,7 +334,7 @@ void BulletCarModel::_PoseThreadFunc()
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_CommandThreadFunc()
 {
-    // Read in current command using Node
+    // Read in current command using UDP
     //////////////////////////////
     int worldId;
     double force, curvature, dt, phi;
