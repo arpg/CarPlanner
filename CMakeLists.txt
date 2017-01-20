@@ -98,7 +98,7 @@ add_library( ${LIBRARY_NAME} SHARED ${SRCS} ${HDRS} )
 target_link_libraries( ${LIBRARY_NAME} ${_LIBRARIES} )
 
 
-add_subdirectory(tests)
+#add_subdirectory(tests)
 
 install_package(
     PKG_NAME ${PROJECT_NAME}
