@@ -42,7 +42,7 @@ double BezierBoundarySolver::GetCurvature(const BoundaryProblem *pProblem, doubl
 void BezierBoundarySolver::_Get5thOrderBezier(BezierBoundaryProblem *pProblem,const Eigen::Vector4d& params)
 {
     //the order of the bezier
-    const double n = 5.0;
+    const int n = 5;
 
     //calculate the offsets
     const double a1 = params[0];
