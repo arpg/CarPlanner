@@ -33,9 +33,10 @@ find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
 find_package( QUATLIB REQUIRED )
 find_package(Sophus REQUIRED)
 find_package( assimp REQUIRED )
-pkg_check_modules(YAML_CPP yaml-cpp)
+find_package( yaml-cpp REQUIRED )
+find_package( gflags REQUIRED )
 
-set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} ${assimp_LIBRARIES} ${YAML_CPP_LIBRARIES} )
+set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} ${assimp_LIBRARIES} ${YAML_CPP_LIBRARIES} ${GFLAGS_LIBRARIES})
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIRS}
@@ -47,6 +48,7 @@ set( _INCLUDE_DIRS
         ${Pangolin_INCLUDE_DIRS}
         ${HAL_INCLUDE_DIRS}
         ${YAML_CPP_INCLUDE_DIRS}
+        ${GFLAGS_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         )
