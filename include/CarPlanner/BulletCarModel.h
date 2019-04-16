@@ -27,7 +27,6 @@
 #include <thread>
 #include <string.h>
 #include <unistd.h>
-#include <HAL/Messages.pb.h>
 #include <HAL/Messages/Command.h>
 #include <HAL/Messages/Matrix.h>
 #include <HAL/Messages/Pose.h>
