@@ -21,7 +21,7 @@ ENDIF()
 #the boost libraries that we need
 set(BOOST_LIBS thread date_time system timer filesystem)
 
-find_package(PkgConfig REQUIRED)
+find_package( PkgConfig REQUIRED )
 find_package( Eigen3 REQUIRED )
 find_package( Pangolin REQUIRED )
 find_package( SceneGraph REQUIRED )
@@ -31,17 +31,27 @@ find_package( Bullet REQUIRED )
 find_package( HAL REQUIRED )
 find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
 find_package( QUATLIB REQUIRED )
-find_package(Sophus REQUIRED)
+find_package( Sophus REQUIRED)
 find_package( assimp REQUIRED )
 find_package( yaml-cpp REQUIRED )
-find_package( gflags REQUIRED )
+find_package( GFlags REQUIRED )
 
-set( _LIBRARIES ${BULLET_LIBRARIES}  ${Boost_LIBRARIES} ${Sophus_LIBRARIES} ${SceneGraph_LIBRARIES} ${CVars_LIBRARIES} ${HAL_LIBRARIES} ${assimp_LIBRARIES} ${YAML_CPP_LIBRARIES} ${GFLAGS_LIBRARIES})
+set( _LIBRARIES 
+	${BULLET_LIBRARIES}  
+	${Boost_LIBRARIES} 
+	${Sophus_LIBRARIES} 
+	${SceneGraph_LIBRARIES} 
+	${CVars_LIBRARIES} 
+	${HAL_LIBRARIES} 
+	${assimp_LIBRARIES} 
+	${YAML_CPP_LIBRARIES} 
+	${GFLAGS_LIBRARIES}
+	)
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
         ${Sophus_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIR}
-				${CVars_INCLUDE_DIRS}
+	${CVars_INCLUDE_DIRS}
         ${BULLET_INCLUDE_DIR}
         ${assimp_INCLUDE_DIRS}
         ${SceneGraph_INCLUDE_DIRS}
@@ -76,7 +86,7 @@ set( SRCS
         src/CarController.cpp
         src/Localizer.cpp
         src/DirectBoundarySolver.cpp
-        src/BulletPrim.cpp
+	#src/BulletPrim.cpp
    )
 
 set( HDRS
@@ -92,7 +102,7 @@ set( HDRS
         include/CarPlanner/DirectBoundarySolver.h
         include/CarPlanner/CVarHelpers.h
         include/CarPlanner/RpgUtils.h
-        include/CarPlanner/BulletPrim.h
+	#include/CarPlanner/BulletPrim.h
         include/CarPlanner/yaml_eig_conv.h
    )
 
@@ -100,7 +110,7 @@ add_library( ${LIBRARY_NAME} SHARED ${SRCS} ${HDRS} )
 target_link_libraries( ${LIBRARY_NAME} ${_LIBRARIES} )
 
 
-add_subdirectory(tests)
+#add_subdirectory(tests)
 
 install_package(
     PKG_NAME ${PROJECT_NAME}
