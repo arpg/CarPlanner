@@ -86,7 +86,7 @@ set( SRCS
         src/CarController.cpp
         src/Localizer.cpp
         src/DirectBoundarySolver.cpp
-	#src/BulletPrim.cpp
+	src/BulletPrim.cpp
    )
 
 set( HDRS
@@ -102,7 +102,7 @@ set( HDRS
         include/CarPlanner/DirectBoundarySolver.h
         include/CarPlanner/CVarHelpers.h
         include/CarPlanner/RpgUtils.h
-	#include/CarPlanner/BulletPrim.h
+	include/CarPlanner/BulletPrim.h
         include/CarPlanner/yaml_eig_conv.h
    )
 
