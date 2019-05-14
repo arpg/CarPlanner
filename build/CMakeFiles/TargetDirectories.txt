@@ -1,5 +1,0 @@
-/home/mike/code/CarPlanner/build/CMakeFiles/rebuild_cache.dir
-/home/mike/code/CarPlanner/build/CMakeFiles/edit_cache.dir
-/home/mike/code/CarPlanner/build/CMakeFiles/test.dir
-/home/mike/code/CarPlanner/build/CMakeFiles/carplanner.dir
-/home/mike/code/CarPlanner/build/CMakeFiles/uninstall.dir
