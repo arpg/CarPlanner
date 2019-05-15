@@ -8,6 +8,8 @@
 #ifndef LOCALIZER_H
 #define	LOCALIZER_H
 
+#include <ros/ros.h>
+#include <nav_msgs/Odometry.h>
 
 #include <Eigen/Eigen>
 #include <eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h>
@@ -54,19 +56,20 @@ class Localizer
         eLocType WhereAmI( Eigen::Vector6d P );
 
     private:
-        void _ThreadFunction(Localizer *pVT);
+//        void _ThreadFunction(Localizer *pVT);
+        void _ThreadFunction(const nav_msgs::Odometry::ConstPtr);
 
         // UDP values
-        unsigned m_CarPort;
-        unsigned m_LocPort;
-        struct sockaddr_in locAddr;
-        struct sockaddr_in carAddr;
-        socklen_t addrLen = sizeof(locAddr);
-        int recvLen;
-        int sockFD;
-        unsigned char buf[2048];
-        unsigned int msgSize = 0;
-        hal::PoseMsg posys;
+//        unsigned m_CarPort;
+//        unsigned m_LocPort;
+//        struct sockaddr_in locAddr;
+//        struct sockaddr_in carAddr;
+//        socklen_t addrLen = sizeof(locAddr);
+//        int recvLen;
+//        int sockFD;
+//        unsigned char buf[2048];
+//        unsigned int msgSize = 0;
+//        hal::PoseMsg posys;
 
     private:
 
@@ -100,7 +103,11 @@ class Localizer
 
         std::map< std::string,  TrackerObject >     m_mObjects;
         bool                                        m_bIsStarted;
-        boost::thread*								m_pThread;
+//        boost::thread*								m_pThread;
+
+        ros::NodeHandle m_nh;
+        ros::Subscriber m_threadSub;
+
 };
 
 #endif	/* LOCALIZER_H */

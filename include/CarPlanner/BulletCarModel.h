@@ -8,6 +8,10 @@
 #ifndef BULLETCARMODEL_H
 #define	BULLETCARMODEL_H
 
+#include <ros/ros.h>
+#include <car_planner_msgs/Command.h>
+#include <nav_msgs/Odometry.h>
+
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 #include "BulletDynamics/ConstraintSolver/btHingeConstraint.h"
@@ -336,31 +340,35 @@ public:
     BulletCarModel();
     ~BulletCarModel();
 
-    void _PoseThreadFunc();
-    void _CommandThreadFunc();
+    ros::NodeHandle m_nh;
+    ros::Publisher m_poseThreadPub;
+    ros::Subscriber m_commandThreadSub;
 
-    // UDP values
-    unsigned m_CarPort;
-    unsigned m_LocPort;
-    unsigned m_ComPort;
-    unsigned m_MochPort;
-    struct sockaddr_in carAddr;
-    struct sockaddr_in locAddr;
-    struct sockaddr_in comAddr;
-    struct sockaddr_in mochAddr;
-    socklen_t addrLen = sizeof(locAddr);
-    int recvLen;
-    int comRecvLen;
-    int sockFD;
-    int comSockFD;
-    unsigned char buf[2048];
-    unsigned char comBuf[2048];
-    unsigned int msgSize = 0;
-    unsigned int comMsgSize = 0;
-    hal::CommanderMsg* cmd;
-    hal::PoseMsg* message;
-    hal::VectorMsg* pose;
-    hal::MatrixMsg* covar;
+    void _PoseThreadFunc();
+    void _CommandThreadFunc(car_planner_msgs::Command);
+
+//    // UDP values
+//    unsigned m_CarPort;
+//    unsigned m_LocPort;
+//    unsigned m_ComPort;
+//    unsigned m_MochPort;
+//    struct sockaddr_in carAddr;
+//    struct sockaddr_in locAddr;
+//    struct sockaddr_in comAddr;
+//    struct sockaddr_in mochAddr;
+//    socklen_t addrLen = sizeof(locAddr);
+//    int recvLen;
+//    int comRecvLen;
+//    int sockFD;
+//    int comSockFD;
+//    unsigned char buf[2048];
+//    unsigned char comBuf[2048];
+//    unsigned int msgSize = 0;
+//    unsigned int comMsgSize = 0;
+//    hal::CommanderMsg* cmd;
+//    hal::PoseMsg* message;
+//    hal::VectorMsg* pose;
+//    hal::MatrixMsg* covar;
 
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -418,17 +426,18 @@ public:
 protected:
 
     void _GetDelayedControl(int worldId, double timeDelay, ControlCommand& delayedCommands);
-    btRigidBody*	_LocalCreateRigidBody(BulletWorldInstance *pWorld, double mass, const btTransform& startTransform, btCollisionShape* shape, short group, short mask);
+    btRigidBody* _LocalCreateRigidBody(BulletWorldInstance *pWorld, double mass, const btTransform& startTransform, btCollisionShape* shape, short group, short mask);
     void _InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& parameters);
     void _InitWorld(BulletWorldInstance* pWorld, btCollisionShape *pGroundShape, btVector3 dMin, btVector3 dMax, bool centerMesh);
 
-    std::vector< BulletWorldInstance * > m_vWorlds;
+    std::vector<BulletWorldInstance*> m_vWorlds;
     //HeightMap *m_pHeightMap;
     boost::thread* m_pPoseThread;
     boost::thread* m_pCommandThread;
 
     Eigen::Vector3d m_dGravity;
     unsigned int m_nNumWorlds;
+
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
