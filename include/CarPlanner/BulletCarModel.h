@@ -9,7 +9,7 @@
 #define	BULLETCARMODEL_H
 
 #include <ros/ros.h>
-#include <car_planner_msgs/Command.h>
+#include <carplanner/Command.h>
 #include <nav_msgs/Odometry.h>
 
 #include "btBulletDynamicsCommon.h"
@@ -345,30 +345,7 @@ public:
     ros::Subscriber m_commandThreadSub;
 
     void _PoseThreadFunc();
-    void _CommandThreadFunc(car_planner_msgs::Command);
-
-//    // UDP values
-//    unsigned m_CarPort;
-//    unsigned m_LocPort;
-//    unsigned m_ComPort;
-//    unsigned m_MochPort;
-//    struct sockaddr_in carAddr;
-//    struct sockaddr_in locAddr;
-//    struct sockaddr_in comAddr;
-//    struct sockaddr_in mochAddr;
-//    socklen_t addrLen = sizeof(locAddr);
-//    int recvLen;
-//    int comRecvLen;
-//    int sockFD;
-//    int comSockFD;
-//    unsigned char buf[2048];
-//    unsigned char comBuf[2048];
-//    unsigned int msgSize = 0;
-//    unsigned int comMsgSize = 0;
-//    hal::CommanderMsg* cmd;
-//    hal::PoseMsg* message;
-//    hal::VectorMsg* pose;
-//    hal::MatrixMsg* covar;
+    void _CommandThreadFunc(const carplanner::Command::ConstPtr&);
 
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -445,5 +422,3 @@ public:
 
 
 #endif	/* BULLETCARMODEL_H */
-
-

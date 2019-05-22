@@ -1,4 +1,4 @@
-project( CarPlanner )
+project( carplanner )
 cmake_minimum_required(VERSION 2.8)
 enable_testing()
 
@@ -35,17 +35,46 @@ find_package( Sophus REQUIRED)
 find_package( assimp REQUIRED )
 find_package( yaml-cpp REQUIRED )
 find_package( GFlags REQUIRED )
+find_package( catkin REQUIRED
+  COMPONENTS
+    roscpp
+    std_msgs
+    tf
+    message_generation
+    nav_msgs
+)
 
-set( _LIBRARIES 
-	${BULLET_LIBRARIES}  
-	${Boost_LIBRARIES} 
-	${Sophus_LIBRARIES} 
-	${SceneGraph_LIBRARIES} 
-	${CVars_LIBRARIES} 
-	${HAL_LIBRARIES} 
-	${assimp_LIBRARIES} 
-	${YAML_CPP_LIBRARIES} 
+add_definitions(${EIGEN_DEFINITIONS})
+
+add_message_files(
+  DIRECTORY
+  msg
+  FILES
+  Command.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  roscpp
+  std_msgs
+)
+
+catkin_package(
+  INCLUDE_DIRS include
+  CATKIN_DEPENDS roscpp std_msgs message_runtime nav_msgs
+  )
+
+set( _LIBRARIES
+	${BULLET_LIBRARIES}
+	${Boost_LIBRARIES}
+	${Sophus_LIBRARIES}
+	${SceneGraph_LIBRARIES}
+	${CVars_LIBRARIES}
+	${HAL_LIBRARIES}
+	${assimp_LIBRARIES}
+	${YAML_CPP_LIBRARIES}
 	${GFLAGS_LIBRARIES}
+  ${catkin_LIBRARIES}
 	)
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
@@ -61,6 +90,7 @@ set( _INCLUDE_DIRS
         ${GFLAGS_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${catkin_INCLUDE_DIRS}
         )
 
 #link_libraries( CarPlanner   OpenGLSupport )

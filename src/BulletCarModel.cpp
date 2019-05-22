@@ -10,569 +10,278 @@
 
 BulletCarModel::BulletCarModel()
 {
-    m_dGravity << 0,0,BULLET_MODEL_GRAVITY;
+  m_dGravity << 0,0,BULLET_MODEL_GRAVITY;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 BulletCarModel::~BulletCarModel()
 {
-//    close(sockFD);
+  //    close(sockFD);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::DebugDrawWorld(int worldId)
 {
-    BulletWorldInstance * pWorld = GetWorldInstance(worldId);
-    if( pWorld->m_pDynamicsWorld != NULL ) {
-        pWorld->m_pDynamicsWorld->debugDrawWorld();
-    }
+  BulletWorldInstance * pWorld = GetWorldInstance(worldId);
+  if( pWorld->m_pDynamicsWorld != NULL ) {
+    pWorld->m_pDynamicsWorld->debugDrawWorld();
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 btVector3 BulletCarModel::GetUpVector(int upAxis,btScalar regularValue,btScalar upValue)
 {
-    btAssert(upAxis >= 0 && upAxis <= 2 && "bad up axis");
+  btAssert(upAxis >= 0 && upAxis <= 2 && "bad up axis");
 
-    btVector3 v(regularValue, regularValue, regularValue);
-    v[upAxis] = `upValue;
+  btVector3 v(regularValue, regularValue, regularValue);
+  v[upAxis] = upValue;
 
-    return v;
+  return v;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::GenerateStaticHull( const struct aiScene *pAIScene, const struct aiNode *pAINode, const aiMatrix4x4 parentTransform, const float flScale, btTriangleMesh &triangleMesh, btVector3& dMin, btVector3& dMax )
 {
 
-    aiMesh *pAIMesh;
+  aiMesh *pAIMesh;
 
-    aiFace *pAIFace;
+  aiFace *pAIFace;
 
-    for (size_t x = 0; x < pAINode->mNumMeshes; x++ )
+  for (size_t x = 0; x < pAINode->mNumMeshes; x++ )
+  {
+    pAIMesh = pAIScene->mMeshes[pAINode->mMeshes[x]];
+
+    for (size_t y = 0; y < pAIMesh->mNumFaces; y++ )
     {
-        pAIMesh = pAIScene->mMeshes[pAINode->mMeshes[x]];
+      pAIFace = &pAIMesh->mFaces[y];
 
-        for (size_t y = 0; y < pAIMesh->mNumFaces; y++ )
-        {
-            pAIFace = &pAIMesh->mFaces[y];
-
-            if ( pAIFace->mNumIndices != 3 )
-            {
-                /*if ( bEnableDebugging )
-                {
-                    std::cout << "WARNING: A non-triangle face has been detected on this mesh, which is currently not supported." << std::endl;
-                    std::cout << "         As such, this face will not be used to generate a collision shape for this mesh." << std::endl;
-                    std::cout << "         This could have disastrous consequences. Consider using a different mesh!" << std::endl;
-                }*/
-                continue;
-            }
+      if ( pAIFace->mNumIndices != 3 )
+      {
+        continue;
+      }
 
 
-            aiVector3D v1 = parentTransform * pAIMesh->mVertices[pAIFace->mIndices[0]];
-            aiVector3D v2 = parentTransform * pAIMesh->mVertices[pAIFace->mIndices[1]];
-            aiVector3D v3 = parentTransform * pAIMesh->mVertices[pAIFace->mIndices[2]];
+      aiVector3D v1 = parentTransform * pAIMesh->mVertices[pAIFace->mIndices[0]];
+      aiVector3D v2 = parentTransform * pAIMesh->mVertices[pAIFace->mIndices[1]];
+      aiVector3D v3 = parentTransform * pAIMesh->mVertices[pAIFace->mIndices[2]];
 
-            dMin[0] = std::min((float)dMin[0],std::min(v1.x,std::min(v2.x, v3.x)));
-            dMax[0] = std::max((float)dMax[0],std::min(v1.x,std::max(v2.x, v3.x)));
+      dMin[0] = std::min((float)dMin[0],std::min(v1.x,std::min(v2.x, v3.x)));
+      dMax[0] = std::max((float)dMax[0],std::min(v1.x,std::max(v2.x, v3.x)));
 
-            dMin[1] = std::min((float)dMin[1],std::min(v1.y,std::min(v2.y, v3.y)));
-                                      btVector3(v2.x * flScale, v2.y * flScale, v2.z * flScale),
-                                      btVector3(v3.x * flScale, v3.y * flScale, v3.z * flScale),
-                                      false );
-        }
+      dMin[1] = std::min((float)dMin[1],std::min(v1.y,std::min(v2.y, v3.y)));
+      dMax[1] = std::max((float)dMax[1],std::max(v1.y,std::max(v2.y, v3.y)));
+
+      dMin[2] = std::min((float)dMin[2],std::min(v1.z,std::min(v2.z, v3.z)));
+      dMax[2] = std::max((float)dMax[2],std::max(v1.z,std::max(v2.z, v3.z)));
+
+      triangleMesh.addTriangle( btVector3(v1.x * flScale, v1.y * flScale, v1.z * flScale),
+      btVector3(v2.x * flScale, v2.y * flScale, v2.z * flScale),
+      btVector3(v3.x * flScale, v3.y * flScale, v3.z * flScale),
+      false );
     }
+  }
 
-    for (size_t x = 0; x < pAINode->mNumChildren; x++ ){
-        GenerateStaticHull( pAIScene, pAINode->mChildren[x],parentTransform*pAINode->mChildren[x]->mTransformation, flScale, triangleMesh,dMin,dMax );
-    }
+  for (size_t x = 0; x < pAINode->mNumChildren; x++ )
+  {
+    GenerateStaticHull( pAIScene, pAINode->mChildren[x],parentTransform*pAINode->mChildren[x]->mTransformation, flScale, triangleMesh,dMin,dMax );
+  }
 }
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-//void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds, bool real )
-//{
-//    if ( real ) {
-//        //////////////////
-//        m_CarPort = 1640;
-//        m_LocPort = 1641;
-//        m_ComPort = 1642;
-//        m_MochPort = 1643;
-
-//        if ( ( comSockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
-//        if ( ( sockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
-
-//        memset( (char*)&carAddr, 0, addrLen );
-//        carAddr.sin_family = AF_INET;
-//        carAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-//        carAddr.sin_port = htons( m_CarPort );
-
-//        memset( (char*)&comAddr, 0, addrLen );
-//        comAddr.sin_family = AF_INET;
-//        comAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-//        comAddr.sin_port = htons( m_ComPort );
-
-//        if ( bind( sockFD, (struct sockaddr*)&carAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_CarPort;
-//        if ( bind( comSockFD, (struct sockaddr*)&comAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_ComPort;
-
-//        memset( (char*)&locAddr, 0, addrLen );
-//        locAddr.sin_family = AF_INET;
-//        locAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-//        locAddr.sin_port = htons( m_LocPort );
-
-//        memset( (char*)&mochAddr, 0, addrLen );
-//        mochAddr.sin_family = AF_INET;
-//        mochAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-//        mochAddr.sin_port = htons( m_MochPort );
-//        //////////////////
-//    }
-
-//    m_nNumWorlds = numWorlds;
-//    //initialize a number of worlds
-//    for(size_t ii = 0 ; ii < m_nNumWorlds ; ii++) {
-//        BulletWorldInstance *pWorld = new BulletWorldInstance();
-//        pWorld->m_nIndex = ii;
-
-//        _InitWorld(pWorld,pCollisionShape,dMin,dMax,false);
-
-//        //initialize the car
-//        _InitVehicle(pWorld,parameters);
-
-//        m_vWorlds.push_back(pWorld);
-//    }
-
-//    if (real) {
-//        m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
-//        m_pCommandThread = new boost::thread( std::bind( &BulletCarModel::_CommandThreadFunc, this ));
-//    }
-//}
-
 void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds, bool real )
 {
-    if ( real ) {
-        m_nh("~");
-        m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
-        m_commandThreadSub = m_nh.subscribe<car_planner_msgs::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
-    }
+  if ( real ) {
+    m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
+    m_commandThreadSub = m_nh.subscribe<carplanner::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
+  }
 
-    m_nNumWorlds = numWorlds;
-    //initialize a number of worlds
-    for(size_t ii = 0 ; ii < m_nNumWorlds ; ii++) {
-        BulletWorldInstance *pWorld = new BulletWorldInstance();
-        pWorld->m_nIndex = ii;
+  m_nNumWorlds = numWorlds;
+  //initialize a number of worlds
+  for(size_t ii = 0 ; ii < m_nNumWorlds ; ii++) {
+    BulletWorldInstance *pWorld = new BulletWorldInstance();
+    pWorld->m_nIndex = ii;
 
-        _InitWorld(pWorld,pCollisionShape,dMin,dMax,false);
+    _InitWorld(pWorld,pCollisionShape,dMin,dMax,false);
 
-        //initialize the car
-        _InitVehicle(pWorld,parameters);
+    //initialize the car
+    _InitVehicle(pWorld,parameters);
 
-        m_vWorlds.push_back(pWorld);
-    }
+    m_vWorlds.push_back(pWorld);
+  }
 
-    if (real) {
-        m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
-    }
+  if (real) {
+    m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &parameters, unsigned int numWorlds, bool real )
-//{
-//    if ( real ) {
-//        //////////////////
-//        m_CarPort = 1640;
-//        m_LocPort = 1641;
-//        m_ComPort = 1642;
-//        m_MochPort = 1643;
-
-//        if ( ( comSockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
-//        if ( ( sockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
-
-//        memset( (char*)&carAddr, 0, addrLen );
-//        carAddr.sin_family = AF_INET;
-//        carAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-//        carAddr.sin_port = htons( m_CarPort );
-
-//        memset( (char*)&comAddr, 0, addrLen );
-//        comAddr.sin_family = AF_INET;
-//        comAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-//        comAddr.sin_port = htons( m_ComPort );
-
-//        if ( bind( sockFD, (struct sockaddr*)&carAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_CarPort;
-//        if ( bind( comSockFD, (struct sockaddr*)&comAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_ComPort;
-
-//        memset( (char*)&locAddr, 0, addrLen );
-//        locAddr.sin_family = AF_INET;
-//        locAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-//        locAddr.sin_port = htons( m_LocPort );
-
-//        memset( (char*)&mochAddr, 0, addrLen );
-//        mochAddr.sin_family = AF_INET;
-//        mochAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-//        mochAddr.sin_port = htons( m_MochPort );
-//        //////////////////
-//    }
-
-//    aiNode *pAINode = pAIScene->mRootNode;
-
-//    //generate the triangle mesh
-//    btVector3 dMin(DBL_MAX,DBL_MAX,DBL_MAX);
-//    btVector3 dMax(DBL_MIN,DBL_MIN,DBL_MIN);
-//    btTriangleMesh *pTriangleMesh = new btTriangleMesh();
-//    GenerateStaticHull(pAIScene,pAINode,pAINode->mTransformation,1.0,*pTriangleMesh,dMin,dMax);
-
-//    m_nNumWorlds = numWorlds;
-//    //initialize a number of worlds
-//    for(size_t ii = 0 ; ii < m_nNumWorlds ; ii++) {
-//        BulletWorldInstance *pWorld = new BulletWorldInstance();
-//        pWorld->m_nIndex = ii;
-
-//        btCollisionShape* pCollisionShape = new btBvhTriangleMeshShape(pTriangleMesh,true,true);
-
-//        //initialize the world (heightmap and general physics)
-//        _InitWorld(pWorld,pCollisionShape,dMin,dMax,false);
-
-//        //initialize the car
-//        _InitVehicle(pWorld,parameters);
-
-//        m_vWorlds.push_back(pWorld);
-//    }
-
-//    if (real) {
-//        m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
-//        m_pCommandThread = new boost::thread( std::bind( &BulletCarModel::_CommandThreadFunc, this ));
-//    }
-//}
-
 void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &parameters, unsigned int numWorlds, bool real )
 {
-    if ( real ) {
-        m_nh("~");
-        m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
-        m_commandThreadSub = m_nh.subscribe<car_planner_msgs::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
-    }
+  if ( real ) {
+    m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
+    m_commandThreadSub = m_nh.subscribe<carplanner::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
+  }
 
-    aiNode *pAINode = pAIScene->mRootNode;
+  aiNode *pAINode = pAIScene->mRootNode;
 
-    //generate the triangle mesh
-    btVector3 dMin(DBL_MAX,DBL_MAX,DBL_MAX);
-    btVector3 dMax(DBL_MIN,DBL_MIN,DBL_MIN);
-    btTriangleMesh *pTriangleMesh = new btTriangleMesh();
-    GenerateStaticHull(pAIScene,pAINode,pAINode->mTransformation,1.0,*pTriangleMesh,dMin,dMax);
+  //generate the triangle mesh
+  btVector3 dMin(DBL_MAX,DBL_MAX,DBL_MAX);
+  btVector3 dMax(DBL_MIN,DBL_MIN,DBL_MIN);
+  btTriangleMesh *pTriangleMesh = new btTriangleMesh();
+  GenerateStaticHull(pAIScene,pAINode,pAINode->mTransformation,1.0,*pTriangleMesh,dMin,dMax);
 
-    m_nNumWorlds = numWorlds;
-    //initialize a number of worlds
-    for(size_t ii = 0 ; ii < m_nNumWorlds ; ii++) {
-        BulletWorldInstance *pWorld = new BulletWorldInstance();
-        pWorld->m_nIndex = ii;
+  m_nNumWorlds = numWorlds;
+  //initialize a number of worlds
+  for(size_t ii = 0 ; ii < m_nNumWorlds ; ii++) {
+    BulletWorldInstance *pWorld = new BulletWorldInstance();
+    pWorld->m_nIndex = ii;
 
-        btCollisionShape* pCollisionShape = new btBvhTriangleMeshShape(pTriangleMesh,true,true);
+    btCollisionShape* pCollisionShape = new btBvhTriangleMeshShape(pTriangleMesh,true,true);
 
-        //initialize the world (heightmap and general physics)
-        _InitWorld(pWorld,pCollisionShape,dMin,dMax,false);
+    //initialize the world (heightmap and general physics)
+    _InitWorld(pWorld,pCollisionShape,dMin,dMax,false);
 
-        //initialize the car
-        _InitVehicle(pWorld,parameters);
+    //initialize the car
+    _InitVehicle(pWorld,parameters);
 
-        m_vWorlds.push_back(pWorld);
-    }
+    m_vWorlds.push_back(pWorld);
+  }
 
-    if (real) {
-        m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
-    }
+  if (real) {
+    m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-//void BulletCarModel::_PoseThreadFunc()
-//{
-//    std::int32_t m = 1;
-//    float x = 0, y = 0, z = 0, i = 0, j = 0, k = 0;
-//    VehicleState state;
-
-//    message = new hal::PoseMsg(); // New pose message
-//    pose = new hal::VectorMsg(); // Vector for holding pose
-//    covar = new hal::MatrixMsg(); // Matrix for holding covariance (column major)
-
-//    pose->add_data(0);  // i
-//    pose->add_data(0);  // j
-//    pose->add_data(1);  // k
-//    pose->add_data(0);  // w
-//    pose->add_data(10); // x
-//    pose->add_data(10); // y
-//    pose->add_data(0);  // z
-
-//    covar->set_rows(6); // Set number of rows in covariance matrix
-
-//    // row 1
-//    covar->add_data(1);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-
-//    // row 2
-//    covar->add_data(0);
-//    covar->add_data(1);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-
-//    // row 3
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(1);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-
-//    // row 4
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(1);
-//    covar->add_data(0);
-//    covar->add_data(0);
-
-//    // row 5
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(1);
-//    covar->add_data(0);
-
-//    // row 6
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(0);
-//    covar->add_data(1);
-
-//    message->set_allocated_pose(pose); // Set pose
-//    message->set_allocated_covariance(covar); // Set covariance
-
-//    while(1)
-//    {
-//        GetVehicleState( 0, state );
-
-//        Eigen::Vector6d poseVec = state.ToPose();
-
-//        x = poseVec[0];
-//        y = poseVec[1];
-//        z = poseVec[2];
-//        i = poseVec[3];
-//        j = poseVec[4];
-//        k = poseVec[5];
-
-//        Sophus::SO3d rpy(i,j,k);
-
-//        pose->set_data( 0, x );                // x
-//        pose->set_data( 1, y );                // y
-//        pose->set_data( 2, z );                // z
-//        pose->set_data( 3, rpy.data()[0] );
-//        pose->set_data( 4, rpy.data()[1] );
-//        pose->set_data( 5, rpy.data()[2] );
-//        pose->set_data( 6, rpy.data()[3] );
-
-//        message->set_id(m++);
-//        message->set_type( hal::PoseMsg_Type_SE3 ); // Set pose to Sophus SE3 data type ( ijkw | xyz )
-
-//        unsigned char buffer[message->ByteSize() + 4];
-
-//        google::protobuf::io::ArrayOutputStream aos( buffer, sizeof(buffer) );
-//        google::protobuf::io::CodedOutputStream coded_output( &aos );
-//        coded_output.WriteVarint32( message->ByteSize() );
-//        message->SerializeToCodedStream( &coded_output );
-//        if ( sendto( sockFD, (char*)buffer, coded_output.ByteCount(), 0, (struct sockaddr*)&locAddr, addrLen ) < 0 ) LOG(ERROR) << "Did not send message";
-//        /*else LOG(INFO) << "BCM sent Posys message with data: " << x << " " << y << " " << z;*/
-//        usleep( (int)( ( 1 / (double)30.0 ) * 1000 ) );
-//    }
-//}
-
 void BulletCarModel::_PoseThreadFunc()
 {
-    VehicleState state;
-    nav_msgs::Odometry odom;
+  VehicleState state;
+  nav_msgs::Odometry odom;
 
-    odom.pose.pose.position.x = 10;
-    odom.pose.pose.position.y = 10;
-    odom.pose.pose.position.z = 0;
-    odom.pose.pose.orientation.w = 0;
-    odom.pose.pose.orientation.x = 0;
-    odom.pose.pose.orientation.y = 0;
-    odom.pose.pose.orientation.z = 1;
+  odom.pose.pose.position.x = 10;
+  odom.pose.pose.position.y = 10;
+  odom.pose.pose.position.z = 0;
+  odom.pose.pose.orientation.w = 0;
+  odom.pose.pose.orientation.x = 0;
+  odom.pose.pose.orientation.y = 0;
+  odom.pose.pose.orientation.z = 1;
 
-    int cov_row = 0;
-    odom.pose.covariance[cov_row*6] = 1;
-    odom.pose.covariance[cov_row*6+1] = 0;
-    odom.pose.covariance[cov_row*6+2] = 0;
-    odom.pose.covariance[cov_row*6+3] = 0;
-    odom.pose.covariance[cov_row*6+4] = 0;
-    odom.pose.covariance[cov_row*6+5] = 0;
+  int cov_row = 0;
+  odom.pose.covariance[cov_row*6] = 1;
+  odom.pose.covariance[cov_row*6+1] = 0;
+  odom.pose.covariance[cov_row*6+2] = 0;
+  odom.pose.covariance[cov_row*6+3] = 0;
+  odom.pose.covariance[cov_row*6+4] = 0;
+  odom.pose.covariance[cov_row*6+5] = 0;
 
-    int cov_row = 1;
-    odom.pose.covariance[cov_row*6] = 0;
-    odom.pose.covariance[cov_row*6+1] = 1;
-    odom.pose.covariance[cov_row*6+2] = 0;
-    odom.pose.covariance[cov_row*6+3] = 0;
-    odom.pose.covariance[cov_row*6+4] = 0;
-    odom.pose.covariance[cov_row*6+5] = 0;
+  cov_row = 1;
+  odom.pose.covariance[cov_row*6] = 0;
+  odom.pose.covariance[cov_row*6+1] = 1;
+  odom.pose.covariance[cov_row*6+2] = 0;
+  odom.pose.covariance[cov_row*6+3] = 0;
+  odom.pose.covariance[cov_row*6+4] = 0;
+  odom.pose.covariance[cov_row*6+5] = 0;
 
-    int cov_row = 2;
-    odom.pose.covariance[cov_row*6] = 0;
-    odom.pose.covariance[cov_row*6+1] = 0;
-    odom.pose.covariance[cov_row*6+2] = 1;
-    odom.pose.covariance[cov_row*6+3] = 0;
-    odom.pose.covariance[cov_row*6+4] = 0;
-    odom.pose.covariance[cov_row*6+5] = 0;
+  cov_row = 2;
+  odom.pose.covariance[cov_row*6] = 0;
+  odom.pose.covariance[cov_row*6+1] = 0;
+  odom.pose.covariance[cov_row*6+2] = 1;
+  odom.pose.covariance[cov_row*6+3] = 0;
+  odom.pose.covariance[cov_row*6+4] = 0;
+  odom.pose.covariance[cov_row*6+5] = 0;
 
-    int cov_row = 3;
-    odom.pose.covariance[cov_row*6] = 0;
-    odom.pose.covariance[cov_row*6+1] = 0;
-    odom.pose.covariance[cov_row*6+2] = 0;
-    odom.pose.covariance[cov_row*6+3] = 1;
-    odom.pose.covariance[cov_row*6+4] = 0;
-    odom.pose.covariance[cov_row*6+5] = 0;
+  cov_row = 3;
+  odom.pose.covariance[cov_row*6] = 0;
+  odom.pose.covariance[cov_row*6+1] = 0;
+  odom.pose.covariance[cov_row*6+2] = 0;
+  odom.pose.covariance[cov_row*6+3] = 1;
+  odom.pose.covariance[cov_row*6+4] = 0;
+  odom.pose.covariance[cov_row*6+5] = 0;
 
-    int cov_row = 4;
-    odom.pose.covariance[cov_row*6] = 0;
-    odom.pose.covariance[cov_row*6+1] = 0;
-    odom.pose.covariance[cov_row*6+2] = 0;
-    odom.pose.covariance[cov_row*6+3] = 0;
-    odom.pose.covariance[cov_row*6+4] = 1;
-    odom.pose.covariance[cov_row*6+5] = 0;
+  cov_row = 4;
+  odom.pose.covariance[cov_row*6] = 0;
+  odom.pose.covariance[cov_row*6+1] = 0;
+  odom.pose.covariance[cov_row*6+2] = 0;
+  odom.pose.covariance[cov_row*6+3] = 0;
+  odom.pose.covariance[cov_row*6+4] = 1;
+  odom.pose.covariance[cov_row*6+5] = 0;
 
-    int cov_row = 5;
-    odom.pose.covariance[cov_row*6] = 0;
-    odom.pose.covariance[cov_row*6+1] = 0;
-    odom.pose.covariance[cov_row*6+2] = 0;
-    odom.pose.covariance[cov_row*6+3] = 0;
-    odom.pose.covariance[cov_row*6+4] = 0;
-    odom.pose.covariance[cov_row*6+5] = 1;
+  cov_row = 5;
+  odom.pose.covariance[cov_row*6] = 0;
+  odom.pose.covariance[cov_row*6+1] = 0;
+  odom.pose.covariance[cov_row*6+2] = 0;
+  odom.pose.covariance[cov_row*6+3] = 0;
+  odom.pose.covariance[cov_row*6+4] = 0;
+  odom.pose.covariance[cov_row*6+5] = 1;
 
-    while(1)
-    {
-        GetVehicleState( 0, state );
+  while(1)
+  {
+    GetVehicleState( 0, state );
 
-        Eigen::Vector6d poseVec = state.ToPose();
+    Eigen::Vector6d poseVec = state.ToPose();
 
-        odom.pose.pose.position.x = poseVec[0];
-        odom.pose.pose.position.y = poseVec[1];
-        odom.pose.pose.position.z = poseVec[2];
-        odom.pose.pose.orientation.x = poseVec[3];
-        odom.pose.pose.orientation.y = poseVec[4];
-        odom.pose.pose.orientation.z = poseVec[5];
+    odom.pose.pose.position.x = poseVec[0];
+    odom.pose.pose.position.y = poseVec[1];
+    odom.pose.pose.position.z = poseVec[2];
+    odom.pose.pose.orientation.x = poseVec[3];
+    odom.pose.pose.orientation.y = poseVec[4];
+    odom.pose.pose.orientation.z = poseVec[5];
 
-        pose_thread_pub.publish(odom);
-        ros::spinOnce();
+    m_poseThreadPub.publish(odom);
+    ros::spinOnce();
 
-        usleep( (int)( ( 1 / (double)30.0 ) * 1000 ) );
-    }
+    usleep( (int)( ( 1 / (double)30.0 ) * 1000 ) );
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-//void BulletCarModel::_CommandThreadFunc()
-//{
-//    // Read in current command using UDP
-//    //////////////////////////////
-//    int worldId;
-//    double force, curvature, dt, phi;
-//    Eigen::Vector3d torques;
-//    bool bNoDelay;
-//    bool bNoUpdate;
-
-//    while(1)
-//    {
-//        cmd = new hal::CommanderMsg();
-
-//        //UDP receive cmd from MochaGui
-//        comRecvLen = recvfrom( comSockFD, comBuf, 2048, 0, (struct sockaddr*)&mochAddr, &addrLen );
-//        if ( comRecvLen > 0 ) {
-//            buf[comRecvLen] = 0;
-//            google::protobuf::io::ArrayInputStream ais( comBuf, comRecvLen );
-//            google::protobuf::io::CodedInputStream coded_input( &ais );
-//            coded_input.ReadVarint32( &comMsgSize );
-//            google::protobuf::io::CodedInputStream::Limit limit = coded_input.PushLimit( comMsgSize );
-//            cmd->ParseFromCodedStream( &coded_input );
-//            coded_input.PopLimit( limit );
-//            LOG(INFO) << "Received Command";
-//        }
-
-//        hal::ReadCommand( *cmd, &worldId, &force, &curvature, &torques, &dt, &phi, &bNoDelay, &bNoUpdate);
-//        ControlCommand command(force, curvature, torques, dt, phi);
-//        UpdateState( 0, command, dt, bNoDelay, bNoUpdate );
-//        //////////////////////////////
-//    }
-//}
-
-void BulletCarModel::_CommandThreadFunc(const car_planner_msgs::Command::ConstPtr& cmd_msg)
+void BulletCarModel::_CommandThreadFunc(const carplanner::Command::ConstPtr& cmd_msg)
 {
-    // parse cmd msg into local variables
-    int worldId = cmd_msg.worldId;
-    double force = cmd_msg.force;
-    double curvature = cmd_msg.curvature;
-    double dt = cmd_msg.dt;
-    double phi = cmd_msg.phi;
-    Eigen::Vector3d torques = cmd_msg.torques;
-    bool bNoDelay = cmd_msg.noDelay;
-    bool bNoUpdate = cmd_msg.noUpdate;
+  // parse cmd msg into local variables
+  int worldId = cmd_msg->worldId;
+  double force = cmd_msg->force;
+  double curvature = cmd_msg->curvature;
+  double dt = cmd_msg->dt;
+  double phi = cmd_msg->phi;
+  Eigen::Vector3d torques;
+  for( unsigned int i=0; i<cmd_msg->torques.size(); i++)
+  {
+    torques[i] = cmd_msg->torques[i];
+  }
+  bool bNoDelay = cmd_msg->noDelay;
+  bool bNoUpdate = cmd_msg->noUpdate;
 
-    // create command object from local variables and use to update state
-    ControlCommand command(force, curvature, torques, dt, phi);
-    UpdateState( 0, command, dt, bNoDelay, bNoUpdate );
+  // create command object from local variables and use to update state
+  ControlCommand command(force, curvature, torques, dt, phi);
+  UpdateState( 0, command, dt, bNoDelay, bNoUpdate );
 }
 
 //////////////////////////////////////////////s///////////////////////////////////////////
 void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedCommands)
 {
-    BulletWorldInstance* pWorld = GetWorldInstance(worldId);
-    //lock the world to prevent changes
-    boost::mutex::scoped_lock lock(*pWorld);
-    pWorld->m_lPreviousCommands.push_front(delayedCommands);
-    //add to the total command time
-    pWorld->m_dTotalCommandTime += delayedCommands.m_dT;
-    //int s = pWorld->m_lPreviousCommands.size();
+  BulletWorldInstance* pWorld = GetWorldInstance(worldId);
+  //lock the world to prevent changes
+  boost::mutex::scoped_lock lock(*pWorld);
+  pWorld->m_lPreviousCommands.push_front(delayedCommands);
+  //add to the total command time
+  pWorld->m_dTotalCommandTime += delayedCommands.m_dT;
+  //int s = pWorld->m_lPreviousCommands.size();
 
-    //if this time is over the maximum amount, pop them off at the back
-    while(pWorld->m_dTotalCommandTime > MAX_CONTROL_DELAY &&
-              (pWorld->m_dTotalCommandTime - pWorld->m_lPreviousCommands.back().m_dT) > MAX_CONTROL_DELAY)
+  //if this time is over the maximum amount, pop them off at the back
+  while(pWorld->m_dTotalCommandTime > MAX_CONTROL_DELAY &&
+    (pWorld->m_dTotalCommandTime - pWorld->m_lPreviousCommands.back().m_dT) > MAX_CONTROL_DELAY)
     {
-        pWorld->m_dTotalCommandTime -= pWorld->m_lPreviousCommands.back().m_dT;
-        pWorld->m_lPreviousCommands.pop_back();
+      pWorld->m_dTotalCommandTime -= pWorld->m_lPreviousCommands.back().m_dT;
+      pWorld->m_lPreviousCommands.pop_back();
 
     }
 
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-/*/std::vector<RegressionParameter> & BulletCarModel::GetLearningParameterVector(int index)
-//{
-//    BulletWorldInstance* pWorld = GetWorldInstance(index);
-//    //update the parameter vector
-//    for(int ii = 0 ; ii < pWorld->m_vLearningParameters.size() ; ii++) {
-//        pWorld->m_vLearningParameters[ii].m_dVal = pWorld->m_Parameters[pWorld->m_vLearningParameters[ii].m_nKey];
-//    }
-//    return pWorld->m_vLearningParameters;
-//}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-//void SetLearningParameterVector(const std::vector<RegressionParameter> &params)
-//{
-//    for(int ii = 0 ; ii < m_nNumWorlds ; ii++) {
-//        SetLearningParameterVector(params,ii);
-//    }
-//}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-//void SetLearningParameterVector(const std::vector<RegressionParameter> &params,const int& index)
-//{
-//    BulletWorldInstance* pWorld = GetWorldInstance(index);
-//    pWorld->m_vLearningParameters = params;
-//}*/
-
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::_GetDelayedControl(int worldId, double timeDelay, ControlCommand& delayedCommands)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::_GetDelayedControl(int worldId, double timeDelay, ControlCommand& delayedCommands)
+  {
     //clamp the time delay to be > 0
     timeDelay = std::max(timeDelay,0.0);
 
@@ -589,60 +298,60 @@ void BulletCarModel::_GetDelayedControl(int worldId, double timeDelay, ControlCo
 
     int count = 0;
     if(previousCommands.size() > 1) {
-        it++; //move to the first element
-        for(; it != previousCommands.end() ; it++) {
-            count++;
-            if( currentDelay + (*it).m_dT >= timeDelay ) {
+      it++; //move to the first element
+      for(; it != previousCommands.end() ; it++) {
+        count++;
+        if( currentDelay + (*it).m_dT >= timeDelay ) {
 
-                //interpolate between the current and next commands
-                double r2 = (timeDelay - currentDelay)/(*it).m_dT;
-                double r1 = 1-r2;
+          //interpolate between the current and next commands
+          double r2 = (timeDelay - currentDelay)/(*it).m_dT;
+          double r1 = 1-r2;
 
-                delayedCommands.m_dForce = r1*pCurrentCommand->m_dForce + r2*(*it).m_dForce;
-                delayedCommands.m_dCurvature = r1*pCurrentCommand->m_dCurvature + r2*(*it).m_dCurvature;
-                delayedCommands.m_dPhi = r1*pCurrentCommand->m_dPhi + r2*(*it).m_dPhi;
-                delayedCommands.m_dTorque = r1*pCurrentCommand->m_dTorque + r2*(*it).m_dTorque;
+          delayedCommands.m_dForce = r1*pCurrentCommand->m_dForce + r2*(*it).m_dForce;
+          delayedCommands.m_dCurvature = r1*pCurrentCommand->m_dCurvature + r2*(*it).m_dCurvature;
+          delayedCommands.m_dPhi = r1*pCurrentCommand->m_dPhi + r2*(*it).m_dPhi;
+          delayedCommands.m_dTorque = r1*pCurrentCommand->m_dTorque + r2*(*it).m_dTorque;
 
-                it++;
-                return;
-            }else {
-                pCurrentCommand = &(*it);
-                currentDelay += pCurrentCommand->m_dT;
+          it++;
+          return;
+        }else {
+          pCurrentCommand = &(*it);
+          currentDelay += pCurrentCommand->m_dT;
 
-                if(currentDelay == timeDelay) {
-                    delayedCommands = *pCurrentCommand;
-                    return;
-                }
-            }
+          if(currentDelay == timeDelay) {
+            delayedCommands = *pCurrentCommand;
+            return;
+          }
         }
+      }
     }else if(previousCommands.size() > 0){
-        DLOG(INFO) << "Command history list size < 2, using first command.";
-        delayedCommands = previousCommands.front();
+      DLOG(INFO) << "Command history list size < 2, using first command.";
+      delayedCommands = previousCommands.front();
     }else{
-        DLOG(INFO) << "Command history list size == 0. Passing empty command";
-        delayedCommands.m_dForce = pWorld->m_Parameters[CarParameters::AccelOffset]*SERVO_RANGE;
-        delayedCommands.m_dCurvature = 0;
-        delayedCommands.m_dPhi = pWorld->m_Parameters[CarParameters::SteeringOffset]*SERVO_RANGE;
-        delayedCommands.m_dTorque << 0,0,0;
+      DLOG(INFO) << "Command history list size == 0. Passing empty command";
+      delayedCommands.m_dForce = pWorld->m_Parameters[CarParameters::AccelOffset]*SERVO_RANGE;
+      delayedCommands.m_dCurvature = 0;
+      delayedCommands.m_dPhi = pWorld->m_Parameters[CarParameters::SteeringOffset]*SERVO_RANGE;
+      delayedCommands.m_dTorque << 0,0,0;
     }
 
 
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-double BulletCarModel::GetCorrectedSteering(double& dCurvature, int index)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  double BulletCarModel::GetCorrectedSteering(double& dCurvature, int index)
+  {
     BulletWorldInstance* pWorld = GetWorldInstance(index);
     double phi = atan(dCurvature*pWorld->m_Parameters[CarParameters::WheelBase]);
     phi = SoftMinimum(pWorld->m_Parameters[CarParameters::MaxSteering],
-          SoftMaximum(phi,-pWorld->m_Parameters[CarParameters::MaxSteering],50),50);
-    dCurvature  = (tan(phi)/pWorld->m_Parameters[CarParameters::WheelBase]);
+      SoftMaximum(phi,-pWorld->m_Parameters[CarParameters::MaxSteering],50),50);
+      dCurvature  = (tan(phi)/pWorld->m_Parameters[CarParameters::WheelBase]);
     return phi;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-double BulletCarModel::GetSteeringAngle(const double dcurvature, double& dCorrectedCurvature, int index, double steeringCoef /*= 1*/)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  double BulletCarModel::GetSteeringAngle(const double dcurvature, double& dCorrectedCurvature, int index, double steeringCoef /*= 1*/)
+  {
     BulletWorldInstance* pWorld = GetWorldInstance(index);
     double phi = atan(dcurvature*pWorld->m_Parameters[CarParameters::WheelBase])*steeringCoef;
     //double phi = 1.0/atan((1-powi(pWorld->m_Parameters[CarParameters::WheelBase]/2,2)*powi(dcurvature,2))/(powi(dcurvature,2)*powi(pWorld->m_Parameters[CarParameters::WheelBase],2)));
@@ -650,38 +359,38 @@ double BulletCarModel::GetSteeringAngle(const double dcurvature, double& dCorrec
     dCorrectedCurvature  = (tan(phi)/pWorld->m_Parameters[CarParameters::WheelBase]);
     //dCorrectedCurvature = 1/sqrt(powi(pWorld->m_Parameters[CarParameters::WheelBase]/2,2) + powi(pWorld->m_Parameters[CarParameters::WheelBase],2)*powi(1.0/tan(phi),2));
     return phi;
-}
+  }
 
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::UpdateParameters(const std::vector<RegressionParameter>& vNewParams)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::UpdateParameters(const std::vector<RegressionParameter>& vNewParams)
+  {
     for(size_t ii = 0 ; ii < m_nNumWorlds ; ii++) {
-        UpdateParameters(vNewParams,ii);
+      UpdateParameters(vNewParams,ii);
     }
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::UpdateParameters(const std::vector<RegressionParameter>& vNewParams,int index) {
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::UpdateParameters(const std::vector<RegressionParameter>& vNewParams,int index) {
     UpdateParameters(vNewParams,GetWorldInstance(index));
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::UpdateParameters(const std::vector<RegressionParameter>& vNewParams,BulletWorldInstance* pWorld)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::UpdateParameters(const std::vector<RegressionParameter>& vNewParams,BulletWorldInstance* pWorld)
+  {
     boost::mutex::scoped_lock lock(*pWorld);
     //update the parameter map and learning parameter list with the new params
     for(size_t ii = 0; ii < vNewParams.size() ; ii++) {
-        //pWorld->m_vLearningParameters[ii].m_dVal = vNewParams[ii].m_dVal;
-        pWorld->m_Parameters[vNewParams[ii].m_nKey] = vNewParams[ii].m_dVal;
-        //DLOG(INFO) << "Updating parameter with key " << vNewParams[ii].m_nKey << " to " << pWorld->m_Parameters[vNewParams[ii].m_nKey];
+      //pWorld->m_vLearningParameters[ii].m_dVal = vNewParams[ii].m_dVal;
+      pWorld->m_Parameters[vNewParams[ii].m_nKey] = vNewParams[ii].m_dVal;
+      //DLOG(INFO) << "Updating parameter with key " << vNewParams[ii].m_nKey << " to " << pWorld->m_Parameters[vNewParams[ii].m_nKey];
     }
     _InternalUpdateParameters(pWorld);
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::_InternalUpdateParameters(BulletWorldInstance* pWorld)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::_InternalUpdateParameters(BulletWorldInstance* pWorld)
+  {
     //DLOG(INFO) << "updating parameters to " << pWorld->m_vParameters;
 
     pWorld->m_bParametersChanged = true;
@@ -692,8 +401,8 @@ void BulletCarModel::_InternalUpdateParameters(BulletWorldInstance* pWorld)
     pWorld->m_pVehicle->SetStaticSideFrictionCoefficient(pWorld->m_Parameters[CarParameters::StaticSideFrictionCoef]);
     pWorld->m_pVehicle->SetSlipCoefficient(pWorld->m_Parameters[CarParameters::SlipCoefficient]);
     pWorld->m_pVehicle->SetMagicFormulaCoefficients(pWorld->m_Parameters[CarParameters::MagicFormula_B],
-                                                    pWorld->m_Parameters[CarParameters::MagicFormula_C],
-                                                    pWorld->m_Parameters[CarParameters::MagicFormula_E]);
+      pWorld->m_Parameters[CarParameters::MagicFormula_C],
+      pWorld->m_Parameters[CarParameters::MagicFormula_E]);
 
     //set the mass and wheelbase of the car
     //pWorld->m_Parameters[CarParameters::WheelBase] = pWorld->m_vParameters[eWheelBase];
@@ -716,79 +425,79 @@ void BulletCarModel::_InternalUpdateParameters(BulletWorldInstance* pWorld)
 
     for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
     {
-        WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
-        pWorld->m_pVehicle->updateWheelTransformsWS(wheel);
-        pWorld->m_pVehicle->updateWheelTransform(i);
-        wheel.m_suspensionRestLength1 = pWorld->m_Parameters[CarParameters::SuspRestLength];
-        wheel.m_suspensionStiffness = pWorld->m_Parameters[CarParameters::Stiffness];
-        wheel.m_wheelsDampingCompression = pWorld->m_Parameters[CarParameters::CompDamping];
-        wheel.m_wheelsDampingRelaxation = pWorld->m_Parameters[CarParameters::ExpDamping];
+      WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
+      pWorld->m_pVehicle->updateWheelTransformsWS(wheel);
+      pWorld->m_pVehicle->updateWheelTransform(i);
+      wheel.m_suspensionRestLength1 = pWorld->m_Parameters[CarParameters::SuspRestLength];
+      wheel.m_suspensionStiffness = pWorld->m_Parameters[CarParameters::Stiffness];
+      wheel.m_wheelsDampingCompression = pWorld->m_Parameters[CarParameters::CompDamping];
+      wheel.m_wheelsDampingRelaxation = pWorld->m_Parameters[CarParameters::ExpDamping];
     }
 
     pWorld->m_pVehicle->updateSuspension();
 
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-double BulletCarModel::GetTotalWheelFriction(int worldId, double dt)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  double BulletCarModel::GetTotalWheelFriction(int worldId, double dt)
+  {
     double totalForce = 0;
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
     for(size_t ii = 0; ii < pWorld->m_pVehicle->getNumWheels() ; ii++) {
-        totalForce += _CalculateWheelFriction((ii),pWorld,dt);
+      totalForce += _CalculateWheelFriction((ii),pWorld,dt);
     }
     return totalForce;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-std::pair<double,double> BulletCarModel::GetSteeringRequiredAndMaxForce(const int nWorldId, const int nWheelId, const double dPhi, const double dt)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  std::pair<double,double> BulletCarModel::GetSteeringRequiredAndMaxForce(const int nWorldId, const int nWheelId, const double dPhi, const double dt)
+  {
     BulletWorldInstance* pWorld = GetWorldInstance(nWorldId);
     return pWorld->m_pVehicle->GetSteeringRequiredAndMaxForce(nWheelId,dPhi,dt);
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-double BulletCarModel::_CalculateWheelFriction(int wheelNum, BulletWorldInstance* pInstance, double dt)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  double BulletCarModel::_CalculateWheelFriction(int wheelNum, BulletWorldInstance* pInstance, double dt)
+  {
     bool bDynamic;
     double maxImpulse = pInstance->m_pVehicle->CalculateMaxFrictionImpulse(wheelNum,dt,bDynamic);
     return maxImpulse / dt;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-double BulletCarModel::GetTotalGravityForce(BulletWorldInstance* pWorld)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  double BulletCarModel::GetTotalGravityForce(BulletWorldInstance* pWorld)
+  {
     btVector3 gravityForce(0,0,-10*pWorld->m_Parameters[CarParameters::Mass]);
     for(size_t ii = 0; ii < pWorld->m_pVehicle->getNumWheels() ; ii++) {
-        WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(ii);
-        if(wheel.m_raycastInfo.m_isInContact)
-        {
-            gravityForce -= wheel.m_raycastInfo.m_contactNormalWS*wheel.m_wheelsSuspensionForce;
-        }
+      WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(ii);
+      if(wheel.m_raycastInfo.m_isInContact)
+      {
+        gravityForce -= wheel.m_raycastInfo.m_contactNormalWS*wheel.m_wheelsSuspensionForce;
+      }
     }
     //now get the component in the direction of the vehicle
     const btTransform& chassisTrans = pWorld->m_pVehicle->getChassisWorldTransform();
     btVector3 carFwd (
-                chassisTrans.getBasis()[0][CAR_FORWARD_AXIS],
-                chassisTrans.getBasis()[1][CAR_FORWARD_AXIS],
-                chassisTrans.getBasis()[2][CAR_FORWARD_AXIS]);
+      chassisTrans.getBasis()[0][CAR_FORWARD_AXIS],
+      chassisTrans.getBasis()[1][CAR_FORWARD_AXIS],
+      chassisTrans.getBasis()[2][CAR_FORWARD_AXIS]);
     double force = gravityForce.dot(carFwd);
     return -force;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::UpdateState(  const int& worldId,
-                                   const ControlCommand command,
-                                   const double forceDt /*= -1*/,
-                                   const bool bNoDelay /* = false */,
-                                   const bool bNoUpdate /* = false */)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::UpdateState(  const int& worldId,
+    const ControlCommand command,
+    const double forceDt /*= -1*/,
+    const bool bNoDelay /* = false */,
+    const bool bNoUpdate /* = false */)
+  {
     ControlCommand delayedCommands;
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
 
     if(pWorld->m_dTime == -1 && forceDt == -1 )   {
-        pWorld->m_dTime = Tic();
-        return;
+      pWorld->m_dTime = Tic();
+      return;
     }
 
     //calculate the time since the last iteration
@@ -796,15 +505,15 @@ void BulletCarModel::UpdateState(  const int& worldId,
     pWorld->m_dTime = Tic();
 
     if( forceDt != -1 ){
-        dT = forceDt;
+      dT = forceDt;
     }
 
     delayedCommands = command;
     delayedCommands.m_dT = dT;
     if(bNoDelay == false){
-        PushDelayedControl(worldId,delayedCommands);
-        //get the delayed command
-        _GetDelayedControl(worldId, pWorld->m_Parameters[CarParameters::ControlDelay],delayedCommands);
+      PushDelayedControl(worldId,delayedCommands);
+      //get the delayed command
+      _GetDelayedControl(worldId, pWorld->m_Parameters[CarParameters::ControlDelay],delayedCommands);
     }
     //get the delayed commands for execution and remove the offsets
     double dCorrectedForce = delayedCommands.m_dForce- pWorld->m_Parameters[CarParameters::AccelOffset]*SERVO_RANGE;
@@ -815,14 +524,14 @@ void BulletCarModel::UpdateState(  const int& worldId,
     //TODO: make this velocity in the direction of travel
     const double stallTorque = dCorrectedForce*pWorld->m_Parameters[CarParameters::StallTorqueCoef];
     dCorrectedForce = sgn(stallTorque)*std::max(0.0,fabs(stallTorque) -
-                      pWorld->m_Parameters[CarParameters::TorqueSpeedSlope]*fabs(pWorld->m_state.m_dV.norm()));
+    pWorld->m_Parameters[CarParameters::TorqueSpeedSlope]*fabs(pWorld->m_state.m_dV.norm()));
 
     //now apply the offset and scale values to the force and steering commands
     dCorrectedPhi = dCorrectedPhi/(pWorld->m_Parameters[CarParameters::SteeringCoef]*SERVO_RANGE);
 
     //clamp the steering
     dCorrectedPhi = SoftMinimum(pWorld->m_Parameters[CarParameters::MaxSteering],
-                    SoftMaximum(dCorrectedPhi,-pWorld->m_Parameters[CarParameters::MaxSteering],10),10);
+      SoftMaximum(dCorrectedPhi,-pWorld->m_Parameters[CarParameters::MaxSteering],10),10);
 
     //steering needs to be flipped due to the way RayCastVehicle works
     dCorrectedPhi *= -1;
@@ -851,105 +560,105 @@ void BulletCarModel::UpdateState(  const int& worldId,
     // if bNoUpdate is true, then car does not move in both modes
     if (pWorld->m_pDynamicsWorld && bNoUpdate==false)
     {
-        Eigen::Vector3d T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
-        btVector3 bTorques( T_w[0], T_w[1], T_w[2] );
-        pWorld->m_pVehicle->getRigidBody()->applyTorque( bTorques );
-        //DLOG(INFO) << "Sending torque vector " << T_w.transpose() << " to car.";
-        pWorld->m_pDynamicsWorld->stepSimulation(dT,1,dT);
+      Eigen::Vector3d T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
+      btVector3 bTorques( T_w[0], T_w[1], T_w[2] );
+      pWorld->m_pVehicle->getRigidBody()->applyTorque( bTorques );
+      //DLOG(INFO) << "Sending torque vector " << T_w.transpose() << " to car.";
+      pWorld->m_pDynamicsWorld->stepSimulation(dT,1,dT);
     }
 
 
     //do this in a critical section
     {
-        boost::mutex::scoped_lock lock(*pWorld);
-        //get chassis data from bullet
-        Eigen::Matrix4d Twv;
-        pWorld->m_pVehicle->getChassisWorldTransform().getOpenGLMatrix(Twv.data());
-        pWorld->m_state.m_dTwv = Sophus::SE3d(Twv);
+      boost::mutex::scoped_lock lock(*pWorld);
+      //get chassis data from bullet
+      Eigen::Matrix4d Twv;
+      pWorld->m_pVehicle->getChassisWorldTransform().getOpenGLMatrix(Twv.data());
+      pWorld->m_state.m_dTwv = Sophus::SE3d(Twv);
 
-        if(pWorld->m_state.m_vWheelStates.size() != pWorld->m_pVehicle->getNumWheels()) {
-            pWorld->m_state.m_vWheelStates.resize(pWorld->m_pVehicle->getNumWheels());
-            pWorld->m_state.m_vWheelContacts.resize(pWorld->m_pVehicle->getNumWheels());
-        }
-        
-        for(size_t ii = 0; ii < pWorld->m_pVehicle->getNumWheels() ; ii++) {
-            //m_pVehicle->updateWheelTransform(ii,true);
-            pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.getOpenGLMatrix(Twv.data());
-            pWorld->m_state.m_vWheelStates[ii] = Sophus::SE3d(Twv);
-            pWorld->m_state.m_vWheelContacts[ii] = pWorld->m_pVehicle->getWheelInfo(ii).m_raycastInfo.m_isInContact;
-        }
+      if(pWorld->m_state.m_vWheelStates.size() != pWorld->m_pVehicle->getNumWheels()) {
+        pWorld->m_state.m_vWheelStates.resize(pWorld->m_pVehicle->getNumWheels());
+        pWorld->m_state.m_vWheelContacts.resize(pWorld->m_pVehicle->getNumWheels());
+      }
 
-        //get the velocity
-        pWorld->m_state.m_dV << pWorld->m_pVehicle->getRigidBody()->getLinearVelocity()[0], pWorld->m_pVehicle->getRigidBody()->getLinearVelocity()[1], pWorld->m_pVehicle->getRigidBody()->getLinearVelocity()[2];
-        pWorld->m_state.m_dW << pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[0], pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[1], pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[2];
+      for(size_t ii = 0; ii < pWorld->m_pVehicle->getNumWheels() ; ii++) {
+        //m_pVehicle->updateWheelTransform(ii,true);
+        pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.getOpenGLMatrix(Twv.data());
+        pWorld->m_state.m_vWheelStates[ii] = Sophus::SE3d(Twv);
+        pWorld->m_state.m_vWheelContacts[ii] = pWorld->m_pVehicle->getWheelInfo(ii).m_raycastInfo.m_isInContact;
+      }
 
-        //set the steering
-        pWorld->m_state.m_dSteering = pWorld->m_pVehicle->GetAckermanSteering();
+      //get the velocity
+      pWorld->m_state.m_dV << pWorld->m_pVehicle->getRigidBody()->getLinearVelocity()[0], pWorld->m_pVehicle->getRigidBody()->getLinearVelocity()[1], pWorld->m_pVehicle->getRigidBody()->getLinearVelocity()[2];
+      pWorld->m_state.m_dW << pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[0], pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[1], pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[2];
+
+      //set the steering
+      pWorld->m_state.m_dSteering = pWorld->m_pVehicle->GetAckermanSteering();
     }
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
 
-Eigen::Vector3d BulletCarModel::GetVehicleLinearVelocity(int worldId)
-{
+  Eigen::Vector3d BulletCarModel::GetVehicleLinearVelocity(int worldId)
+  {
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
     btVector3 v = pWorld->m_pVehicle->getRigidBody()->getLinearVelocity();
     Eigen::Vector3d dV;
     dV << v.x(), v.y(), v.z();
     return dV;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
 
-Eigen::Vector3d BulletCarModel::GetVehicleAngularVelocity(int worldId)
-{
+  Eigen::Vector3d BulletCarModel::GetVehicleAngularVelocity(int worldId)
+  {
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
     btVector3 v = pWorld->m_pVehicle->getRigidBody()->getAngularVelocity();
     Eigen::Vector3d dV;
     dV << v.x(), v.y(), v.z();
     return dV;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
 
-Eigen::Vector3d BulletCarModel::GetVehicleInertiaTensor(int worldId)
-{
+  Eigen::Vector3d BulletCarModel::GetVehicleInertiaTensor(int worldId)
+  {
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
 
     btVector3 bVec = pWorld->m_pVehicle->getRigidBody()->getInvInertiaDiagLocal();
     Eigen::Vector3d res;
     for(int ii = 0 ; ii < 3 ; ii++) {
-        res(ii) = (bVec[ii] == 0 ? 0 : 1/bVec[ii]);
+      res(ii) = (bVec[ii] == 0 ? 0 : 1/bVec[ii]);
     }
     return res;
-}
+  }
 
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::GetVehicleState(int worldId,VehicleState& stateOut)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::GetVehicleState(int worldId,VehicleState& stateOut)
+  {
     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
     boost::mutex::scoped_lock lock(*pWorld);
     stateOut = pWorld->m_state;
     stateOut.m_dTwv.translation() += GetBasisVector(stateOut.m_dTwv,2)*
-                                   (pWorld->m_Parameters[CarParameters::SuspRestLength] +
-                                    pWorld->m_Parameters[CarParameters::WheelRadius]+
-                                    pWorld->m_Parameters[CarParameters::SuspConnectionHeight]-0.01);
-}
+    (pWorld->m_Parameters[CarParameters::SuspRestLength] +
+      pWorld->m_Parameters[CarParameters::WheelRadius]+
+      pWorld->m_Parameters[CarParameters::SuspConnectionHeight]-0.01);
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::SetStateNoReset( BulletWorldInstance *pWorld , const Sophus::SE3d& Twv)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::SetStateNoReset( BulletWorldInstance *pWorld , const Sophus::SE3d& Twv)
+  {
     btTransform trans;
     trans.setFromOpenGLMatrix(Twv.matrix().data());
     pWorld->m_pCarChassis->setAngularVelocity(btVector3(0,0,0));
     pWorld->m_pCarChassis->setLinearVelocity(btVector3(0,0,0));
     pWorld->m_pCarChassis->setCenterOfMassTransform(trans);
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::SetState( int nWorldId,  const VehicleState& state )
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::SetState( int nWorldId,  const VehicleState& state )
+  {
     BulletWorldInstance *pWorld = GetWorldInstance(nWorldId);
     boost::mutex::scoped_lock lock(*pWorld);
     //load the backup onto the vehicle
@@ -957,9 +666,9 @@ void BulletCarModel::SetState( int nWorldId,  const VehicleState& state )
 
     //set the wheel positions and contact
     for(size_t ii = 0; ii < state.m_vWheelStates.size() ; ii++) {
-        //m_pVehicle->updateWheelTransform(ii,true);
-        pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.setFromOpenGLMatrix(state.m_vWheelStates[ii].data());
-        pWorld->m_pVehicle->getWheelInfo(ii).m_raycastInfo.m_isInContact = state.m_vWheelContacts[ii];
+      //m_pVehicle->updateWheelTransform(ii,true);
+      pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.setFromOpenGLMatrix(state.m_vWheelStates[ii].data());
+      pWorld->m_pVehicle->getWheelInfo(ii).m_raycastInfo.m_isInContact = state.m_vWheelContacts[ii];
     }
 
     //update the parameters since they will have been overwritten
@@ -970,9 +679,9 @@ void BulletCarModel::SetState( int nWorldId,  const VehicleState& state )
     //set the state 4x4 matrix, however offset the body up to account for the wheel columns
     Sophus::SE3d T = state.m_dTwv;
     T.translation() -= GetBasisVector(T,2)*
-                        (pWorld->m_Parameters[CarParameters::SuspRestLength] +
-                        pWorld->m_Parameters[CarParameters::WheelRadius]+
-                        pWorld->m_Parameters[CarParameters::SuspConnectionHeight]-0.01);
+      (pWorld->m_Parameters[CarParameters::SuspRestLength] +
+      pWorld->m_Parameters[CarParameters::WheelRadius]+
+      pWorld->m_Parameters[CarParameters::SuspConnectionHeight]-0.01);
     SetStateNoReset(pWorld,T);
 
     pWorld->m_state = state;
@@ -988,16 +697,16 @@ void BulletCarModel::SetState( int nWorldId,  const VehicleState& state )
 
 
     //raycast all wheels so they are correctly positioned
-//    for (int i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
-//    {
-//        WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
-//        pWorld->m_pVehicle->rayCast(wheel);
-//    }
-}
+    //    for (int i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
+    //    {
+    //        WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
+    //        pWorld->m_pVehicle->rayCast(wheel);
+    //    }
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-btRigidBody*	BulletCarModel::_LocalCreateRigidBody(BulletWorldInstance *pWorld, double mass, const btTransform& startTransform, btCollisionShape* shape, short group, short mask)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  btRigidBody*	BulletCarModel::_LocalCreateRigidBody(BulletWorldInstance *pWorld, double mass, const btTransform& startTransform, btCollisionShape* shape, short group, short mask)
+  {
     btAssert((!shape || shape->getShapeType() != INVALID_SHAPE_PROXYTYPE));
 
     //rigidbody is dynamic if and only if mass is non zero, otherwise static
@@ -1005,7 +714,7 @@ btRigidBody*	BulletCarModel::_LocalCreateRigidBody(BulletWorldInstance *pWorld, 
 
     btVector3 localInertia(0,0,0);
     if (isDynamic)
-        shape->calculateLocalInertia(mass,localInertia);
+    shape->calculateLocalInertia(mass,localInertia);
 
     //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
     btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
@@ -1018,16 +727,16 @@ btRigidBody*	BulletCarModel::_LocalCreateRigidBody(BulletWorldInstance *pWorld, 
     pWorld->m_pDynamicsWorld->addRigidBody(body,group,mask);
 
     return body;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& parameters)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& parameters)
+  {
     pWorld->m_Parameters = parameters;
 
     //delete any previous collision shapes
     for(int ii = 0 ; ii < pWorld->m_vVehicleCollisionShapes.size() ; ii++) {
-        delete pWorld->m_vVehicleCollisionShapes[ii];
+      delete pWorld->m_vVehicleCollisionShapes[ii];
     }
     pWorld->m_vVehicleCollisionShapes.clear();
 
@@ -1050,8 +759,8 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
     btVector3 vWheelAxleCS(0,1,0); //wheel axle in y direction
 
     if(pWorld->m_pCarChassis != NULL) {
-        pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pCarChassis);
-        delete pWorld->m_pCarChassis;
+      pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pCarChassis);
+      delete pWorld->m_pCarChassis;
     }
 
     pWorld->m_pCarChassis = _LocalCreateRigidBody(pWorld,pWorld->m_Parameters[CarParameters::Mass],tr,pWorld->m_pVehicleChassisShape, COL_CAR,COL_NOTHING);//chassisShape);
@@ -1061,8 +770,8 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
     pWorld->m_pVehicleRayCaster = new btDefaultVehicleRaycaster(pWorld->m_pDynamicsWorld);
 
     if( pWorld->m_pVehicle != NULL ) {
-        pWorld->m_pDynamicsWorld->removeVehicle(pWorld->m_pVehicle);
-        delete pWorld->m_pVehicle;
+      pWorld->m_pDynamicsWorld->removeVehicle(pWorld->m_pVehicle);
+      delete pWorld->m_pVehicle;
     }
 
     pWorld->m_Tuning.m_frictionSlip = pWorld->m_Parameters[CarParameters::TractionFriction];
@@ -1094,19 +803,19 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
 
     for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
     {
-        WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
-        wheel.m_rollInfluence = pWorld->m_Parameters[CarParameters::RollInfluence];
-        Sophus::SE3d wheelTransform(Sophus::SO3d(),
-                                    Eigen::Vector3d(wheel.m_chassisConnectionPointCS[0],wheel.m_chassisConnectionPointCS[1],wheel.m_chassisConnectionPointCS[2] /*+ wheel.getSuspensionRestLength()/2*/));
-        pWorld->m_vWheelTransforms.push_back(wheelTransform);
+      WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
+      wheel.m_rollInfluence = pWorld->m_Parameters[CarParameters::RollInfluence];
+      Sophus::SE3d wheelTransform(Sophus::SO3d(),
+      Eigen::Vector3d(wheel.m_chassisConnectionPointCS[0],wheel.m_chassisConnectionPointCS[1],wheel.m_chassisConnectionPointCS[2] /*+ wheel.getSuspensionRestLength()/2*/));
+      pWorld->m_vWheelTransforms.push_back(wheelTransform);
     }
 
     pWorld->m_pVehicle->SetDynamicFrictionCoefficient(pWorld->m_Parameters[CarParameters::DynamicFrictionCoef]);
     pWorld->m_pVehicle->SetStaticSideFrictionCoefficient(pWorld->m_Parameters[CarParameters::StaticSideFrictionCoef]);
     pWorld->m_pVehicle->SetSlipCoefficient(pWorld->m_Parameters[CarParameters::SlipCoefficient]);
     pWorld->m_pVehicle->SetMagicFormulaCoefficients(pWorld->m_Parameters[CarParameters::MagicFormula_B],
-                                                    pWorld->m_Parameters[CarParameters::MagicFormula_C],
-                                                    pWorld->m_Parameters[CarParameters::MagicFormula_E]);
+      pWorld->m_Parameters[CarParameters::MagicFormula_C],
+      pWorld->m_Parameters[CarParameters::MagicFormula_E]);
 
 
     //reset all parameters
@@ -1116,65 +825,65 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
     pWorld->m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(pWorld->m_pCarChassis->getBroadphaseHandle(),pWorld->m_pDynamicsWorld->getDispatcher());
     if (pWorld->m_pVehicle)
     {
-        pWorld->m_pVehicle->resetSuspension();
-        for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
-        {
-            //synchronize the wheels with the (interpolated) chassis worldtransform
-            pWorld->m_pVehicle->updateWheelTransform(i,true);
-        }
+      pWorld->m_pVehicle->resetSuspension();
+      for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
+      {
+        //synchronize the wheels with the (interpolated) chassis worldtransform
+        pWorld->m_pVehicle->updateWheelTransform(i,true);
+      }
     }
 
 
     pWorld->m_vehicleBackup.SaveState(pWorld->m_pVehicle);
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-std::vector<Sophus::SE3d> BulletCarModel::GetWheelTransforms(const int worldIndex){
+  /////////////////////////////////////////////////////////////////////////////////////////
+  std::vector<Sophus::SE3d> BulletCarModel::GetWheelTransforms(const int worldIndex){
     BulletWorldInstance *pWorld = GetWorldInstance(worldIndex);
     return pWorld->m_vWheelTransforms;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::ResetCommandHistory(int worldId)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::ResetCommandHistory(int worldId)
+  {
     BulletWorldInstance *pWorld = GetWorldInstance(worldId);
     boost::mutex::scoped_lock lock(*pWorld);
     pWorld->m_lPreviousCommands.clear();
     pWorld->m_dTotalCommandTime = 0;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::GetCommandHistory(int worldId,CommandList &previousCommandsOut)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::GetCommandHistory(int worldId,CommandList &previousCommandsOut)
+  {
     BulletWorldInstance *pWorld = GetWorldInstance(worldId);
     boost::mutex::scoped_lock lock(*pWorld);
     previousCommandsOut = pWorld->m_lPreviousCommands;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-CommandList&        BulletCarModel::GetCommandHistoryRef(int worldId)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  CommandList&        BulletCarModel::GetCommandHistoryRef(int worldId)
+  {
     BulletWorldInstance *pWorld = GetWorldInstance(worldId);
     return pWorld->m_lPreviousCommands;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::SetCommandHistory(const int& worldId, const CommandList &previousCommands)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::SetCommandHistory(const int& worldId, const CommandList &previousCommands)
+  {
     BulletWorldInstance *pWorld = GetWorldInstance(worldId);
     boost::mutex::scoped_lock lock(*pWorld);
     //find out the total time of the commands
     pWorld->m_dTotalCommandTime = 0;
     for(const ControlCommand& command : previousCommands ){
-        pWorld->m_dTotalCommandTime += command.m_dT;
+      pWorld->m_dTotalCommandTime += command.m_dT;
     }
 
     pWorld->m_lPreviousCommands = previousCommands;
-}
+  }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *pGroundShape, btVector3 dMin, btVector3 dMax, bool centerMesh)
-{
+  /////////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *pGroundShape, btVector3 dMin, btVector3 dMax, bool centerMesh)
+  {
     //add this to the shapes
     pWorld->m_pTerrainShape = pGroundShape;
     pWorld->m_vCollisionShapes.push_back(pWorld->m_pTerrainShape);
@@ -1201,13 +910,13 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
 
     btTransform tr;
     tr.setIdentity();
-    tr.setOrigin(btVector3((dMax[0] + dMin[0])/2,(dMax[1] + dMin[1])/2,(dMax[2] + dMin[2])/2));
-}
-
-//create the ground object
-_LocalCreateRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL_CAR);
-//_LocalCreateRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL_CAR);
     if(centerMesh == true){
+        tr.setOrigin(btVector3((dMax[0] + dMin[0])/2,(dMax[1] + dMin[1])/2,(dMax[2] + dMin[2])/2));
+    }
+
+    //create the ground object
+    _LocalCreateRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL_CAR);
+    //_LocalCreateRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL_CAR);
 
     //m_pHeightMap = pHeightMap;
 }
@@ -1215,22 +924,21 @@ _LocalCreateRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL
 /////////////////////////////////////////////////////////////////////////////////////////
 bool BulletCarModel::RayCast(const Eigen::Vector3d& dSource,const Eigen::Vector3d& dRayVector, Eigen::Vector3d& dIntersect, const bool& biDirectional, int index /*= 0*/)
 {
-    btVector3 source(dSource[0],dSource[1],dSource[2]);
-    btVector3 vec(dRayVector[0],dRayVector[1],dRayVector[2]);
-    btVector3 target = source + vec;
-    BulletWorldInstance*pInstance = GetWorldInstance(index);
+  btVector3 source(dSource[0],dSource[1],dSource[2]);
+  btVector3 vec(dRayVector[0],dRayVector[1],dRayVector[2]);
+  btVector3 target = source + vec;
+  BulletWorldInstance*pInstance = GetWorldInstance(index);
 
-    btVehicleRaycaster::btVehicleRaycasterResult results,results2;
-    if( biDirectional ){
-        source = source - vec;
-    }
+  btVehicleRaycaster::btVehicleRaycasterResult results,results2;
+  if( biDirectional ){
+    source = source - vec;
+  }
 
-    if(pInstance->m_pVehicleRayCaster->castRay(source,target,results) == 0){
-        return false;
-    }else{
-        Eigen::Vector3d dNewSource(source[0],source[1],source[2]);
-        dIntersect = dNewSource + results.m_distFraction* (biDirectional ? (Eigen::Vector3d)(dRayVector*2) : dRayVector);
-        return true;
-    }  
+  if(pInstance->m_pVehicleRayCaster->castRay(source,target,results) == 0){
+    return false;
+  }else{
+    Eigen::Vector3d dNewSource(source[0],source[1],source[2]);
+    dIntersect = dNewSource + results.m_distFraction* (biDirectional ? (Eigen::Vector3d)(dRayVector*2) : dRayVector);
+    return true;
+  }
 }
-
