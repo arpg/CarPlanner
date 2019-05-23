@@ -1,0 +1,13 @@
+/usr/local/_setup_util.py
+/usr/local/env.sh
+/usr/local/setup.bash
+/usr/local/local_setup.bash
+/usr/local/setup.sh
+/usr/local/local_setup.sh
+/usr/local/setup.zsh
+/usr/local/local_setup.zsh
+/usr/local/.rosinstall
+/usr/local/lib/pkgconfig/CarPlanner.pc
+/usr/local/share/CarPlanner/cmake/CarPlannerConfig.cmake
+/usr/local/share/CarPlanner/cmake/CarPlannerConfig-version.cmake
+/usr/local/share/CarPlanner/package.xml

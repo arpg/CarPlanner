@@ -9,7 +9,7 @@
 #define	BULLETCARMODEL_H
 
 #include <ros/ros.h>
-#include <carplanner/Command.h>
+#include <carplanner_msgs/Command.h>
 #include <nav_msgs/Odometry.h>
 
 #include "btBulletDynamicsCommon.h"
@@ -345,7 +345,7 @@ public:
     ros::Subscriber m_commandThreadSub;
 
     void _PoseThreadFunc();
-    void _CommandThreadFunc(const carplanner::Command::ConstPtr&);
+    void _CommandThreadFunc(const carplanner_msgs::Command::ConstPtr&);
 
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);
     /////////////////////////////////////////////////////////////////////////////////////////

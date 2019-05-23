@@ -93,7 +93,7 @@ void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dM
 {
   if ( real ) {
     m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
-    m_commandThreadSub = m_nh.subscribe<carplanner::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
+    m_commandThreadSub = m_nh.subscribe<carplanner_msgs::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
   }
 
   m_nNumWorlds = numWorlds;
@@ -120,7 +120,7 @@ void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &param
 {
   if ( real ) {
     m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
-    m_commandThreadSub = m_nh.subscribe<carplanner::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
+    m_commandThreadSub = m_nh.subscribe<carplanner_msgs::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
   }
 
   aiNode *pAINode = pAIScene->mRootNode;
@@ -236,7 +236,7 @@ void BulletCarModel::_PoseThreadFunc()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::_CommandThreadFunc(const carplanner::Command::ConstPtr& cmd_msg)
+void BulletCarModel::_CommandThreadFunc(const carplanner_msgs::Command::ConstPtr& cmd_msg)
 {
   // parse cmd msg into local variables
   int worldId = cmd_msg->worldId;

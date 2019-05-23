@@ -1,4 +1,4 @@
-project( carplanner )
+project( CarPlanner )
 cmake_minimum_required(VERSION 2.8)
 enable_testing()
 
@@ -42,26 +42,14 @@ find_package( catkin REQUIRED
     tf
     message_generation
     nav_msgs
+    carplanner_msgs
 )
 
 add_definitions(${EIGEN_DEFINITIONS})
 
-add_message_files(
-  DIRECTORY
-  msg
-  FILES
-  Command.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-  roscpp
-  std_msgs
-)
-
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp std_msgs message_runtime nav_msgs
+  CATKIN_DEPENDS roscpp std_msgs message_runtime nav_msgs carplanner_msgs
   )
 
 set( _LIBRARIES
