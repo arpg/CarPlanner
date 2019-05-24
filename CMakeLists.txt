@@ -1,4 +1,4 @@
-project( CarPlanner )
+project( carplanner )
 cmake_minimum_required(VERSION 2.8)
 enable_testing()
 
@@ -81,13 +81,13 @@ set( _INCLUDE_DIRS
         ${catkin_INCLUDE_DIRS}
         )
 
-#link_libraries( CarPlanner   OpenGLSupport )
+#link_libraries( ${PROJECT_NAME}   OpenGLSupport )
 
 # expose these for third parties
-set( CarPlanner_INCLUDE_DIRS ${_INCLUDE_DIRS}  CACHE INTERNAL "" FORCE )
-set( CarPlanner_LIBRARIES  ${_LIBRARIES} CACHE INTERNAL "" FORCE )
+set( ${PROJECT_NAME}_INCLUDE_DIRS ${_INCLUDE_DIRS}  CACHE INTERNAL "" FORCE )
+set( ${PROJECT_NAME}_LIBRARIES  ${_LIBRARIES} CACHE INTERNAL "" FORCE )
 
-include_directories( ${CarPlanner_INCLUDE_DIRS} )
+include_directories( ${${PROJECT_NAME}_INCLUDE_DIRS} )
 
 set( SRCS
         src/ApplyVelocitiesFunctor.cpp
@@ -138,8 +138,8 @@ install_package(
     INSTALL_INCLUDE_DIR true
     INSTALL_GENERATED_HEADERS ${GENERATED_HEADERS}
     DESTINATION ${CMAKE_INSTALL_PREFIX}
-    INCLUDE_DIRS ${CarPlanner_INCLUDE_DIRS}
-    LINK_LIBS ${CarPlanner_LIBRARIES}
+    INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS}
+    LINK_LIBS ${${PROJECT_NAME}_LIBRARIES}
     )
 
 ###########################
