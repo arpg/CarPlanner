@@ -497,6 +497,7 @@ devel/lib/libcarplanner.so: /usr/lib/x86_64-linux-gnu/libopencv_core.so.3.2.0
 devel/lib/libcarplanner.so: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.3.2.0
 devel/lib/libcarplanner.so: /usr/lib/x86_64-linux-gnu/libopencv_imgcodecs.so.3.2.0
 devel/lib/libcarplanner.so: /usr/lib/x86_64-linux-gnu/libopencv_videoio.so.3.2.0
+devel/lib/libcarplanner.so: /usr/local/lib/librealsense2.so
 devel/lib/libcarplanner.so: /home/mike/code/HAL/build/HAL/libhal.so
 devel/lib/libcarplanner.so: /usr/lib/x86_64-linux-gnu/libassimp.so
 devel/lib/libcarplanner.so: /usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.5.2
@@ -564,6 +565,7 @@ devel/lib/libcarplanner.so: /usr/lib/x86_64-linux-gnu/libopencv_core.so.3.2.0
 devel/lib/libcarplanner.so: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.3.2.0
 devel/lib/libcarplanner.so: /usr/lib/x86_64-linux-gnu/libopencv_imgcodecs.so.3.2.0
 devel/lib/libcarplanner.so: /usr/lib/x86_64-linux-gnu/libopencv_videoio.so.3.2.0
+devel/lib/libcarplanner.so: /usr/local/lib/librealsense2.so
 devel/lib/libcarplanner.so: /home/mike/code/HAL/build/HAL/libhal.so
 devel/lib/libcarplanner.so: /opt/ros/melodic/lib/libtf.so
 devel/lib/libcarplanner.so: /opt/ros/melodic/lib/libtf2_ros.so

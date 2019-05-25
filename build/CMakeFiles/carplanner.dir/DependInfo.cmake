@@ -27,7 +27,7 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
   "BT_USE_DOUBLE_PRECISION"
   "ROSCONSOLE_BACKEND_LOG4CXX"
   "ROS_BUILD_SHARED_LIBS=1"
-  "ROS_PACKAGE_NAME=\"CarPlanner\""
+  "ROS_PACKAGE_NAME=\"carplanner\""
   )
 
 # The include file search paths:
@@ -39,7 +39,8 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "/home/mike/code/CVars/include"
   "/home/mike/code/CVars/build/include"
   "/usr/local/include/bullet"
-  "/usr/include/assimp"
+  "/usr/local/include/assimp"
+  "/usr/local/include"
   "/usr/include/IL"
   "/usr/include/IL/.."
   "/usr/include/x86_64-linux-gnu"

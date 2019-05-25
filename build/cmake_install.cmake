@@ -129,18 +129,18 @@ file(INSTALL DESTINATION "/usr/local" TYPE FILE FILES "/home/mike/code/CarPlanne
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/mike/code/CarPlanner/build/catkin_generated/installspace/CarPlanner.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/mike/code/CarPlanner/build/catkin_generated/installspace/carplanner.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/CarPlanner/cmake" TYPE FILE FILES
-    "/home/mike/code/CarPlanner/build/catkin_generated/installspace/CarPlannerConfig.cmake"
-    "/home/mike/code/CarPlanner/build/catkin_generated/installspace/CarPlannerConfig-version.cmake"
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/carplanner/cmake" TYPE FILE FILES
+    "/home/mike/code/CarPlanner/build/catkin_generated/installspace/carplannerConfig.cmake"
+    "/home/mike/code/CarPlanner/build/catkin_generated/installspace/carplannerConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/CarPlanner" TYPE FILE FILES "/home/mike/code/CarPlanner/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/carplanner" TYPE FILE FILES "/home/mike/code/CarPlanner/package.xml")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)

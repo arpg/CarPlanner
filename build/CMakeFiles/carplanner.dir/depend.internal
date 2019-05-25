@@ -182,32 +182,6 @@ CMakeFiles/carplanner.dir/src/ApplyVelocitiesFunctor.cpp.o
  /usr/include/IL/../asm-generic/sockios.h
  /usr/include/IL/../asm-generic/types.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/./Compiler/poppack1.h
- /usr/include/IL/../assimp/./Compiler/pushpack1.h
- /usr/include/IL/../assimp/Compiler/pstdint.h
- /usr/include/IL/../assimp/anim.h
- /usr/include/IL/../assimp/camera.h
- /usr/include/IL/../assimp/color4.h
- /usr/include/IL/../assimp/color4.inl
- /usr/include/IL/../assimp/config.h
- /usr/include/IL/../assimp/light.h
- /usr/include/IL/../assimp/material.h
- /usr/include/IL/../assimp/material.inl
- /usr/include/IL/../assimp/matrix3x3.h
- /usr/include/IL/../assimp/matrix3x3.inl
- /usr/include/IL/../assimp/matrix4x4.h
- /usr/include/IL/../assimp/matrix4x4.inl
- /usr/include/IL/../assimp/mesh.h
- /usr/include/IL/../assimp/metadata.h
- /usr/include/IL/../assimp/quaternion.h
- /usr/include/IL/../assimp/quaternion.inl
- /usr/include/IL/../assimp/scene.h
- /usr/include/IL/../assimp/texture.h
- /usr/include/IL/../assimp/types.h
- /usr/include/IL/../assimp/vector2.h
- /usr/include/IL/../assimp/vector2.inl
- /usr/include/IL/../assimp/vector3.h
- /usr/include/IL/../assimp/vector3.inl
  /usr/include/IL/../boost/array.hpp
  /usr/include/IL/../boost/asio.hpp
  /usr/include/IL/../boost/asio/async_result.hpp
@@ -1882,9 +1856,6 @@ CMakeFiles/carplanner.dir/src/ApplyVelocitiesFunctor.cpp.o
  /usr/include/IL/../boost/version.hpp
  /usr/include/IL/../boost/visit_each.hpp
  /usr/include/IL/../boost/weak_ptr.hpp
- /usr/include/IL/../bullet/LinearMath/btIDebugDraw.h
- /usr/include/IL/../bullet/LinearMath/btTransform.h
- /usr/include/IL/../bullet/LinearMath/btVector3.h
  /usr/include/IL/../byteswap.h
  /usr/include/IL/../complex.h
  /usr/include/IL/../endian.h
@@ -2045,8 +2016,6 @@ CMakeFiles/carplanner.dir/src/ApplyVelocitiesFunctor.cpp.o
  /usr/include/IL/../wctype.h
  /usr/include/IL/../xmlrpcpp/XmlRpcDecl.h
  /usr/include/IL/../xmlrpcpp/XmlRpcValue.h
- /usr/include/assimp/defs.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/asm/ioctl.h
@@ -2211,6 +2180,34 @@ CMakeFiles/carplanner.dir/src/ApplyVelocitiesFunctor.cpp.o
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
  /usr/include/x86_64-linux-gnu/sys/uio.h
  /usr/include/x86_64-linux-gnu/sys/un.h
+ /usr/local/include/assimp/./Compiler/poppack1.h
+ /usr/local/include/assimp/./Compiler/pushpack1.h
+ /usr/local/include/assimp/Compiler/pstdint.h
+ /usr/local/include/assimp/anim.h
+ /usr/local/include/assimp/camera.h
+ /usr/local/include/assimp/color4.h
+ /usr/local/include/assimp/color4.inl
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/light.h
+ /usr/local/include/assimp/material.h
+ /usr/local/include/assimp/material.inl
+ /usr/local/include/assimp/matrix3x3.h
+ /usr/local/include/assimp/matrix3x3.inl
+ /usr/local/include/assimp/matrix4x4.h
+ /usr/local/include/assimp/matrix4x4.inl
+ /usr/local/include/assimp/mesh.h
+ /usr/local/include/assimp/metadata.h
+ /usr/local/include/assimp/quaternion.h
+ /usr/local/include/assimp/quaternion.inl
+ /usr/local/include/assimp/scene.h
+ /usr/local/include/assimp/texture.h
+ /usr/local/include/assimp/types.h
+ /usr/local/include/assimp/vector2.h
+ /usr/local/include/assimp/vector2.inl
+ /usr/local/include/assimp/vector3.h
+ /usr/local/include/assimp/vector3.inl
+ /usr/local/include/assimp/version.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3Internal.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h
@@ -2618,6 +2615,12 @@ CMakeFiles/carplanner.dir/src/ApplyVelocitiesFunctor.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/gflags/gflags.h
+ /usr/local/include/gflags/gflags_declare.h
+ /usr/local/include/gflags/gflags_gflags.h
+ /usr/local/include/glog/log_severity.h
+ /usr/local/include/glog/logging.h
+ /usr/local/include/glog/vlog_is_on.h
 CMakeFiles/carplanner.dir/src/BezierBoundarySolver.cpp.o
  ../include/CarPlanner/BezierBoundarySolver.h
  ../include/CarPlanner/BoundarySolver.h
@@ -2640,7 +2643,6 @@ CMakeFiles/carplanner.dir/src/BezierBoundarySolver.cpp.o
  /usr/include/IL/../asm-generic/posix_types.h
  /usr/include/IL/../asm-generic/types.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/config.h
  /usr/include/IL/../boost/assert.hpp
  /usr/include/IL/../boost/checked_delete.hpp
  /usr/include/IL/../boost/config.hpp
@@ -3157,8 +3159,6 @@ CMakeFiles/carplanner.dir/src/BezierBoundarySolver.cpp.o
  /usr/include/IL/../time.h
  /usr/include/IL/../unistd.h
  /usr/include/IL/../wchar.h
- /usr/include/assimp/defs.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/asm/param.h
@@ -3271,6 +3271,9 @@ CMakeFiles/carplanner.dir/src/BezierBoundarySolver.cpp.o
  /usr/include/x86_64-linux-gnu/sys/time.h
  /usr/include/x86_64-linux-gnu/sys/types.h
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/version.h
  /usr/local/include/eigen3/Eigen/Cholesky
  /usr/local/include/eigen3/Eigen/Core
  /usr/local/include/eigen3/Eigen/Dense
@@ -3578,6 +3581,12 @@ CMakeFiles/carplanner.dir/src/BezierBoundarySolver.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/gflags/gflags.h
+ /usr/local/include/gflags/gflags_declare.h
+ /usr/local/include/gflags/gflags_gflags.h
+ /usr/local/include/glog/log_severity.h
+ /usr/local/include/glog/logging.h
+ /usr/local/include/glog/vlog_is_on.h
 CMakeFiles/carplanner.dir/src/BulletCarModel.cpp.o
  ../include/CarPlanner/BulletCarModel.h
  ../include/CarPlanner/CarParameters.h
@@ -3734,36 +3743,6 @@ CMakeFiles/carplanner.dir/src/BulletCarModel.cpp.o
  /usr/include/IL/../asm-generic/sockios.h
  /usr/include/IL/../asm-generic/types.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/./Compiler/poppack1.h
- /usr/include/IL/../assimp/./Compiler/pushpack1.h
- /usr/include/IL/../assimp/Compiler/pstdint.h
- /usr/include/IL/../assimp/anim.h
- /usr/include/IL/../assimp/camera.h
- /usr/include/IL/../assimp/cimport.h
- /usr/include/IL/../assimp/color4.h
- /usr/include/IL/../assimp/color4.inl
- /usr/include/IL/../assimp/config.h
- /usr/include/IL/../assimp/defs.h
- /usr/include/IL/../assimp/importerdesc.h
- /usr/include/IL/../assimp/light.h
- /usr/include/IL/../assimp/material.h
- /usr/include/IL/../assimp/material.inl
- /usr/include/IL/../assimp/matrix3x3.h
- /usr/include/IL/../assimp/matrix3x3.inl
- /usr/include/IL/../assimp/matrix4x4.h
- /usr/include/IL/../assimp/matrix4x4.inl
- /usr/include/IL/../assimp/mesh.h
- /usr/include/IL/../assimp/metadata.h
- /usr/include/IL/../assimp/postprocess.h
- /usr/include/IL/../assimp/quaternion.h
- /usr/include/IL/../assimp/quaternion.inl
- /usr/include/IL/../assimp/scene.h
- /usr/include/IL/../assimp/texture.h
- /usr/include/IL/../assimp/types.h
- /usr/include/IL/../assimp/vector2.h
- /usr/include/IL/../assimp/vector2.inl
- /usr/include/IL/../assimp/vector3.h
- /usr/include/IL/../assimp/vector3.inl
  /usr/include/IL/../boost/array.hpp
  /usr/include/IL/../boost/assert.hpp
  /usr/include/IL/../boost/atomic.hpp
@@ -5023,9 +5002,6 @@ CMakeFiles/carplanner.dir/src/BulletCarModel.cpp.o
  /usr/include/IL/../boost/version.hpp
  /usr/include/IL/../boost/visit_each.hpp
  /usr/include/IL/../boost/weak_ptr.hpp
- /usr/include/IL/../bullet/LinearMath/btIDebugDraw.h
- /usr/include/IL/../bullet/LinearMath/btTransform.h
- /usr/include/IL/../bullet/LinearMath/btVector3.h
  /usr/include/IL/../byteswap.h
  /usr/include/IL/../complex.h
  /usr/include/IL/../endian.h
@@ -5176,7 +5152,6 @@ CMakeFiles/carplanner.dir/src/BulletCarModel.cpp.o
  /usr/include/IL/../wchar.h
  /usr/include/IL/../xmlrpcpp/XmlRpcDecl.h
  /usr/include/IL/../xmlrpcpp/XmlRpcValue.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/asm/param.h
@@ -5315,6 +5290,37 @@ CMakeFiles/carplanner.dir/src/BulletCarModel.cpp.o
  /usr/include/x86_64-linux-gnu/sys/timeb.h
  /usr/include/x86_64-linux-gnu/sys/types.h
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
+ /usr/local/include/assimp/./Compiler/poppack1.h
+ /usr/local/include/assimp/./Compiler/pushpack1.h
+ /usr/local/include/assimp/Compiler/pstdint.h
+ /usr/local/include/assimp/anim.h
+ /usr/local/include/assimp/camera.h
+ /usr/local/include/assimp/cimport.h
+ /usr/local/include/assimp/color4.h
+ /usr/local/include/assimp/color4.inl
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/importerdesc.h
+ /usr/local/include/assimp/light.h
+ /usr/local/include/assimp/material.h
+ /usr/local/include/assimp/material.inl
+ /usr/local/include/assimp/matrix3x3.h
+ /usr/local/include/assimp/matrix3x3.inl
+ /usr/local/include/assimp/matrix4x4.h
+ /usr/local/include/assimp/matrix4x4.inl
+ /usr/local/include/assimp/mesh.h
+ /usr/local/include/assimp/metadata.h
+ /usr/local/include/assimp/postprocess.h
+ /usr/local/include/assimp/quaternion.h
+ /usr/local/include/assimp/quaternion.inl
+ /usr/local/include/assimp/scene.h
+ /usr/local/include/assimp/texture.h
+ /usr/local/include/assimp/types.h
+ /usr/local/include/assimp/vector2.h
+ /usr/local/include/assimp/vector2.inl
+ /usr/local/include/assimp/vector3.h
+ /usr/local/include/assimp/vector3.inl
+ /usr/local/include/assimp/version.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3Internal.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h
@@ -5722,6 +5728,12 @@ CMakeFiles/carplanner.dir/src/BulletCarModel.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/gflags/gflags.h
+ /usr/local/include/gflags/gflags_declare.h
+ /usr/local/include/gflags/gflags_gflags.h
+ /usr/local/include/glog/log_severity.h
+ /usr/local/include/glog/logging.h
+ /usr/local/include/glog/vlog_is_on.h
 CMakeFiles/carplanner.dir/src/CarController.cpp.o
  ../include/CarPlanner/ApplyVelocitiesFunctor.h
  ../include/CarPlanner/BezierBoundarySolver.h
@@ -5904,32 +5916,6 @@ CMakeFiles/carplanner.dir/src/CarController.cpp.o
  /usr/include/IL/../asm-generic/sockios.h
  /usr/include/IL/../asm-generic/types.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/./Compiler/poppack1.h
- /usr/include/IL/../assimp/./Compiler/pushpack1.h
- /usr/include/IL/../assimp/Compiler/pstdint.h
- /usr/include/IL/../assimp/anim.h
- /usr/include/IL/../assimp/camera.h
- /usr/include/IL/../assimp/color4.h
- /usr/include/IL/../assimp/color4.inl
- /usr/include/IL/../assimp/config.h
- /usr/include/IL/../assimp/light.h
- /usr/include/IL/../assimp/material.h
- /usr/include/IL/../assimp/material.inl
- /usr/include/IL/../assimp/matrix3x3.h
- /usr/include/IL/../assimp/matrix3x3.inl
- /usr/include/IL/../assimp/matrix4x4.h
- /usr/include/IL/../assimp/matrix4x4.inl
- /usr/include/IL/../assimp/mesh.h
- /usr/include/IL/../assimp/metadata.h
- /usr/include/IL/../assimp/quaternion.h
- /usr/include/IL/../assimp/quaternion.inl
- /usr/include/IL/../assimp/scene.h
- /usr/include/IL/../assimp/texture.h
- /usr/include/IL/../assimp/types.h
- /usr/include/IL/../assimp/vector2.h
- /usr/include/IL/../assimp/vector2.inl
- /usr/include/IL/../assimp/vector3.h
- /usr/include/IL/../assimp/vector3.inl
  /usr/include/IL/../boost/array.hpp
  /usr/include/IL/../boost/asio.hpp
  /usr/include/IL/../boost/asio/async_result.hpp
@@ -7604,9 +7590,6 @@ CMakeFiles/carplanner.dir/src/CarController.cpp.o
  /usr/include/IL/../boost/version.hpp
  /usr/include/IL/../boost/visit_each.hpp
  /usr/include/IL/../boost/weak_ptr.hpp
- /usr/include/IL/../bullet/LinearMath/btIDebugDraw.h
- /usr/include/IL/../bullet/LinearMath/btTransform.h
- /usr/include/IL/../bullet/LinearMath/btVector3.h
  /usr/include/IL/../byteswap.h
  /usr/include/IL/../complex.h
  /usr/include/IL/../endian.h
@@ -7767,8 +7750,6 @@ CMakeFiles/carplanner.dir/src/CarController.cpp.o
  /usr/include/IL/../wctype.h
  /usr/include/IL/../xmlrpcpp/XmlRpcDecl.h
  /usr/include/IL/../xmlrpcpp/XmlRpcValue.h
- /usr/include/assimp/defs.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/asm/ioctl.h
@@ -7933,6 +7914,34 @@ CMakeFiles/carplanner.dir/src/CarController.cpp.o
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
  /usr/include/x86_64-linux-gnu/sys/uio.h
  /usr/include/x86_64-linux-gnu/sys/un.h
+ /usr/local/include/assimp/./Compiler/poppack1.h
+ /usr/local/include/assimp/./Compiler/pushpack1.h
+ /usr/local/include/assimp/Compiler/pstdint.h
+ /usr/local/include/assimp/anim.h
+ /usr/local/include/assimp/camera.h
+ /usr/local/include/assimp/color4.h
+ /usr/local/include/assimp/color4.inl
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/light.h
+ /usr/local/include/assimp/material.h
+ /usr/local/include/assimp/material.inl
+ /usr/local/include/assimp/matrix3x3.h
+ /usr/local/include/assimp/matrix3x3.inl
+ /usr/local/include/assimp/matrix4x4.h
+ /usr/local/include/assimp/matrix4x4.inl
+ /usr/local/include/assimp/mesh.h
+ /usr/local/include/assimp/metadata.h
+ /usr/local/include/assimp/quaternion.h
+ /usr/local/include/assimp/quaternion.inl
+ /usr/local/include/assimp/scene.h
+ /usr/local/include/assimp/texture.h
+ /usr/local/include/assimp/types.h
+ /usr/local/include/assimp/vector2.h
+ /usr/local/include/assimp/vector2.inl
+ /usr/local/include/assimp/vector3.h
+ /usr/local/include/assimp/vector3.inl
+ /usr/local/include/assimp/version.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3Internal.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h
@@ -8340,6 +8349,12 @@ CMakeFiles/carplanner.dir/src/CarController.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/gflags/gflags.h
+ /usr/local/include/gflags/gflags_declare.h
+ /usr/local/include/gflags/gflags_gflags.h
+ /usr/local/include/glog/log_severity.h
+ /usr/local/include/glog/logging.h
+ /usr/local/include/glog/vlog_is_on.h
 CMakeFiles/carplanner.dir/src/CarParameters.cpp.o
  ../include/CarPlanner/BulletCarModel.h
  ../include/CarPlanner/CarParameters.h
@@ -8496,32 +8511,6 @@ CMakeFiles/carplanner.dir/src/CarParameters.cpp.o
  /usr/include/IL/../asm-generic/sockios.h
  /usr/include/IL/../asm-generic/types.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/./Compiler/poppack1.h
- /usr/include/IL/../assimp/./Compiler/pushpack1.h
- /usr/include/IL/../assimp/Compiler/pstdint.h
- /usr/include/IL/../assimp/anim.h
- /usr/include/IL/../assimp/camera.h
- /usr/include/IL/../assimp/color4.h
- /usr/include/IL/../assimp/color4.inl
- /usr/include/IL/../assimp/config.h
- /usr/include/IL/../assimp/light.h
- /usr/include/IL/../assimp/material.h
- /usr/include/IL/../assimp/material.inl
- /usr/include/IL/../assimp/matrix3x3.h
- /usr/include/IL/../assimp/matrix3x3.inl
- /usr/include/IL/../assimp/matrix4x4.h
- /usr/include/IL/../assimp/matrix4x4.inl
- /usr/include/IL/../assimp/mesh.h
- /usr/include/IL/../assimp/metadata.h
- /usr/include/IL/../assimp/quaternion.h
- /usr/include/IL/../assimp/quaternion.inl
- /usr/include/IL/../assimp/scene.h
- /usr/include/IL/../assimp/texture.h
- /usr/include/IL/../assimp/types.h
- /usr/include/IL/../assimp/vector2.h
- /usr/include/IL/../assimp/vector2.inl
- /usr/include/IL/../assimp/vector3.h
- /usr/include/IL/../assimp/vector3.inl
  /usr/include/IL/../boost/array.hpp
  /usr/include/IL/../boost/assert.hpp
  /usr/include/IL/../boost/atomic.hpp
@@ -9781,9 +9770,6 @@ CMakeFiles/carplanner.dir/src/CarParameters.cpp.o
  /usr/include/IL/../boost/version.hpp
  /usr/include/IL/../boost/visit_each.hpp
  /usr/include/IL/../boost/weak_ptr.hpp
- /usr/include/IL/../bullet/LinearMath/btIDebugDraw.h
- /usr/include/IL/../bullet/LinearMath/btTransform.h
- /usr/include/IL/../bullet/LinearMath/btVector3.h
  /usr/include/IL/../byteswap.h
  /usr/include/IL/../complex.h
  /usr/include/IL/../endian.h
@@ -9934,8 +9920,6 @@ CMakeFiles/carplanner.dir/src/CarParameters.cpp.o
  /usr/include/IL/../wchar.h
  /usr/include/IL/../xmlrpcpp/XmlRpcDecl.h
  /usr/include/IL/../xmlrpcpp/XmlRpcValue.h
- /usr/include/assimp/defs.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/asm/param.h
@@ -10074,6 +10058,34 @@ CMakeFiles/carplanner.dir/src/CarParameters.cpp.o
  /usr/include/x86_64-linux-gnu/sys/timeb.h
  /usr/include/x86_64-linux-gnu/sys/types.h
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
+ /usr/local/include/assimp/./Compiler/poppack1.h
+ /usr/local/include/assimp/./Compiler/pushpack1.h
+ /usr/local/include/assimp/Compiler/pstdint.h
+ /usr/local/include/assimp/anim.h
+ /usr/local/include/assimp/camera.h
+ /usr/local/include/assimp/color4.h
+ /usr/local/include/assimp/color4.inl
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/light.h
+ /usr/local/include/assimp/material.h
+ /usr/local/include/assimp/material.inl
+ /usr/local/include/assimp/matrix3x3.h
+ /usr/local/include/assimp/matrix3x3.inl
+ /usr/local/include/assimp/matrix4x4.h
+ /usr/local/include/assimp/matrix4x4.inl
+ /usr/local/include/assimp/mesh.h
+ /usr/local/include/assimp/metadata.h
+ /usr/local/include/assimp/quaternion.h
+ /usr/local/include/assimp/quaternion.inl
+ /usr/local/include/assimp/scene.h
+ /usr/local/include/assimp/texture.h
+ /usr/local/include/assimp/types.h
+ /usr/local/include/assimp/vector2.h
+ /usr/local/include/assimp/vector2.inl
+ /usr/local/include/assimp/vector3.h
+ /usr/local/include/assimp/vector3.inl
+ /usr/local/include/assimp/version.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3Internal.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h
@@ -10481,6 +10493,12 @@ CMakeFiles/carplanner.dir/src/CarParameters.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/gflags/gflags.h
+ /usr/local/include/gflags/gflags_declare.h
+ /usr/local/include/gflags/gflags_gflags.h
+ /usr/local/include/glog/log_severity.h
+ /usr/local/include/glog/logging.h
+ /usr/local/include/glog/vlog_is_on.h
 CMakeFiles/carplanner.dir/src/CarRegressor.cpp.o
  ../include/CarPlanner/ApplyVelocitiesFunctor.h
  ../include/CarPlanner/BezierBoundarySolver.h
@@ -10663,32 +10681,6 @@ CMakeFiles/carplanner.dir/src/CarRegressor.cpp.o
  /usr/include/IL/../asm-generic/sockios.h
  /usr/include/IL/../asm-generic/types.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/./Compiler/poppack1.h
- /usr/include/IL/../assimp/./Compiler/pushpack1.h
- /usr/include/IL/../assimp/Compiler/pstdint.h
- /usr/include/IL/../assimp/anim.h
- /usr/include/IL/../assimp/camera.h
- /usr/include/IL/../assimp/color4.h
- /usr/include/IL/../assimp/color4.inl
- /usr/include/IL/../assimp/config.h
- /usr/include/IL/../assimp/light.h
- /usr/include/IL/../assimp/material.h
- /usr/include/IL/../assimp/material.inl
- /usr/include/IL/../assimp/matrix3x3.h
- /usr/include/IL/../assimp/matrix3x3.inl
- /usr/include/IL/../assimp/matrix4x4.h
- /usr/include/IL/../assimp/matrix4x4.inl
- /usr/include/IL/../assimp/mesh.h
- /usr/include/IL/../assimp/metadata.h
- /usr/include/IL/../assimp/quaternion.h
- /usr/include/IL/../assimp/quaternion.inl
- /usr/include/IL/../assimp/scene.h
- /usr/include/IL/../assimp/texture.h
- /usr/include/IL/../assimp/types.h
- /usr/include/IL/../assimp/vector2.h
- /usr/include/IL/../assimp/vector2.inl
- /usr/include/IL/../assimp/vector3.h
- /usr/include/IL/../assimp/vector3.inl
  /usr/include/IL/../boost/array.hpp
  /usr/include/IL/../boost/asio.hpp
  /usr/include/IL/../boost/asio/async_result.hpp
@@ -12363,9 +12355,6 @@ CMakeFiles/carplanner.dir/src/CarRegressor.cpp.o
  /usr/include/IL/../boost/version.hpp
  /usr/include/IL/../boost/visit_each.hpp
  /usr/include/IL/../boost/weak_ptr.hpp
- /usr/include/IL/../bullet/LinearMath/btIDebugDraw.h
- /usr/include/IL/../bullet/LinearMath/btTransform.h
- /usr/include/IL/../bullet/LinearMath/btVector3.h
  /usr/include/IL/../byteswap.h
  /usr/include/IL/../complex.h
  /usr/include/IL/../endian.h
@@ -12526,8 +12515,6 @@ CMakeFiles/carplanner.dir/src/CarRegressor.cpp.o
  /usr/include/IL/../wctype.h
  /usr/include/IL/../xmlrpcpp/XmlRpcDecl.h
  /usr/include/IL/../xmlrpcpp/XmlRpcValue.h
- /usr/include/assimp/defs.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/asm/ioctl.h
@@ -12692,6 +12679,34 @@ CMakeFiles/carplanner.dir/src/CarRegressor.cpp.o
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
  /usr/include/x86_64-linux-gnu/sys/uio.h
  /usr/include/x86_64-linux-gnu/sys/un.h
+ /usr/local/include/assimp/./Compiler/poppack1.h
+ /usr/local/include/assimp/./Compiler/pushpack1.h
+ /usr/local/include/assimp/Compiler/pstdint.h
+ /usr/local/include/assimp/anim.h
+ /usr/local/include/assimp/camera.h
+ /usr/local/include/assimp/color4.h
+ /usr/local/include/assimp/color4.inl
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/light.h
+ /usr/local/include/assimp/material.h
+ /usr/local/include/assimp/material.inl
+ /usr/local/include/assimp/matrix3x3.h
+ /usr/local/include/assimp/matrix3x3.inl
+ /usr/local/include/assimp/matrix4x4.h
+ /usr/local/include/assimp/matrix4x4.inl
+ /usr/local/include/assimp/mesh.h
+ /usr/local/include/assimp/metadata.h
+ /usr/local/include/assimp/quaternion.h
+ /usr/local/include/assimp/quaternion.inl
+ /usr/local/include/assimp/scene.h
+ /usr/local/include/assimp/texture.h
+ /usr/local/include/assimp/types.h
+ /usr/local/include/assimp/vector2.h
+ /usr/local/include/assimp/vector2.inl
+ /usr/local/include/assimp/vector3.h
+ /usr/local/include/assimp/vector3.inl
+ /usr/local/include/assimp/version.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3Internal.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h
@@ -13099,6 +13114,12 @@ CMakeFiles/carplanner.dir/src/CarRegressor.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/gflags/gflags.h
+ /usr/local/include/gflags/gflags_declare.h
+ /usr/local/include/gflags/gflags_gflags.h
+ /usr/local/include/glog/log_severity.h
+ /usr/local/include/glog/logging.h
+ /usr/local/include/glog/vlog_is_on.h
 CMakeFiles/carplanner.dir/src/DirectBoundarySolver.cpp.o
  ../include/CarPlanner/BoundarySolver.h
  ../include/CarPlanner/CarPlannerCommon.h
@@ -13117,7 +13138,6 @@ CMakeFiles/carplanner.dir/src/DirectBoundarySolver.cpp.o
  /usr/include/IL/../asm-generic/posix_types.h
  /usr/include/IL/../asm-generic/types.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/config.h
  /usr/include/IL/../boost/assert.hpp
  /usr/include/IL/../boost/checked_delete.hpp
  /usr/include/IL/../boost/config.hpp
@@ -13634,8 +13654,6 @@ CMakeFiles/carplanner.dir/src/DirectBoundarySolver.cpp.o
  /usr/include/IL/../time.h
  /usr/include/IL/../unistd.h
  /usr/include/IL/../wchar.h
- /usr/include/assimp/defs.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/asm/param.h
@@ -13748,6 +13766,9 @@ CMakeFiles/carplanner.dir/src/DirectBoundarySolver.cpp.o
  /usr/include/x86_64-linux-gnu/sys/time.h
  /usr/include/x86_64-linux-gnu/sys/types.h
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/version.h
  /usr/local/include/eigen3/Eigen/Cholesky
  /usr/local/include/eigen3/Eigen/Core
  /usr/local/include/eigen3/Eigen/Dense
@@ -14055,6 +14076,12 @@ CMakeFiles/carplanner.dir/src/DirectBoundarySolver.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/gflags/gflags.h
+ /usr/local/include/gflags/gflags_declare.h
+ /usr/local/include/gflags/gflags_gflags.h
+ /usr/local/include/glog/log_severity.h
+ /usr/local/include/glog/logging.h
+ /usr/local/include/glog/vlog_is_on.h
 CMakeFiles/carplanner.dir/src/GLDebugDrawer.cpp.o
  ../include/CarPlanner/GLDebugDrawer.h
  /home/mike/code/CVars/include/cvars/CVar.h
@@ -14173,33 +14200,6 @@ CMakeFiles/carplanner.dir/src/GLDebugDrawer.cpp.o
  /usr/include/IL/../asm-generic/errno-base.h
  /usr/include/IL/../asm-generic/errno.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/./Compiler/poppack1.h
- /usr/include/IL/../assimp/./Compiler/pushpack1.h
- /usr/include/IL/../assimp/Compiler/pstdint.h
- /usr/include/IL/../assimp/anim.h
- /usr/include/IL/../assimp/camera.h
- /usr/include/IL/../assimp/color4.h
- /usr/include/IL/../assimp/color4.inl
- /usr/include/IL/../assimp/config.h
- /usr/include/IL/../assimp/defs.h
- /usr/include/IL/../assimp/light.h
- /usr/include/IL/../assimp/material.h
- /usr/include/IL/../assimp/material.inl
- /usr/include/IL/../assimp/matrix3x3.h
- /usr/include/IL/../assimp/matrix3x3.inl
- /usr/include/IL/../assimp/matrix4x4.h
- /usr/include/IL/../assimp/matrix4x4.inl
- /usr/include/IL/../assimp/mesh.h
- /usr/include/IL/../assimp/metadata.h
- /usr/include/IL/../assimp/quaternion.h
- /usr/include/IL/../assimp/quaternion.inl
- /usr/include/IL/../assimp/scene.h
- /usr/include/IL/../assimp/texture.h
- /usr/include/IL/../assimp/types.h
- /usr/include/IL/../assimp/vector2.h
- /usr/include/IL/../assimp/vector2.inl
- /usr/include/IL/../assimp/vector3.h
- /usr/include/IL/../assimp/vector3.inl
  /usr/include/IL/../boost/assert.hpp
  /usr/include/IL/../boost/bind/mem_fn.hpp
  /usr/include/IL/../boost/bind/mem_fn_cc.hpp
@@ -14613,15 +14613,6 @@ CMakeFiles/carplanner.dir/src/GLDebugDrawer.cpp.o
  /usr/include/IL/../boost/type_traits/type_with_alignment.hpp
  /usr/include/IL/../boost/utility/enable_if.hpp
  /usr/include/IL/../boost/version.hpp
- /usr/include/IL/../bullet/LinearMath/btAlignedAllocator.h
- /usr/include/IL/../bullet/LinearMath/btIDebugDraw.h
- /usr/include/IL/../bullet/LinearMath/btMatrix3x3.h
- /usr/include/IL/../bullet/LinearMath/btMinMax.h
- /usr/include/IL/../bullet/LinearMath/btQuadWord.h
- /usr/include/IL/../bullet/LinearMath/btQuaternion.h
- /usr/include/IL/../bullet/LinearMath/btScalar.h
- /usr/include/IL/../bullet/LinearMath/btTransform.h
- /usr/include/IL/../bullet/LinearMath/btVector3.h
  /usr/include/IL/../complex.h
  /usr/include/IL/../endian.h
  /usr/include/IL/../errno.h
@@ -14647,7 +14638,6 @@ CMakeFiles/carplanner.dir/src/GLDebugDrawer.cpp.o
  /usr/include/IL/../time.h
  /usr/include/IL/../unistd.h
  /usr/include/IL/../wchar.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/bits/_G_config.h
  /usr/include/x86_64-linux-gnu/bits/byteswap-16.h
@@ -14763,6 +14753,43 @@ CMakeFiles/carplanner.dir/src/GLDebugDrawer.cpp.o
  /usr/include/x86_64-linux-gnu/sys/time.h
  /usr/include/x86_64-linux-gnu/sys/types.h
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
+ /usr/local/include/assimp/./Compiler/poppack1.h
+ /usr/local/include/assimp/./Compiler/pushpack1.h
+ /usr/local/include/assimp/Compiler/pstdint.h
+ /usr/local/include/assimp/anim.h
+ /usr/local/include/assimp/camera.h
+ /usr/local/include/assimp/color4.h
+ /usr/local/include/assimp/color4.inl
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/light.h
+ /usr/local/include/assimp/material.h
+ /usr/local/include/assimp/material.inl
+ /usr/local/include/assimp/matrix3x3.h
+ /usr/local/include/assimp/matrix3x3.inl
+ /usr/local/include/assimp/matrix4x4.h
+ /usr/local/include/assimp/matrix4x4.inl
+ /usr/local/include/assimp/mesh.h
+ /usr/local/include/assimp/metadata.h
+ /usr/local/include/assimp/quaternion.h
+ /usr/local/include/assimp/quaternion.inl
+ /usr/local/include/assimp/scene.h
+ /usr/local/include/assimp/texture.h
+ /usr/local/include/assimp/types.h
+ /usr/local/include/assimp/vector2.h
+ /usr/local/include/assimp/vector2.inl
+ /usr/local/include/assimp/vector3.h
+ /usr/local/include/assimp/vector3.inl
+ /usr/local/include/assimp/version.h
+ /usr/local/include/bullet/LinearMath/btAlignedAllocator.h
+ /usr/local/include/bullet/LinearMath/btIDebugDraw.h
+ /usr/local/include/bullet/LinearMath/btMatrix3x3.h
+ /usr/local/include/bullet/LinearMath/btMinMax.h
+ /usr/local/include/bullet/LinearMath/btQuadWord.h
+ /usr/local/include/bullet/LinearMath/btQuaternion.h
+ /usr/local/include/bullet/LinearMath/btScalar.h
+ /usr/local/include/bullet/LinearMath/btTransform.h
+ /usr/local/include/bullet/LinearMath/btVector3.h
  /usr/local/include/eigen3/Eigen/Cholesky
  /usr/local/include/eigen3/Eigen/Core
  /usr/local/include/eigen3/Eigen/Dense
@@ -15251,32 +15278,6 @@ CMakeFiles/carplanner.dir/src/LocalPlanner.cpp.o
  /usr/include/IL/../asm-generic/sockios.h
  /usr/include/IL/../asm-generic/types.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/./Compiler/poppack1.h
- /usr/include/IL/../assimp/./Compiler/pushpack1.h
- /usr/include/IL/../assimp/Compiler/pstdint.h
- /usr/include/IL/../assimp/anim.h
- /usr/include/IL/../assimp/camera.h
- /usr/include/IL/../assimp/color4.h
- /usr/include/IL/../assimp/color4.inl
- /usr/include/IL/../assimp/config.h
- /usr/include/IL/../assimp/light.h
- /usr/include/IL/../assimp/material.h
- /usr/include/IL/../assimp/material.inl
- /usr/include/IL/../assimp/matrix3x3.h
- /usr/include/IL/../assimp/matrix3x3.inl
- /usr/include/IL/../assimp/matrix4x4.h
- /usr/include/IL/../assimp/matrix4x4.inl
- /usr/include/IL/../assimp/mesh.h
- /usr/include/IL/../assimp/metadata.h
- /usr/include/IL/../assimp/quaternion.h
- /usr/include/IL/../assimp/quaternion.inl
- /usr/include/IL/../assimp/scene.h
- /usr/include/IL/../assimp/texture.h
- /usr/include/IL/../assimp/types.h
- /usr/include/IL/../assimp/vector2.h
- /usr/include/IL/../assimp/vector2.inl
- /usr/include/IL/../assimp/vector3.h
- /usr/include/IL/../assimp/vector3.inl
  /usr/include/IL/../boost/array.hpp
  /usr/include/IL/../boost/asio.hpp
  /usr/include/IL/../boost/asio/async_result.hpp
@@ -16951,9 +16952,6 @@ CMakeFiles/carplanner.dir/src/LocalPlanner.cpp.o
  /usr/include/IL/../boost/version.hpp
  /usr/include/IL/../boost/visit_each.hpp
  /usr/include/IL/../boost/weak_ptr.hpp
- /usr/include/IL/../bullet/LinearMath/btIDebugDraw.h
- /usr/include/IL/../bullet/LinearMath/btTransform.h
- /usr/include/IL/../bullet/LinearMath/btVector3.h
  /usr/include/IL/../byteswap.h
  /usr/include/IL/../complex.h
  /usr/include/IL/../endian.h
@@ -17114,8 +17112,6 @@ CMakeFiles/carplanner.dir/src/LocalPlanner.cpp.o
  /usr/include/IL/../wctype.h
  /usr/include/IL/../xmlrpcpp/XmlRpcDecl.h
  /usr/include/IL/../xmlrpcpp/XmlRpcValue.h
- /usr/include/assimp/defs.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/asm/ioctl.h
@@ -17280,6 +17276,34 @@ CMakeFiles/carplanner.dir/src/LocalPlanner.cpp.o
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
  /usr/include/x86_64-linux-gnu/sys/uio.h
  /usr/include/x86_64-linux-gnu/sys/un.h
+ /usr/local/include/assimp/./Compiler/poppack1.h
+ /usr/local/include/assimp/./Compiler/pushpack1.h
+ /usr/local/include/assimp/Compiler/pstdint.h
+ /usr/local/include/assimp/anim.h
+ /usr/local/include/assimp/camera.h
+ /usr/local/include/assimp/color4.h
+ /usr/local/include/assimp/color4.inl
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/light.h
+ /usr/local/include/assimp/material.h
+ /usr/local/include/assimp/material.inl
+ /usr/local/include/assimp/matrix3x3.h
+ /usr/local/include/assimp/matrix3x3.inl
+ /usr/local/include/assimp/matrix4x4.h
+ /usr/local/include/assimp/matrix4x4.inl
+ /usr/local/include/assimp/mesh.h
+ /usr/local/include/assimp/metadata.h
+ /usr/local/include/assimp/quaternion.h
+ /usr/local/include/assimp/quaternion.inl
+ /usr/local/include/assimp/scene.h
+ /usr/local/include/assimp/texture.h
+ /usr/local/include/assimp/types.h
+ /usr/local/include/assimp/vector2.h
+ /usr/local/include/assimp/vector2.inl
+ /usr/local/include/assimp/vector3.h
+ /usr/local/include/assimp/vector3.inl
+ /usr/local/include/assimp/version.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3Internal.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h
@@ -17687,6 +17711,12 @@ CMakeFiles/carplanner.dir/src/LocalPlanner.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/gflags/gflags.h
+ /usr/local/include/gflags/gflags_declare.h
+ /usr/local/include/gflags/gflags_gflags.h
+ /usr/local/include/glog/log_severity.h
+ /usr/local/include/glog/logging.h
+ /usr/local/include/glog/vlog_is_on.h
 CMakeFiles/carplanner.dir/src/LocalPlannerNoCVar.cpp.o
  ../include/CarPlanner/ApplyVelocitiesFunctor.h
  ../include/CarPlanner/BezierBoundarySolver.h
@@ -17869,32 +17899,6 @@ CMakeFiles/carplanner.dir/src/LocalPlannerNoCVar.cpp.o
  /usr/include/IL/../asm-generic/sockios.h
  /usr/include/IL/../asm-generic/types.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/./Compiler/poppack1.h
- /usr/include/IL/../assimp/./Compiler/pushpack1.h
- /usr/include/IL/../assimp/Compiler/pstdint.h
- /usr/include/IL/../assimp/anim.h
- /usr/include/IL/../assimp/camera.h
- /usr/include/IL/../assimp/color4.h
- /usr/include/IL/../assimp/color4.inl
- /usr/include/IL/../assimp/config.h
- /usr/include/IL/../assimp/light.h
- /usr/include/IL/../assimp/material.h
- /usr/include/IL/../assimp/material.inl
- /usr/include/IL/../assimp/matrix3x3.h
- /usr/include/IL/../assimp/matrix3x3.inl
- /usr/include/IL/../assimp/matrix4x4.h
- /usr/include/IL/../assimp/matrix4x4.inl
- /usr/include/IL/../assimp/mesh.h
- /usr/include/IL/../assimp/metadata.h
- /usr/include/IL/../assimp/quaternion.h
- /usr/include/IL/../assimp/quaternion.inl
- /usr/include/IL/../assimp/scene.h
- /usr/include/IL/../assimp/texture.h
- /usr/include/IL/../assimp/types.h
- /usr/include/IL/../assimp/vector2.h
- /usr/include/IL/../assimp/vector2.inl
- /usr/include/IL/../assimp/vector3.h
- /usr/include/IL/../assimp/vector3.inl
  /usr/include/IL/../boost/array.hpp
  /usr/include/IL/../boost/asio.hpp
  /usr/include/IL/../boost/asio/async_result.hpp
@@ -19569,9 +19573,6 @@ CMakeFiles/carplanner.dir/src/LocalPlannerNoCVar.cpp.o
  /usr/include/IL/../boost/version.hpp
  /usr/include/IL/../boost/visit_each.hpp
  /usr/include/IL/../boost/weak_ptr.hpp
- /usr/include/IL/../bullet/LinearMath/btIDebugDraw.h
- /usr/include/IL/../bullet/LinearMath/btTransform.h
- /usr/include/IL/../bullet/LinearMath/btVector3.h
  /usr/include/IL/../byteswap.h
  /usr/include/IL/../complex.h
  /usr/include/IL/../endian.h
@@ -19732,8 +19733,6 @@ CMakeFiles/carplanner.dir/src/LocalPlannerNoCVar.cpp.o
  /usr/include/IL/../wctype.h
  /usr/include/IL/../xmlrpcpp/XmlRpcDecl.h
  /usr/include/IL/../xmlrpcpp/XmlRpcValue.h
- /usr/include/assimp/defs.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/asm/ioctl.h
@@ -19898,6 +19897,34 @@ CMakeFiles/carplanner.dir/src/LocalPlannerNoCVar.cpp.o
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
  /usr/include/x86_64-linux-gnu/sys/uio.h
  /usr/include/x86_64-linux-gnu/sys/un.h
+ /usr/local/include/assimp/./Compiler/poppack1.h
+ /usr/local/include/assimp/./Compiler/pushpack1.h
+ /usr/local/include/assimp/Compiler/pstdint.h
+ /usr/local/include/assimp/anim.h
+ /usr/local/include/assimp/camera.h
+ /usr/local/include/assimp/color4.h
+ /usr/local/include/assimp/color4.inl
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/light.h
+ /usr/local/include/assimp/material.h
+ /usr/local/include/assimp/material.inl
+ /usr/local/include/assimp/matrix3x3.h
+ /usr/local/include/assimp/matrix3x3.inl
+ /usr/local/include/assimp/matrix4x4.h
+ /usr/local/include/assimp/matrix4x4.inl
+ /usr/local/include/assimp/mesh.h
+ /usr/local/include/assimp/metadata.h
+ /usr/local/include/assimp/quaternion.h
+ /usr/local/include/assimp/quaternion.inl
+ /usr/local/include/assimp/scene.h
+ /usr/local/include/assimp/texture.h
+ /usr/local/include/assimp/types.h
+ /usr/local/include/assimp/vector2.h
+ /usr/local/include/assimp/vector2.inl
+ /usr/local/include/assimp/vector3.h
+ /usr/local/include/assimp/vector3.inl
+ /usr/local/include/assimp/version.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btAxisSweep3Internal.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h
@@ -20305,6 +20332,12 @@ CMakeFiles/carplanner.dir/src/LocalPlannerNoCVar.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/gflags/gflags.h
+ /usr/local/include/gflags/gflags_declare.h
+ /usr/local/include/gflags/gflags_gflags.h
+ /usr/local/include/glog/log_severity.h
+ /usr/local/include/glog/logging.h
+ /usr/local/include/glog/vlog_is_on.h
 CMakeFiles/carplanner.dir/src/Localizer.cpp.o
  ../include/CarPlanner/CarPlannerCommon.h
  ../include/CarPlanner/Localizer.h
@@ -20346,7 +20379,6 @@ CMakeFiles/carplanner.dir/src/Localizer.cpp.o
  /usr/include/IL/../asm-generic/sockios.h
  /usr/include/IL/../asm-generic/types.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/config.h
  /usr/include/IL/../boost/array.hpp
  /usr/include/IL/../boost/assert.hpp
  /usr/include/IL/../boost/atomic.hpp
@@ -21549,7 +21581,6 @@ CMakeFiles/carplanner.dir/src/Localizer.cpp.o
  /usr/include/IL/../boost/weak_ptr.hpp
  /usr/include/IL/../byteswap.h
  /usr/include/IL/../complex.h
- /usr/include/IL/../eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h
  /usr/include/IL/../endian.h
  /usr/include/IL/../errno.h
  /usr/include/IL/../features.h
@@ -21696,8 +21727,6 @@ CMakeFiles/carplanner.dir/src/Localizer.cpp.o
  /usr/include/IL/../wchar.h
  /usr/include/IL/../xmlrpcpp/XmlRpcDecl.h
  /usr/include/IL/../xmlrpcpp/XmlRpcValue.h
- /usr/include/assimp/defs.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/asm/param.h
@@ -21833,6 +21862,9 @@ CMakeFiles/carplanner.dir/src/Localizer.cpp.o
  /usr/include/x86_64-linux-gnu/sys/timeb.h
  /usr/include/x86_64-linux-gnu/sys/types.h
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/version.h
  /usr/local/include/eigen3/Eigen/Cholesky
  /usr/local/include/eigen3/Eigen/Core
  /usr/local/include/eigen3/Eigen/Dense
@@ -22140,6 +22172,12 @@ CMakeFiles/carplanner.dir/src/Localizer.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/gflags/gflags.h
+ /usr/local/include/gflags/gflags_declare.h
+ /usr/local/include/gflags/gflags_gflags.h
+ /usr/local/include/glog/log_severity.h
+ /usr/local/include/glog/logging.h
+ /usr/local/include/glog/vlog_is_on.h
 CMakeFiles/carplanner.dir/src/MochaException.cpp.o
  ../include/CarPlanner/MochaException.h
  /home/mike/code/CarPlanner/src/MochaException.cpp
@@ -22161,7 +22199,6 @@ CMakeFiles/carplanner.dir/src/RaycastVehicle.cpp.o
  /usr/include/IL/../asm-generic/posix_types.h
  /usr/include/IL/../asm-generic/types.h
  /usr/include/IL/../assert.h
- /usr/include/IL/../assimp/config.h
  /usr/include/IL/../boost/assert.hpp
  /usr/include/IL/../boost/checked_delete.hpp
  /usr/include/IL/../boost/config.hpp
@@ -22680,8 +22717,6 @@ CMakeFiles/carplanner.dir/src/RaycastVehicle.cpp.o
  /usr/include/IL/../time.h
  /usr/include/IL/../unistd.h
  /usr/include/IL/../wchar.h
- /usr/include/assimp/defs.h
- /usr/include/assimp/version.h
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h
  /usr/include/x86_64-linux-gnu/asm/errno.h
  /usr/include/x86_64-linux-gnu/asm/param.h
@@ -22804,6 +22839,9 @@ CMakeFiles/carplanner.dir/src/RaycastVehicle.cpp.o
  /usr/include/x86_64-linux-gnu/sys/time.h
  /usr/include/x86_64-linux-gnu/sys/types.h
  /usr/include/x86_64-linux-gnu/sys/ucontext.h
+ /usr/local/include/assimp/config.h
+ /usr/local/include/assimp/defs.h
+ /usr/local/include/assimp/version.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btBroadphaseInterface.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btBroadphaseProxy.h
  /usr/local/include/bullet/BulletCollision/BroadphaseCollision/btDispatcher.h
@@ -23149,6 +23187,12 @@ CMakeFiles/carplanner.dir/src/RaycastVehicle.cpp.o
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
+ /usr/local/include/gflags/gflags.h
+ /usr/local/include/gflags/gflags_declare.h
+ /usr/local/include/gflags/gflags_gflags.h
+ /usr/local/include/glog/log_severity.h
+ /usr/local/include/glog/logging.h
+ /usr/local/include/glog/vlog_is_on.h
 CMakeFiles/carplanner.dir/src/WheelInfo.cpp.o
  ../include/CarPlanner/WheelInfo.h
  /home/mike/code/CarPlanner/src/WheelInfo.cpp
