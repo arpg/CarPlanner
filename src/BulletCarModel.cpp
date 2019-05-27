@@ -89,13 +89,14 @@ void BulletCarModel::GenerateStaticHull( const struct aiScene *pAIScene, const s
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds, bool real )
+void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds, bool real , bool enableROS)
 {
 //  if ( real ) {
 //    m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
 //    m_commandThreadSub = m_nh.subscribe<carplanner_msgs::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
 //  }
 
+  m_bEnableROS = enableROS;
   m_nNumWorlds = numWorlds;
   //initialize a number of worlds
   for(size_t ii = 0 ; ii < m_nNumWorlds ; ii++) {
@@ -116,7 +117,7 @@ void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dM
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &parameters, unsigned int numWorlds, bool real )
+void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &parameters, unsigned int numWorlds, bool real , bool enableROS)
 {
 //  if ( real ) {
 //    m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
@@ -131,6 +132,7 @@ void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &param
   btTriangleMesh *pTriangleMesh = new btTriangleMesh();
   GenerateStaticHull(pAIScene,pAINode,pAINode->mTransformation,1.0,*pTriangleMesh,dMin,dMax);
 
+  m_bEnableROS = enableROS;
   m_nNumWorlds = numWorlds;
   //initialize a number of worlds
   for(size_t ii = 0 ; ii < m_nNumWorlds ; ii++) {
@@ -568,11 +570,11 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
     }
 
 
+    Eigen::Matrix4d Twv;
     //do this in a critical section
     {
       boost::mutex::scoped_lock lock(*pWorld);
       //get chassis data from bullet
-      Eigen::Matrix4d Twv;
       pWorld->m_pVehicle->getChassisWorldTransform().getOpenGLMatrix(Twv.data());
       pWorld->m_state.m_dTwv = Sophus::SE3d(Twv);
 
@@ -595,6 +597,28 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
       //set the steering
       pWorld->m_state.m_dSteering = pWorld->m_pVehicle->GetAckermanSteering();
     }
+
+//    if( m_bEnableROS )
+//    {
+//        _pubPose(Twv);
+//    |
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////
+  void BulletCarModel::_pubPose(Eigen::Matrix4d& pose_mat)
+  {
+    Eigen::Transform<double,3,Eigen::Affine> pose_tf(pose_mat);
+    Eigen::Quaternion<double> pose_q(pose_tf.rotation());
+    nav_msgs::Odometry pose_msg;
+    pose_msg.pose.pose.position.x = pose_mat(0,3);
+    pose_msg.pose.pose.position.y = pose_mat(1,3);
+    pose_msg.pose.pose.position.z = pose_mat(2,3);
+    pose_msg.pose.pose.orientation.x = pose_q.x();
+    pose_msg.pose.pose.orientation.y = pose_q.y();
+    pose_msg.pose.pose.orientation.z = pose_q.z();
+    pose_msg.pose.pose.orientation.w = pose_q.w();
+    m_posePub.publish(pose_msg);
+    ros::spinOnce();
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////
