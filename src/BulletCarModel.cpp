@@ -91,10 +91,10 @@ void BulletCarModel::GenerateStaticHull( const struct aiScene *pAIScene, const s
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dMin, const btVector3 &dMax, CarParameterMap &parameters, unsigned int numWorlds, bool real )
 {
-  if ( real ) {
-    m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
-    m_commandThreadSub = m_nh.subscribe<carplanner_msgs::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
-  }
+//  if ( real ) {
+//    m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
+//    m_commandThreadSub = m_nh.subscribe<carplanner_msgs::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
+//  }
 
   m_nNumWorlds = numWorlds;
   //initialize a number of worlds
@@ -110,18 +110,18 @@ void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dM
     m_vWorlds.push_back(pWorld);
   }
 
-  if (real) {
-    m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
-  }
+//  if (real) {
+//    m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
+//  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &parameters, unsigned int numWorlds, bool real )
 {
-  if ( real ) {
-    m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
-    m_commandThreadSub = m_nh.subscribe<carplanner_msgs::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
-  }
+//  if ( real ) {
+//    m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
+//    m_commandThreadSub = m_nh.subscribe<carplanner_msgs::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
+//  }
 
   aiNode *pAINode = pAIScene->mRootNode;
 
@@ -148,88 +148,88 @@ void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &param
     m_vWorlds.push_back(pWorld);
   }
 
-  if (real) {
-    m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
-  }
+//  if (real) {
+//    m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
+//  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_PoseThreadFunc()
 {
-  VehicleState state;
-  nav_msgs::Odometry odom;
+//  VehicleState state;
+//  nav_msgs::Odometry odom;
 
-  odom.pose.pose.position.x = 10;
-  odom.pose.pose.position.y = 10;
-  odom.pose.pose.position.z = 0;
-  odom.pose.pose.orientation.w = 0;
-  odom.pose.pose.orientation.x = 0;
-  odom.pose.pose.orientation.y = 0;
-  odom.pose.pose.orientation.z = 1;
+//  odom.pose.pose.position.x = 10;
+//  odom.pose.pose.position.y = 10;
+//  odom.pose.pose.position.z = 0;
+//  odom.pose.pose.orientation.w = 0;
+//  odom.pose.pose.orientation.x = 0;
+//  odom.pose.pose.orientation.y = 0;
+//  odom.pose.pose.orientation.z = 1;
 
-  int cov_row = 0;
-  odom.pose.covariance[cov_row*6] = 1;
-  odom.pose.covariance[cov_row*6+1] = 0;
-  odom.pose.covariance[cov_row*6+2] = 0;
-  odom.pose.covariance[cov_row*6+3] = 0;
-  odom.pose.covariance[cov_row*6+4] = 0;
-  odom.pose.covariance[cov_row*6+5] = 0;
+//  int cov_row = 0;
+//  odom.pose.covariance[cov_row*6] = 1;
+//  odom.pose.covariance[cov_row*6+1] = 0;
+//  odom.pose.covariance[cov_row*6+2] = 0;
+//  odom.pose.covariance[cov_row*6+3] = 0;
+//  odom.pose.covariance[cov_row*6+4] = 0;
+//  odom.pose.covariance[cov_row*6+5] = 0;
 
-  cov_row = 1;
-  odom.pose.covariance[cov_row*6] = 0;
-  odom.pose.covariance[cov_row*6+1] = 1;
-  odom.pose.covariance[cov_row*6+2] = 0;
-  odom.pose.covariance[cov_row*6+3] = 0;
-  odom.pose.covariance[cov_row*6+4] = 0;
-  odom.pose.covariance[cov_row*6+5] = 0;
+//  cov_row = 1;
+//  odom.pose.covariance[cov_row*6] = 0;
+//  odom.pose.covariance[cov_row*6+1] = 1;
+//  odom.pose.covariance[cov_row*6+2] = 0;
+//  odom.pose.covariance[cov_row*6+3] = 0;
+//  odom.pose.covariance[cov_row*6+4] = 0;
+//  odom.pose.covariance[cov_row*6+5] = 0;
 
-  cov_row = 2;
-  odom.pose.covariance[cov_row*6] = 0;
-  odom.pose.covariance[cov_row*6+1] = 0;
-  odom.pose.covariance[cov_row*6+2] = 1;
-  odom.pose.covariance[cov_row*6+3] = 0;
-  odom.pose.covariance[cov_row*6+4] = 0;
-  odom.pose.covariance[cov_row*6+5] = 0;
+//  cov_row = 2;
+//  odom.pose.covariance[cov_row*6] = 0;
+//  odom.pose.covariance[cov_row*6+1] = 0;
+//  odom.pose.covariance[cov_row*6+2] = 1;
+//  odom.pose.covariance[cov_row*6+3] = 0;
+//  odom.pose.covariance[cov_row*6+4] = 0;
+//  odom.pose.covariance[cov_row*6+5] = 0;
 
-  cov_row = 3;
-  odom.pose.covariance[cov_row*6] = 0;
-  odom.pose.covariance[cov_row*6+1] = 0;
-  odom.pose.covariance[cov_row*6+2] = 0;
-  odom.pose.covariance[cov_row*6+3] = 1;
-  odom.pose.covariance[cov_row*6+4] = 0;
-  odom.pose.covariance[cov_row*6+5] = 0;
+//  cov_row = 3;
+//  odom.pose.covariance[cov_row*6] = 0;
+//  odom.pose.covariance[cov_row*6+1] = 0;
+//  odom.pose.covariance[cov_row*6+2] = 0;
+//  odom.pose.covariance[cov_row*6+3] = 1;
+//  odom.pose.covariance[cov_row*6+4] = 0;
+//  odom.pose.covariance[cov_row*6+5] = 0;
 
-  cov_row = 4;
-  odom.pose.covariance[cov_row*6] = 0;
-  odom.pose.covariance[cov_row*6+1] = 0;
-  odom.pose.covariance[cov_row*6+2] = 0;
-  odom.pose.covariance[cov_row*6+3] = 0;
-  odom.pose.covariance[cov_row*6+4] = 1;
-  odom.pose.covariance[cov_row*6+5] = 0;
+//  cov_row = 4;
+//  odom.pose.covariance[cov_row*6] = 0;
+//  odom.pose.covariance[cov_row*6+1] = 0;
+//  odom.pose.covariance[cov_row*6+2] = 0;
+//  odom.pose.covariance[cov_row*6+3] = 0;
+//  odom.pose.covariance[cov_row*6+4] = 1;
+//  odom.pose.covariance[cov_row*6+5] = 0;
 
-  cov_row = 5;
-  odom.pose.covariance[cov_row*6] = 0;
-  odom.pose.covariance[cov_row*6+1] = 0;
-  odom.pose.covariance[cov_row*6+2] = 0;
-  odom.pose.covariance[cov_row*6+3] = 0;
-  odom.pose.covariance[cov_row*6+4] = 0;
-  odom.pose.covariance[cov_row*6+5] = 1;
+//  cov_row = 5;
+//  odom.pose.covariance[cov_row*6] = 0;
+//  odom.pose.covariance[cov_row*6+1] = 0;
+//  odom.pose.covariance[cov_row*6+2] = 0;
+//  odom.pose.covariance[cov_row*6+3] = 0;
+//  odom.pose.covariance[cov_row*6+4] = 0;
+//  odom.pose.covariance[cov_row*6+5] = 1;
 
   while(1)
   {
-    GetVehicleState( 0, state );
+//    GetVehicleState( 0, state );
 
-    Eigen::Vector6d poseVec = state.ToPose();
+//    Eigen::Vector6d poseVec = state.ToPose();
 
-    odom.pose.pose.position.x = poseVec[0];
-    odom.pose.pose.position.y = poseVec[1];
-    odom.pose.pose.position.z = poseVec[2];
-    odom.pose.pose.orientation.x = poseVec[3];
-    odom.pose.pose.orientation.y = poseVec[4];
-    odom.pose.pose.orientation.z = poseVec[5];
+//    odom.pose.pose.position.x = poseVec[0];
+//    odom.pose.pose.position.y = poseVec[1];
+//    odom.pose.pose.position.z = poseVec[2];
+//    odom.pose.pose.orientation.x = poseVec[3];
+//    odom.pose.pose.orientation.y = poseVec[4];
+//    odom.pose.pose.orientation.z = poseVec[5];
 
-    m_poseThreadPub.publish(odom);
-    ros::spinOnce();
+//    m_poseThreadPub.publish(odom);
+//    ros::spinOnce();
 
     usleep( (int)( ( 1 / (double)30.0 ) * 1000 ) );
   }
@@ -238,23 +238,23 @@ void BulletCarModel::_PoseThreadFunc()
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_CommandThreadFunc(const carplanner_msgs::Command::ConstPtr& cmd_msg)
 {
-  // parse cmd msg into local variables
-  int worldId = cmd_msg->worldId;
-  double force = cmd_msg->force;
-  double curvature = cmd_msg->curvature;
-  double dt = cmd_msg->dt;
-  double phi = cmd_msg->phi;
-  Eigen::Vector3d torques;
-  for( unsigned int i=0; i<cmd_msg->torques.size(); i++)
-  {
-    torques[i] = cmd_msg->torques[i];
-  }
-  bool bNoDelay = cmd_msg->noDelay;
-  bool bNoUpdate = cmd_msg->noUpdate;
+//  // parse cmd msg into local variables
+//  int worldId = cmd_msg->worldId;
+//  double force = cmd_msg->force;
+//  double curvature = cmd_msg->curvature;
+//  double dt = cmd_msg->dt;
+//  double phi = cmd_msg->phi;
+//  Eigen::Vector3d torques;
+//  for( unsigned int i=0; i<cmd_msg->torques.size(); i++)
+//  {
+//    torques[i] = cmd_msg->torques[i];
+//  }
+//  bool bNoDelay = cmd_msg->noDelay;
+//  bool bNoUpdate = cmd_msg->noUpdate;
 
-  // create command object from local variables and use to update state
-  ControlCommand command(force, curvature, torques, dt, phi);
-  UpdateState( 0, command, dt, bNoDelay, bNoUpdate );
+//  // create command object from local variables and use to update state
+//  ControlCommand command(force, curvature, torques, dt, phi);
+//  UpdateState( 0, command, dt, bNoDelay, bNoUpdate );
 }
 
 //////////////////////////////////////////////s///////////////////////////////////////////

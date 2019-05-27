@@ -341,8 +341,8 @@ public:
     ~BulletCarModel();
 
     ros::NodeHandle m_nh;
-    ros::Publisher m_poseThreadPub;
-    ros::Subscriber m_commandThreadSub;
+    ros::Publisher m_posePub;
+    ros::Subscriber m_commandSub;
 
     void _PoseThreadFunc();
     void _CommandThreadFunc(const carplanner_msgs::Command::ConstPtr&);
