@@ -12,7 +12,7 @@ include(install_package)
 add_definitions(-DBT_USE_DOUBLE_PRECISION)
 add_definitions(-DBT_NO_PROFILE)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -DBOOST_NO_CXX11_NUMERIC_LIMITS")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -DBOOST_NO_CXX14_NUMERIC_LIMITS")
 
 IF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
@@ -35,6 +35,7 @@ find_package( Sophus REQUIRED)
 find_package( assimp REQUIRED )
 find_package( yaml-cpp REQUIRED )
 find_package( GFlags REQUIRED )
+#find_package( mochagui REQUIRED )
 find_package( catkin REQUIRED
   COMPONENTS
     roscpp
@@ -43,6 +44,7 @@ find_package( catkin REQUIRED
     message_generation
     nav_msgs
     carplanner_msgs
+    mesh_msgs
 )
 
 add_definitions(${EIGEN_DEFINITIONS})

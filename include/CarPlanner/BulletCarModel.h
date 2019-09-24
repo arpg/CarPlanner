@@ -9,13 +9,21 @@
 #define	BULLETCARMODEL_H
 
 #include <ros/ros.h>
+#include <tf/transform_broadcaster.h>
+#include <carplanner_msgs/VehicleState.h>
 #include <carplanner_msgs/Command.h>
-#include <nav_msgs/Odometry.h>
+#include <mesh_msgs/TriangleMeshStamped.h>
+// #include <MochaGui/MochaGui.h>
+// #include "/home/mike/code/MochaGui_ros/MochaGui.h"
+#include "/home/mike/code/MochaGui_ros/conversion_tools.h"
 
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 #include "BulletDynamics/ConstraintSolver/btHingeConstraint.h"
 #include "BulletDynamics/ConstraintSolver/btSliderConstraint.h"
+#include "BulletCollision/CollisionShapes/btShapeHull.h"
+// #include "ExampleBrowser/CollisionShape2TriangleMesh.h"
+#include "BulletCollision/CollisionShapes/btConvexPolyhedron.h"
 
 #include "GLDebugDrawer.h"
 
@@ -34,6 +42,7 @@
 #include <HAL/Messages/Command.h>
 #include <HAL/Messages/Matrix.h>
 #include <HAL/Messages/Pose.h>
+#include <exception>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -231,6 +240,150 @@ struct VehicleState
         return poseOut;
     }
 
+    double GetTime() const
+    {
+       return m_dTime;
+    }
+
+    Eigen::Vector6d GetVels() const
+    {
+      Eigen::Vector6d vels;
+      vels << (*this).m_dV[0],
+              (*this).m_dV[1],
+              (*this).m_dV[2],
+              (*this).m_dW[0],
+              (*this).m_dW[1],
+              (*this).m_dW[2];
+      return vels;
+    }
+
+    Eigen::Vector7d GetPose() const
+    {
+      Sophus::SE3d state = m_dTwv;
+      Eigen::Vector3d trans = state.translation();
+      Eigen::Quaterniond quat = state.unit_quaternion();
+
+      Eigen::Vector7d pose;
+      pose << trans[0],
+              trans[1],
+              trans[2],
+              quat.x(),
+              quat.y(),
+              quat.z(),
+              quat.w();
+
+      return pose;
+    }
+
+    std::vector<Eigen::Vector7d> GetWheelPoses() const
+    {
+      std::vector<Eigen::Vector7d> poses;
+
+      for(uint ii=0; ii<m_vWheelStates.size(); ii++)
+      {
+        Sophus::SE3d state = m_vWheelStates[ii];
+        Eigen::Vector3d trans = state.translation();
+        Eigen::Quaterniond quat = state.unit_quaternion();
+
+        Eigen::Vector7d pose;
+        pose << trans[0],
+                trans[1],
+                trans[2],
+                quat.x(),
+                quat.y(),
+                quat.z(),
+                quat.w();
+
+        poses.push_back(pose);
+      }
+
+      return poses;
+    }
+
+    std::vector<bool> GetWheelContacts() const
+    {
+      std::vector<bool> contacts;
+
+      for(uint ii=0; ii<m_vWheelContacts.size(); ii++)
+      {
+        bool contact = m_vWheelContacts[ii];
+        contacts.push_back(contact);
+      }
+
+      return contacts;
+    }
+
+    double GetCurvature() const
+    {
+       return m_dCurvature;
+    }
+
+    double GetSteering() const
+    {
+       return m_dSteering;
+    }
+
+    carplanner_msgs::VehicleState toROS() const
+    {
+      Sophus::SE3d rot_180_y(Eigen::Quaterniond(0,0,1,0),Eigen::Vector3d(0,0,0)); // Quat(w,x,y,z) , Vec(x,y,z)
+      Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));
+
+      carplanner_msgs::VehicleState state_msg;
+      state_msg.header.stamp.sec = (*this).GetTime();
+      state_msg.header.frame_id = "map";
+
+      Sophus::SE3d Twv = rot_180_y*(*this).m_dTwv*rot_180_x;
+      state_msg.pose.header.stamp = ros::Time::now();
+      state_msg.pose.header.frame_id = "map";
+      state_msg.pose.child_frame_id = "base_link";
+      state_msg.pose.transform.translation.x = Twv.translation()[0];
+      state_msg.pose.transform.translation.y = Twv.translation()[1];
+      state_msg.pose.transform.translation.z = Twv.translation()[2];
+      state_msg.pose.transform.rotation.w = Twv.unit_quaternion().w();
+      state_msg.pose.transform.rotation.x = Twv.unit_quaternion().x();
+      state_msg.pose.transform.rotation.y = Twv.unit_quaternion().y();
+      state_msg.pose.transform.rotation.z = Twv.unit_quaternion().z();
+
+      for( unsigned int i=0; i<(*this).m_vWheelStates.size(); i++ )
+      {
+          geometry_msgs::TransformStamped tf;
+          tf.header.stamp = ros::Time::now();
+          tf.header.frame_id = "map";
+          tf.child_frame_id = "wheel" + std::to_string(i);
+
+          Sophus::SE3d Twv = (*this).m_vWheelStates[i];
+          tf.transform.translation.x = Twv.translation()[0];
+          tf.transform.translation.y = Twv.translation()[1];
+          tf.transform.translation.z = Twv.translation()[2];
+          tf.transform.rotation.w = Twv.unit_quaternion().w();
+          tf.transform.rotation.x = Twv.unit_quaternion().x();
+          tf.transform.rotation.y = Twv.unit_quaternion().y();
+          tf.transform.rotation.z = Twv.unit_quaternion().z();
+
+          state_msg.wheel_poses.push_back( tf );
+      }
+
+      std::vector<bool> wheel_contacts = (*this).GetWheelContacts();
+      for(uint ii=0; ii<wheel_contacts.size(); ii++)
+      {
+        bool contact = wheel_contacts[ii];
+        state_msg.wheel_contacts.push_back(contact);
+      }
+
+      Eigen::Vector6d vels = (*this).GetVels();
+      state_msg.lin_vel.x = vels[0];
+      state_msg.lin_vel.y = vels[1];
+      state_msg.lin_vel.z = vels[2];
+      state_msg.ang_vel.x = vels[3];
+      state_msg.ang_vel.y = vels[4];
+      state_msg.ang_vel.z = vels[5];
+
+      state_msg.curvature = (*this).GetCurvature();
+
+      state_msg.steering = (*this).GetSteering();
+
+      return state_msg;
+    }
 
 
     Sophus::SE3d m_dTwv;                     //< 4x4 matrix denoting the state of the car
@@ -299,6 +452,7 @@ struct BulletWorldInstance : public boost::mutex
 
     btScalar *m_pHeightfieldData;
     btCollisionShape *m_pTerrainShape;
+    btRigidBody *m_pTerrainBody;
     RaycastVehicle::btVehicleTuning	m_Tuning;
     btVehicleRaycaster*	m_pVehicleRayCaster;
     RaycastVehicle*	m_pVehicle;
@@ -330,6 +484,7 @@ struct BulletWorldInstance : public boost::mutex
     int m_nIndex;
     bool m_bParametersChanged;
 
+
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
@@ -341,14 +496,26 @@ public:
     ~BulletCarModel();
 
     bool m_bEnableROS;
-    ros::NodeHandle m_nh;
-    ros::Publisher m_posePub;
-    ros::Subscriber m_commandSub;
+    ros::NodeHandle* m_nh;
+    tf::TransformBroadcaster m_tfbr;
+    ros::Publisher m_statePub;
+    ros::Publisher m_meshPub;
+    ros::Subscriber m_meshSub;
+    // ros::Publisher m_posePub;
+    // ros::Subscriber m_commandSub;
 
-    void _pubPose(Eigen::Matrix4d& );
+    // GUIHelperInterface* m_guiHelper;
 
-    void _PoseThreadFunc();
-    void _CommandThreadFunc(const carplanner_msgs::Command::ConstPtr&);
+    void InitROS();
+    void _PublisherFunc();
+    void _pubState();
+    void _pubState(VehicleState&);
+    void _pubMesh();
+    void _pubMesh(btCollisionShape*);
+    void _pubMesh(btCollisionShape*, const btTransform*);
+    void _meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr&);
+    // void _PoseThreadFunc();
+    // void _CommandThreadFunc(const carplanner_msgs::Command::ConstPtr&);
 
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -406,14 +573,17 @@ public:
 protected:
 
     void _GetDelayedControl(int worldId, double timeDelay, ControlCommand& delayedCommands);
-    btRigidBody* _LocalCreateRigidBody(BulletWorldInstance *pWorld, double mass, const btTransform& startTransform, btCollisionShape* shape, short group, short mask);
+    btRigidBody* _LocalAddRigidBody(BulletWorldInstance *pWorld, double mass, const btTransform& startTransform, btCollisionShape* shape, short group, short mask);
+    // btRigidBody* _LocalAddRigidBody(BulletWorldInstance *pWorld, double mass, const btTransform& startTransform, btCollisionShape* shape);
+    void _LocalRemoveRigidBody(BulletWorldInstance *, btCollisionShape* );
     void _InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& parameters);
     void _InitWorld(BulletWorldInstance* pWorld, btCollisionShape *pGroundShape, btVector3 dMin, btVector3 dMax, bool centerMesh);
 
     std::vector<BulletWorldInstance*> m_vWorlds;
     //HeightMap *m_pHeightMap;
-    boost::thread* m_pPoseThread;
-    boost::thread* m_pCommandThread;
+    // boost::thread* m_pPoseThread;
+    // boost::thread* m_pCommandThread;
+    boost::thread* m_pPublisherThread;
 
     Eigen::Vector3d m_dGravity;
     unsigned int m_nNumWorlds;
