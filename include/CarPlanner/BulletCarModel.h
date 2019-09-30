@@ -325,14 +325,15 @@ struct VehicleState
 
     carplanner_msgs::VehicleState toROS() const
     {
-      Sophus::SE3d rot_180_y(Eigen::Quaterniond(0,0,1,0),Eigen::Vector3d(0,0,0)); // Quat(w,x,y,z) , Vec(x,y,z)
-      Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));
+      // Sophus::SE3d rot_180_y(Eigen::Quaterniond(0,0,1,0),Eigen::Vector3d(0,0,0)); // Quat(w,x,y,z) , Vec(x,y,z)
+      // Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));
 
       carplanner_msgs::VehicleState state_msg;
       state_msg.header.stamp.sec = (*this).GetTime();
       state_msg.header.frame_id = "map";
 
-      Sophus::SE3d Twv = rot_180_y*(*this).m_dTwv*rot_180_x;
+      // Sophus::SE3d Twv = rot_180_y*(*this).m_dTwv*rot_180_x;
+      Sophus::SE3d Twv = (*this).m_dTwv;
       state_msg.pose.header.stamp = ros::Time::now();
       state_msg.pose.header.frame_id = "map";
       state_msg.pose.child_frame_id = "base_link";
@@ -501,6 +502,9 @@ public:
     ros::Publisher m_statePub;
     ros::Publisher m_meshPub;
     ros::Subscriber m_meshSub;
+    // ros::Subscriber m_meshSub2;
+    // std::string m_meshSubTopic = "/infinitam/mesh";
+    // std::string m_meshSubTopic = "/fake_mesh_publisher/mesh";
     // ros::Publisher m_posePub;
     // ros::Subscriber m_commandSub;
 
@@ -512,7 +516,7 @@ public:
     void _pubState(VehicleState&);
     void _pubMesh();
     void _pubMesh(btCollisionShape*);
-    void _pubMesh(btCollisionShape*, const btTransform*);
+    void _pubMesh(btCollisionShape*, btTransform*);
     void _meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr&);
     // void _PoseThreadFunc();
     // void _CommandThreadFunc(const carplanner_msgs::Command::ConstPtr&);
