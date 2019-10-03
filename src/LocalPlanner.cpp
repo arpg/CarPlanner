@@ -658,8 +658,8 @@ bool LocalPlanner::InitializeLocalProblem(LocalProblem& problem,
     dStartStateFixed.m_dTwv = dFixedStart;
     dGoalStateFixed.m_dTwv = dFixedGoal;
     //and now we can project to 2d and get our 2d planner points
-    Eigen::Vector6d dStartPose2D = dStartStateFixed.ToPose();
-    Eigen::Vector6d dGoalPose2D = dGoalStateFixed.ToPose();
+    Eigen::Vector6d dStartPose2D = dStartStateFixed.ToXYZTCV();
+    Eigen::Vector6d dGoalPose2D = dGoalStateFixed.ToXYZTCV();
 
     //make sure we don't have start and end velocities of zero
     if(dStartPose2D[5] == 0 && dGoalPose2D[5] == 0){

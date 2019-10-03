@@ -113,6 +113,7 @@ void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dM
     InitROS();
   }
 
+
 //  if (real) {
 //    m_pPoseThread = new boost::thread( std::bind( &BulletCarModel::_PoseThreadFunc, this ));
 //  }
@@ -204,6 +205,8 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
   body->setContactProcessingThreshold(BT_LARGE_FLOAT);
   pWorld->m_pTerrainBody = body;
   pWorld->m_pDynamicsWorld->addRigidBody(body,COL_GROUND,COL_RAY|COL_CAR);
+
+  pWorld->enableGUI(true);
 
   //create the ground object
   // _LocalAddRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL_CAR);
@@ -328,32 +331,34 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
 void BulletCarModel::InitROS()
 {
   m_nh = new ros::NodeHandle("~");
-  m_statePub = m_nh->advertise<carplanner_msgs::VehicleState>("state",1);
+  // m_statePub = m_nh->advertise<carplanner_msgs::VehicleState>("state",1);
   m_meshPub = m_nh->advertise<mesh_msgs::TriangleMeshStamped>("bullet_mesh",1);
   // m_meshSub = m_nh->subscribe<mesh_msgs::TriangleMeshStamped>(m_meshSubTopic, 1, boost::bind(&BulletCarModel::_meshCB, this, _1))
   m_meshSub = m_nh->subscribe<mesh_msgs::TriangleMeshStamped>("/infinitam/mesh", 1, boost::bind(&BulletCarModel::_meshCB, this, _1));
   // m_meshSub2 = m_nh->subscribe<mesh_msgs::TriangleMeshStamped>("/fake_mesh_publisher/mesh", 1, boost::bind(&BulletCarModel::_meshCB, this, _1));
 
-  m_pPublisherThread = new boost::thread( std::bind( &BulletCarModel::_PublisherFunc, this ));
+  // m_pPublisherThread = new boost::thread( std::bind( &BulletCarModel::_PublisherFunc, this ));
+  // m_pStatePublisherThread = new boost::thread( std::bind( &BulletCarModel::_StatePublisherFunc, this ));
+  m_pMeshPublisherThread = new boost::thread( std::bind( &BulletCarModel::_MeshPublisherFunc, this ));
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::_pubState()
-{
-  VehicleState state;
-  GetVehicleState( 0, state );
-  _pubState(state);
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::_pubState(VehicleState& state)
-{
-  carplanner_msgs::VehicleState state_msg = state.toROS();
-  m_statePub.publish(state_msg);
-  m_tfbr.sendTransform(state_msg.pose);
-  ros::spinOnce();
-}
+// ///////////////////////////////////////////////////////////////////////////////////////////
+// void BulletCarModel::_pubState()
+// {
+//   VehicleState state;
+//   GetVehicleState( 0, state );
+//   _pubState(state);
+// }
+//
+//
+// /////////////////////////////////////////////////////////////////////////////////////////////
+// void BulletCarModel::_pubState(VehicleState& state)
+// {
+//   carplanner_msgs::VehicleState state_msg = state.toROS();
+//   m_statePub.publish(state_msg);
+//   m_tfbr.sendTransform(state_msg.pose);
+//   ros::spinOnce();
+// }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_pubMesh()
@@ -438,7 +443,7 @@ void BulletCarModel::_meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr& mes
 
   BulletWorldInstance* pWorld = GetWorldInstance(0);
   btCollisionObjectArray objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
-  if( objarr.size()>3 )
+  if( objarr.size()>2 )
     return;
   // pWorld->m_pDynamicsWorld->removeCollisionObject(pWorld->m_pTerrainBody);
   // pWorld->m_pTerrainShape = meshShape;
@@ -455,7 +460,7 @@ void BulletCarModel::_meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr& mes
   // _LocalAddRigidBody(pWorld, 0.0, *(new const btTransform(btQuaternion(0,0,0,1),btVector3(0,0,0))), pWorld->m_pTerrainShape, COL_GROUND, COL_RAY|COL_CAR);
   // pWorld->m_pTerrainBody->setCollisionShape(pWorld->m_pTerrainShape);
   body->setWorldTransform(btTransform(btQuaternion(0,0,0,1),btVector3(2,2,-2)));
-  pWorld->m_pDynamicsWorld->addCollisionObject(body);
+  pWorld->m_pDynamicsWorld->addRigidBody(body);
 
 
   //
@@ -504,6 +509,28 @@ void BulletCarModel::_PublisherFunc()
   while( ros::ok() )
   {
     _pubState();
+    _pubMesh();
+
+    ros::Rate(100).sleep();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// void BulletCarModel::_StatePublisherFunc()
+// {
+//   while( ros::ok() )
+//   {
+//     _pubState();
+//
+//     ros::Rate(100).sleep();
+//   }
+// }
+
+////////////////////////////////////////////////////////////////////////////////////////////
+void BulletCarModel::_MeshPublisherFunc()
+{
+  while( ros::ok() )
+  {
     _pubMesh();
 
     ros::Rate(100).sleep();

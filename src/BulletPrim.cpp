@@ -177,7 +177,7 @@ double BulletPrim::getPrim( const Vector4d& axyv_start, const Vector4d& axyv_goa
     //update the path
     prim_path.resize(motion_sample.m_vStates.size());
     for (size_t i = 0; i < prim_path.size(); i++ ){
-      Vector6d xyztcv = motion_sample.m_vStates[i].ToPose();//x y z theta curvature velocity
+      Vector6d xyztcv = motion_sample.m_vStates[i].ToXYZTCV();//x y z theta curvature velocity
       prim_path[i] << xyztcv[3], xyztcv[0], xyztcv[1], xyztcv[5];
     }
 
@@ -193,7 +193,11 @@ double BulletPrim::controlCommandsToCost(const vector<ControlCommand>& commands)
   double cost(0);
 
   //some heuristics to convert commands to cost based on force/steering/time/all etc
-  std::for_each(commands.begin(), commands.end(), [&](const ControlCommand &c){ cost+=c.m_dForce* c.m_dT; });
+  std::for_each(commands.begin(), commands.end(), [&](const ControlCommand &c)
+  {
+    cost+=c.m_dForce* c.m_dT;
+  }
+);
 
   return cost;
 }

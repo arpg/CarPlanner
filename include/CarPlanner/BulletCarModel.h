@@ -208,11 +208,6 @@ struct VehicleState
         return !ground;
     }
 
-    /// Uses the VehicleStateToPose function to convert the
-    Eigen::Vector6d ToPose(){
-        return VehicleStateToPose(*this);
-    }
-
     double GetTheta() const
     {
         //calculate theta
@@ -225,7 +220,7 @@ struct VehicleState
 
     /// This function gets a vehicle state and returns a 5d pose vector which is parametrized as
     /// [x,y,t,k,v] where t is the 2d angle, k is the path curvature and v is the velocity
-    static Eigen::Vector6d VehicleStateToPose(const VehicleState& state //< The given state to construct the pose from
+    static Eigen::Vector6d VehicleStateToXYZTCV(const VehicleState& state //< The given state to construct the pose from
                                               )
     {
         //Eigen::Vector6d dPose = mvl::T2Cart(state.m_dTwv);
@@ -238,6 +233,61 @@ struct VehicleState
                    state.m_dCurvature,
                    state.m_dV.norm();
         return poseOut;
+    }
+
+    /// Uses the VehicleStateToXYZTCV function to convert the
+    Eigen::Vector6d ToXYZTCV(){
+        return VehicleStateToXYZTCV(*this);
+    }
+
+    // x y z roll pitch yaw
+    static Eigen::Vector6d VehicleStateToXYZRPY(const VehicleState& state)
+    {
+        Eigen::Vector7d poseTmp = VehicleStateToXYZQuat(state);
+        // Eigen::Quaterniond quatTmp(poseTmp[3],poseTmp[4],poseTmp[5],poseTmp[6]);
+        Eigen::Quaterniond quatTmp = state.m_dTwv.unit_quaternion();
+        // Eigen::Vector3d yprTmp = quatTmp.toYawPitchRoll();
+        auto rpyTmp = quatTmp.toRotationMatrix().eulerAngles(0, 1, 2);
+        Eigen::Vector6d poseOut;
+        poseOut << state.m_dTwv.translation()[0],
+                   state.m_dTwv.translation()[1],
+                   state.m_dTwv.translation()[2],
+                   rpyTmp[0],
+                   rpyTmp[1],
+                   rpyTmp[2];
+        return poseOut;
+    }
+
+    Eigen::Vector6d ToXYZRPY(){
+        return VehicleStateToXYZRPY(*this);
+    }
+
+    // x y z qx qy qz qw
+    static Eigen::Vector7d VehicleStateToXYZQuat(const VehicleState& state)
+    {
+        Eigen::Vector7d poseOut;
+        poseOut << state.m_dTwv.translation()[0],
+                   state.m_dTwv.translation()[1],
+                   state.m_dTwv.translation()[2],
+                   state.m_dTwv.unit_quaternion().x(),
+                   state.m_dTwv.unit_quaternion().y(),
+                   state.m_dTwv.unit_quaternion().z(),
+                   state.m_dTwv.unit_quaternion().w();
+        return poseOut;
+    }
+
+    Eigen::Vector7d ToXYZQuat(){
+        return VehicleStateToXYZQuat(*this);
+    }
+
+    double GetNormalVelocity(const VehicleState& state)
+    {
+      return state.m_dV.norm();
+    }
+
+    double GetNormalVelocity()
+    {
+      return GetNormalVelocity(*this);
     }
 
     double GetTime() const
@@ -325,15 +375,15 @@ struct VehicleState
 
     carplanner_msgs::VehicleState toROS() const
     {
-      // Sophus::SE3d rot_180_y(Eigen::Quaterniond(0,0,1,0),Eigen::Vector3d(0,0,0)); // Quat(w,x,y,z) , Vec(x,y,z)
-      // Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));
+      Sophus::SE3d rot_180_y(Eigen::Quaterniond(0,0,1,0),Eigen::Vector3d(0,0,0)); // Quat(w,x,y,z) , Vec(x,y,z)
+      Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));
 
       carplanner_msgs::VehicleState state_msg;
       state_msg.header.stamp.sec = (*this).GetTime();
       state_msg.header.frame_id = "map";
 
-      // Sophus::SE3d Twv = rot_180_y*(*this).m_dTwv*rot_180_x;
-      Sophus::SE3d Twv = (*this).m_dTwv;
+      Sophus::SE3d Twv = rot_180_x*(*this).m_dTwv*rot_180_x;
+      // Sophus::SE3d Twv = (*this).m_dTwv;
       state_msg.pose.header.stamp = ros::Time::now();
       state_msg.pose.header.frame_id = "map";
       state_msg.pose.child_frame_id = "base_link";
@@ -439,6 +489,7 @@ struct BulletWorldInstance : public boost::mutex
         m_dTime = -1;
         m_bParametersChanged = false;
         m_dTotalCommandTime = 0;
+        m_bEnableGUI = false;
     }
 
     ~BulletWorldInstance()
@@ -448,8 +499,15 @@ struct BulletWorldInstance : public boost::mutex
         }
     }
 
+    void enableGUI(bool do_enable_gui)
+    {
+      m_bEnableGUI = do_enable_gui;
+    }
+
     std::vector<Sophus::SE3d> m_vWheelTransforms;
     double m_dTime;
+
+    bool m_bEnableGUI;
 
     btScalar *m_pHeightfieldData;
     btCollisionShape *m_pTerrainShape;
@@ -512,6 +570,8 @@ public:
 
     void InitROS();
     void _PublisherFunc();
+    void _StatePublisherFunc();
+    void _MeshPublisherFunc();
     void _pubState();
     void _pubState(VehicleState&);
     void _pubMesh();
@@ -587,7 +647,9 @@ protected:
     //HeightMap *m_pHeightMap;
     // boost::thread* m_pPoseThread;
     // boost::thread* m_pCommandThread;
-    boost::thread* m_pPublisherThread;
+    // boost::thread* m_pPublisherThread;
+    boost::thread* m_pStatePublisherThread;
+    boost::thread* m_pMeshPublisherThread;
 
     Eigen::Vector3d m_dGravity;
     unsigned int m_nNumWorlds;

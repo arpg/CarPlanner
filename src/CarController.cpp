@@ -224,17 +224,22 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
             //first find out where we are on the current plan
             _GetCurrentPlanIndex(dPlanStartTime,nCurrentPlanIndex,nCurrentSampleIndex,interpolationAmount);
 
-            if(nCurrentPlanIndex == m_lControlPlans.end() ){
+            if(nCurrentPlanIndex == m_lControlPlans.end() )
+            {
                 //or if we have overshot all plans, clear
                 while(m_lControlPlans.begin() != m_lControlPlans.end() )
                 {
                     delete(m_lControlPlans.front());
                     m_lControlPlans.erase(m_lControlPlans.begin());
                 }
-            }else{
-                if(nCurrentPlanIndex != m_lControlPlans.begin() ){
+            }
+            else
+            {
+                if(nCurrentPlanIndex != m_lControlPlans.begin() )
+                {
                     //remove all plans before the current plan
-                    while(m_lControlPlans.begin() != nCurrentPlanIndex) {
+                    while(m_lControlPlans.begin() != nCurrentPlanIndex)
+                    {
                         //delete this plan
                         delete(m_lControlPlans.front());
                         m_lControlPlans.erase(m_lControlPlans.begin());
@@ -280,7 +285,8 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
         //push forward the start state if there are commands stacked up
         MotionSample delaySample;
         double totalDelay = delayFunctor.GetCarModel()->GetParameters(0)[CarParameters::ControlDelay];
-        if(totalDelay > 0 && m_lCurrentCommands.size() != 0){
+        if(totalDelay > 0 && m_lCurrentCommands.size() != 0)
+        {
             for(const ControlCommand& command: m_lCurrentCommands){
                 if(totalDelay <= 0){
                     break;
@@ -298,7 +304,9 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
             //and now set the starting state to this new value
             pPlan->m_StartState = delaySample.m_vStates.back();
             m_LastCommand = delaySample.m_vCommands.back();
-        }else{
+        }
+        else
+        {
             Eigen::Vector3d targetVel;
             Sophus::SE3d targetPos;
             GetCurrentCommands(dPlanStartTime,m_LastCommand,targetVel,targetPos);
@@ -322,7 +330,8 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
             pPlan->m_nStartSampleIndex = oldPlanStartSample;
 
             //start by finding the closest segment to our current location
-            if(m_bFirstPose){
+            if(m_bFirstPose)
+            {
                 //if this is the first pose, search everywhere for the car
                 oldPlanStartSegment = 0;
                 oldPlanStartSample = 0;
@@ -731,4 +740,3 @@ void CarController::PrepareLookaheadTrajectory(const std::vector<MotionSample> &
     }
 
 }
-
