@@ -332,9 +332,9 @@ void BulletCarModel::InitROS()
 {
   m_nh = new ros::NodeHandle("~");
   // m_statePub = m_nh->advertise<carplanner_msgs::VehicleState>("state",1);
-  m_meshPub = m_nh->advertise<mesh_msgs::TriangleMeshStamped>("bullet_mesh",1);
+  m_meshPub = m_nh->advertise<mesh_msgs::TriangleMeshStamped>("output_mesh",1);
   // m_meshSub = m_nh->subscribe<mesh_msgs::TriangleMeshStamped>(m_meshSubTopic, 1, boost::bind(&BulletCarModel::_meshCB, this, _1))
-  m_meshSub = m_nh->subscribe<mesh_msgs::TriangleMeshStamped>("/infinitam/mesh", 1, boost::bind(&BulletCarModel::_meshCB, this, _1));
+  m_meshSub = m_nh->subscribe<mesh_msgs::TriangleMeshStamped>("input_mesh", 1, boost::bind(&BulletCarModel::_meshCB, this, _1));
   // m_meshSub2 = m_nh->subscribe<mesh_msgs::TriangleMeshStamped>("/fake_mesh_publisher/mesh", 1, boost::bind(&BulletCarModel::_meshCB, this, _1));
 
   // m_pPublisherThread = new boost::thread( std::bind( &BulletCarModel::_PublisherFunc, this ));
@@ -434,6 +434,9 @@ void BulletCarModel::_pubMesh(btCollisionShape* collisionShape, btTransform* par
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+#define CIMM_REPLACE 1
+#define CIMM_APPEND 2
+#define CARPLANNER_INPUT_MESH_MODE CIMM_REPLACE // CIMM_REPLACE, CIMM_APPEND
 void BulletCarModel::_meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr& mesh_msg)
 {
   ROS_INFO_THROTTLE(1, "got mesh");
@@ -443,11 +446,21 @@ void BulletCarModel::_meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr& mes
 
   BulletWorldInstance* pWorld = GetWorldInstance(0);
   btCollisionObjectArray objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
+
+  #if CARPLANNER_INPUT_MESH_MODE==CIMM_REPLACE
+
+  ROS_INFO_THROTTLE(1, "replacing terrainshape with new mesh");
+  pWorld->m_pDynamicsWorld->removeCollisionObject(pWorld->m_pTerrainBody);
+  pWorld->m_pTerrainShape = meshShape;
+  pWorld->m_pTerrainBody->setCollisionShape(pWorld->m_pTerrainShape);
+  pWorld->m_pTerrainBody->setWorldTransform(btTransform(btQuaternion(0,0,0,1),btVector3(2,2,-2)));
+  pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pTerrainBody);
+
+  #elif CARPLANNER_INPUT_MESH_MODE==CIMM_APPEND
   if( objarr.size()>2 )
     return;
-  // pWorld->m_pDynamicsWorld->removeCollisionObject(pWorld->m_pTerrainBody);
-  // pWorld->m_pTerrainShape = meshShape;
 
+  ROS_INFO_THROTTLE(1, "appending new mesh to world");
   btTransform tr;
   tr.setIdentity();
   btAssert((!meshShape || meshShape->getShapeType() != INVALID_SHAPE_PROXYTYPE));
@@ -455,65 +468,25 @@ void BulletCarModel::_meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr& mes
   btRigidBody::btRigidBodyConstructionInfo cInfo(0.0,myMotionState,meshShape,btVector3(0,0,0));
   btRigidBody* body = new btRigidBody(cInfo);
   body->setContactProcessingThreshold(BT_LARGE_FLOAT);
-  // pWorld->m_pTerrainBody = body;
-
-  // _LocalAddRigidBody(pWorld, 0.0, *(new const btTransform(btQuaternion(0,0,0,1),btVector3(0,0,0))), pWorld->m_pTerrainShape, COL_GROUND, COL_RAY|COL_CAR);
-  // pWorld->m_pTerrainBody->setCollisionShape(pWorld->m_pTerrainShape);
   body->setWorldTransform(btTransform(btQuaternion(0,0,0,1),btVector3(2,2,-2)));
   pWorld->m_pDynamicsWorld->addRigidBody(body);
 
-
-  //
-  // btTriangleMesh* trimesh = new btTriangleMesh();
-  // // btVector3 localScaling(6.f,6.f,6.f);
-  // // std::cout << "HERE I AM 1" << std::endl;
-  //
-	// for ( uint i=0; i < mesh_msg->mesh.triangles.size();i++)
-	// {
-  //   mesh_msgs::TriangleIndices triangle = mesh_msg->mesh.triangles[i];
-  //   // geometry_msgs::Point vertice = mesh_msg->mesh.vertices[i];
-  //
-  //   int index0 = triangle.vertex_indices[0];
-	// 	int index1 = triangle.vertex_indices[1];
-	// 	int index2 = triangle.vertex_indices[2];
-  //
-	// 	btVector3 vertex0(mesh_msg->mesh.vertices[index0].x, mesh_msg->mesh.vertices[index0].y, mesh_msg->mesh.vertices[index0].z+3);
-	// 	btVector3 vertex1(mesh_msg->mesh.vertices[index1].x, mesh_msg->mesh.vertices[index1].y, mesh_msg->mesh.vertices[index1].z+3);
-	// 	btVector3 vertex2(mesh_msg->mesh.vertices[index2].x, mesh_msg->mesh.vertices[index2].y, mesh_msg->mesh.vertices[index2].z+3);
-	// 	// btVector3 vertex1(wo.mVertices[index1*3], wo.mVertices[index1*3+1],wo.mVertices[index1*3+2]);
-	// 	// btVector3 vertex2(wo.mVertices[index2*3], wo.mVertices[index2*3+1],wo.mVertices[index2*3+2]);
-  //
-	// 	// vertex0 *= localScaling;
-	// 	// vertex1 *= localScaling;
-	// 	// vertex2 *= localScaling;
-  //
-	// 	trimesh->addTriangle(vertex0,vertex1,vertex2);
-	// }
-  //
-  // btCollisionShape* tricollshape = new btBvhTriangleMeshShape(trimesh,true,true);
-  // BulletWorldInstance* pWorld = GetWorldInstance(0);
-  // // // pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pTerrainShape);
-  // // _LocalRemoveRigidBody(pWorld, pWorld->m_pTerrainShape);
-  // // pWorld->m_pTerrainShape = tricollshape;
-  // // // pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pTerrainShape);
-  // // btTransform tr;
-  // // tr.setIdentity();
-  // // _LocalAddRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL_CAR);
-  // pWorld->m_pTerrainShape = tricollshape;
-
+  #else
+    //error
+  #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-void BulletCarModel::_PublisherFunc()
-{
-  while( ros::ok() )
-  {
-    _pubState();
-    _pubMesh();
-
-    ros::Rate(100).sleep();
-  }
-}
+// void BulletCarModel::_PublisherFunc()
+// {
+//   while( ros::ok() )
+//   {
+//     _pubState();
+//     _pubMesh();
+//
+//     ros::Rate(100).sleep();
+//   }
+// }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // void BulletCarModel::_StatePublisherFunc()

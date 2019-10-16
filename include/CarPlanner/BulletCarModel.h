@@ -280,6 +280,20 @@ struct VehicleState
         return VehicleStateToXYZQuat(*this);
     }
 
+    static Sophus::SE3d VehicleStateToSE3d(const VehicleState& state)
+    {
+        Sophus::SE3d poseOut;
+        Eigen::Vector7d state_vec = VehicleStateToXYZQuat(state);
+        poseOut.translation() = *(new Eigen::Vector3d(state_vec[0], state_vec[1], state_vec[2]));
+        poseOut.setQuaternion(Eigen::Quaterniond(state_vec[6], state_vec[3], state_vec[4], state_vec[5]));
+        return poseOut;
+    }
+
+    Sophus::SE3d ToSE3d()
+    {
+        return VehicleStateToSE3d(*this);
+    }
+
     double GetNormalVelocity(const VehicleState& state)
     {
       return state.m_dV.norm();
@@ -569,11 +583,11 @@ public:
     // GUIHelperInterface* m_guiHelper;
 
     void InitROS();
-    void _PublisherFunc();
-    void _StatePublisherFunc();
+    // void _PublisherFunc();
+    // void _StatePublisherFunc();
     void _MeshPublisherFunc();
-    void _pubState();
-    void _pubState(VehicleState&);
+    // void _pubState();
+    // void _pubState(VehicleState&);
     void _pubMesh();
     void _pubMesh(btCollisionShape*);
     void _pubMesh(btCollisionShape*, btTransform*);
