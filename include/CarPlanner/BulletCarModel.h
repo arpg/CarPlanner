@@ -15,7 +15,8 @@
 #include <mesh_msgs/TriangleMeshStamped.h>
 // #include <MochaGui/MochaGui.h>
 // #include "/home/mike/code/MochaGui_ros/MochaGui.h"
-#include "/home/mike/code/MochaGui_ros/conversion_tools.h"
+#include "/home/ohrad/code/mochagui/conversion_tools.h"
+// #include <mochagui/conversion_tools.h>
 
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"

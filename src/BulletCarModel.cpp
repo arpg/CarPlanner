@@ -365,42 +365,13 @@ void BulletCarModel::_pubMesh()
 {
     BulletWorldInstance* pWorld = GetWorldInstance(0);
 
-    // pubMesh(pWorld->m_pTerrainShape);
-    // for(uint i=0; i<pWorld->m_vCollisionShapes.size(); i++)
-    // {
-    //   printf("%sPublishing CollisionShape %d\n", "[BulletCarModel] ", i);
-    //   const btTransform* parentTransform = new btTransform(btQuaternion(0,0,0,1),btVector3(0,0,0));
-    //   _pubMesh(pWorld->m_vCollisionShapes[i], parentTransform);
-    //   delete parentTransform;
-    // }
-    // for(uint i=0; i<pWorld->m_vVehicleCollisionShapes.size(); i++)
-    // {
-    //   printf("%sPublishing VehicleCollisionShape %d\n", "[BulletCarModel] ", i);
-    //   VehicleState mstate;
-    //   GetVehicleState(0, mstate);
-    //   carplanner_msgs::VehicleState state = mstate.toROS();
-    //   const btTransform* parentTransform = new btTransform(btQuaternion(state.pose.transform.rotation.x,state.pose.transform.rotation.y,state.pose.transform.rotation.z,state.pose.transform.rotation.w),btVector3(state.pose.transform.translation.x,state.pose.transform.translation.y,state.pose.transform.translation.z));
-    //   _pubMesh(pWorld->m_vVehicleCollisionShapes[i], parentTransform);
-    //   delete parentTransform;
-    // }
-
-    // btVector3 center;
-    // btScalar radius;
-    // for(uint i=0; i<pWorld->m_pDynamicsWorld->getNumNonStaticRigidBodies(); i++)
-    // {
-    //   btRigidBody* body = pWorld->m_pDynamicsWorld->getNonStaticRigidBody(i);
-    //   body->getCollisionShape()->getBoundingSphere (center, radius);
-    //   // printf("pubbing mesh %d with pos %.2f %.2f %.2f\n", i, center[0], center[1], center[2]);
-    //   _pubMesh(body->getCollisionShape());
-    // }
-
     btCollisionObjectArray objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
-    printf("%d meshes to pub\n",objarr.size());
+    // printf("%d meshes to pub\n",objarr.size());
     for(uint i=0; i<objarr.size(); i++)
     {
       if( objarr[i] != pWorld->m_pVehicle->getRigidBody() )
       {
-        printf("pubbing Mesh %d\n",i);
+        // printf("pubbing Mesh %d\n",i);
         _pubMesh(objarr[i]->getCollisionShape(), new btTransform(objarr[i]->getWorldTransform()));
       }
     }
@@ -451,6 +422,7 @@ void BulletCarModel::_meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr& mes
 
   ROS_INFO_THROTTLE(1, "replacing terrainshape with new mesh");
   pWorld->m_pDynamicsWorld->removeCollisionObject(pWorld->m_pTerrainBody);
+  // pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pTerrainBody);
   pWorld->m_pTerrainShape = meshShape;
   pWorld->m_pTerrainBody->setCollisionShape(pWorld->m_pTerrainShape);
   pWorld->m_pTerrainBody->setWorldTransform(btTransform(btQuaternion(0,0,0,1),btVector3(2,2,-2)));
@@ -660,6 +632,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
     //set the mass and wheelbase of the car
     //pWorld->m_Parameters[CarParameters::WheelBase] = pWorld->m_vParameters[eWheelBase];
     //pWorld->m_Parameters.m_dMass = pWorld->m_vParameters[eMass];
+
     pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pVehicle->getRigidBody());
     //change rigid body dimensions
     btBoxShape *pBoxShape =  (btBoxShape *)pWorld->m_pVehicle->getRigidBody()->getCollisionShape();
@@ -669,6 +642,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
     pBoxShape->calculateLocalInertia(pWorld->m_Parameters[CarParameters::Mass],localInertia);
     pWorld->m_pVehicle->getRigidBody()->setMassProps(pWorld->m_Parameters[CarParameters::Mass],localInertia);
     pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pVehicle->getRigidBody(),COL_CAR,COL_NOTHING);
+
 
     //change the position of the wheels
     pWorld->m_pVehicle->getWheelInfo(0).m_chassisConnectionPointCS[0] = pWorld->m_Parameters[CarParameters::WheelBase]/2;
@@ -819,7 +793,6 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
       //DLOG(INFO) << "Sending torque vector " << T_w.transpose() << " to car.";
       pWorld->m_pDynamicsWorld->stepSimulation(dT,1,dT);
     }
-
 
     Eigen::Matrix4d Twv;
     //do this in a critical section
