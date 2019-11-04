@@ -126,7 +126,7 @@ void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &param
 //    m_poseThreadPub = m_nh.advertise<nav_msgs::Odometry>("pose",1);
 //    m_commandThreadSub = m_nh.subscribe<carplanner_msgs::Command>("command", 1, boost::bind(&BulletCarModel::_CommandThreadFunc, this, _1));
 //  }
-
+  have_rxed_first_mesh = 0;
 
   aiNode *pAINode = pAIScene->mRootNode;
 
@@ -363,16 +363,40 @@ void BulletCarModel::InitROS()
 //////////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_pubMesh()
 {
+    // static std::vector<uint> last_num_obj_triangles;
+    // static uint count_since_last_pub;
+
     BulletWorldInstance* pWorld = GetWorldInstance(0);
 
     btCollisionObjectArray objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
+
     // printf("%d meshes to pub\n",objarr.size());
     for(uint i=0; i<objarr.size(); i++)
     {
       if( objarr[i] != pWorld->m_pVehicle->getRigidBody() )
       {
-        // printf("pubbing Mesh %d\n",i);
+        // uint num_tris = dynamic_cast<btTriangleMesh*>(dynamic_cast<btBvhTriangleMeshShape*>(objarr[i]->getCollisionShape())->getMeshInterface())->getNumTriangles();
+        //
+        // if( last_num_obj_triangles.size() <= i )
+        // {
+        //   last_num_obj_triangles.push_back(num_tris);
+        //   count_since_last_pub = 0;
+        // }
+        //
+        // if( last_num_obj_triangles[i] == num_tris || count_since_last_pub<20)
+        // {
+        //   // Skipping
+        //   count_since_last_pub++;
+        //   continue;
+        // }
+        // else
+        // {
+        //   last_num_obj_triangles[i] = num_tris;
+        // }
+        //
+        // printf("pubbing mesh %d with $d faces\n",i,objarr[i]->getCollisionShape());
         _pubMesh(objarr[i]->getCollisionShape(), new btTransform(objarr[i]->getWorldTransform()));
+        // count_since_last_pub = 0;
       }
     }
 
@@ -388,6 +412,7 @@ void BulletCarModel::_pubMesh(btCollisionShape* collisionShape)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_pubMesh(btCollisionShape* collisionShape, btTransform* parentTransform)
 {
+    // ROS_INFO("about to pub mesh with %d faces", dynamic_cast<btTriangleMesh*>(dynamic_cast<btBvhTriangleMeshShape*>(collisionShape)->getMeshInterface())->getNumTriangles());
 
     mesh_msgs::TriangleMesh* mesh = new mesh_msgs::TriangleMesh();
     btTransform* transformedToRosParent = new btTransform(btQuaternion(1,0,0,0),btVector3(0,0,0));
@@ -396,9 +421,10 @@ void BulletCarModel::_pubMesh(btCollisionShape* collisionShape, btTransform* par
 
     mesh_msgs::TriangleMeshStamped* mesh_stamped = new mesh_msgs::TriangleMeshStamped();
     mesh_stamped->mesh = *mesh;
-    mesh_stamped->header.frame_id = "map";
+    mesh_stamped->header.frame_id = "world";
     mesh_stamped->header.stamp = ros::Time::now();
 
+    // ROS_INFO("pubbing mesh with %d faces", mesh->triangles.size());
     m_meshPub.publish(*mesh_stamped);
     ros::spinOnce();
     // ros::Rate(10).sleep();
@@ -410,7 +436,39 @@ void BulletCarModel::_pubMesh(btCollisionShape* collisionShape, btTransform* par
 #define CARPLANNER_INPUT_MESH_MODE CIMM_REPLACE // CIMM_REPLACE, CIMM_APPEND
 void BulletCarModel::_meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr& mesh_msg)
 {
-  ROS_INFO_THROTTLE(1, "got mesh");
+  static tf::StampedTransform Twm;
+  while(!have_rxed_first_mesh)
+  {
+    try
+    {
+      m_tflistener.waitForTransform("world", "camera_color_optical_frame", ros::Time::now(), ros::Duration(1.0));
+      m_tflistener.lookupTransform("world", "camera_color_optical_frame", ros::Time(0), Twm);
+    }
+    catch (tf::TransformException ex)
+    {
+      ROS_ERROR("%s",ex.what());
+      usleep(10000);
+      continue;
+    }
+
+    // tf::Transform rot_90_x(tf::Quaternion(0.707,0,0,0.707),tf::Vector3(0,0,0));
+    tf::Transform rot_180_x(tf::Quaternion(1,0,0,0),tf::Vector3(0,0,0));
+    // tf::Transform rot_270_x(tf::Quaternion(-0.707,0,0,0.707),tf::Vector3(0,0,0));
+    // tf::Transform rot_90_y(tf::Quaternion(0,0.707,0,0.707),tf::Vector3(0,0,0));
+    // tf::Transform rot_180_y(tf::Quaternion(0,1,0,0),tf::Vector3(0,0,0));
+    // tf::Transform rot_270_y(tf::Quaternion(0,-0.707,0,0.707),tf::Vector3(0,0,0));
+    // tf::Transform rot_90_z(tf::Quaternion(0,0,0.707,0.707),tf::Vector3(0,0,0));
+    // tf::Transform rot_180_z(tf::Quaternion(0,0,1,0),tf::Vector3(0,0,0));
+    // tf::Transform rot_270_z(tf::Quaternion(0,0,-0.707,0.707),tf::Vector3(0,0,0));
+    // tf::Transform link_to_optical(tf::Quaternion(-0.5,0.5,-0.5,0.5),tf::Vector3(0,0,0));
+    // Twm.setData(Twm*rot_270_x*rot_270_z);
+    // Twm.setData(Twm.inverse());
+    Twm.setData(rot_180_x*Twm/*rot_180_z*/);
+
+    have_rxed_first_mesh = 1;
+  }
+
+  ROS_INFO("got mesh with %d faces", mesh_msg->mesh.triangles.size());
 
   btCollisionShape* meshShape;// = new btBvhTriangleMeshShape(pTriangleMesh,true,true);
   convertMeshMsg2CollisionShape(new mesh_msgs::TriangleMeshStamped(*mesh_msg), &meshShape);
@@ -418,21 +476,42 @@ void BulletCarModel::_meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr& mes
   BulletWorldInstance* pWorld = GetWorldInstance(0);
   btCollisionObjectArray objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
 
+  uint new_num_tri = dynamic_cast<btTriangleMesh*>(dynamic_cast<btBvhTriangleMeshShape*>(meshShape)->getMeshInterface())->getNumTriangles();
+
   #if CARPLANNER_INPUT_MESH_MODE==CIMM_REPLACE
 
-  ROS_INFO_THROTTLE(1, "replacing terrainshape with new mesh");
   pWorld->m_pDynamicsWorld->removeCollisionObject(pWorld->m_pTerrainBody);
   // pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pTerrainBody);
   pWorld->m_pTerrainShape = meshShape;
   pWorld->m_pTerrainBody->setCollisionShape(pWorld->m_pTerrainShape);
-  pWorld->m_pTerrainBody->setWorldTransform(btTransform(btQuaternion(0,0,0,1),btVector3(2,2,-2)));
+
+  // tf::StampedTransform Twm;
+  // try
+  // {
+  //   m_tflistener.waitForTransform("world", "infinitam", ros::Time::now(), ros::Duration(1.0));
+  //   m_tflistener.lookupTransform("world", "infinitam", ros::Time(0), Twm);
+  // }
+  // catch (tf::TransformException ex)
+  // {
+  //   ROS_ERROR("%s",ex.what());
+  //   return;
+  // }
+  // pWorld->m_pTerrainBody->setWorldTransform(btTransform(btQuaternion(0.5,0.5,0.5,0.5),btVector3(0,0,0)));
+  // tf::Transform rot_180_x(tf::Quaternion(0,0,1,0),tf::Vector3(0,0,0));
+  // Twm.setData(Twm*rot_180_x);
+  pWorld->m_pTerrainBody->setWorldTransform(btTransform(
+    btQuaternion(Twm.getRotation().getX(),Twm.getRotation().getY(),Twm.getRotation().getZ(),Twm.getRotation().getW()),
+    btVector3(Twm.getOrigin().getX(),Twm.getOrigin().getY(),Twm.getOrigin().getZ())));
+
+  ROS_INFO("replacing terrainshape with new mesh with %d faces", new_num_tri);
+
   pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pTerrainBody);
 
   #elif CARPLANNER_INPUT_MESH_MODE==CIMM_APPEND
   if( objarr.size()>2 )
     return;
 
-  ROS_INFO_THROTTLE(1, "appending new mesh to world");
+  ROS_INFO("appending new mesh to world with %d faces", new_num_tri);
   btTransform tr;
   tr.setIdentity();
   btAssert((!meshShape || meshShape->getShapeType() != INVALID_SHAPE_PROXYTYPE));

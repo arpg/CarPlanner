@@ -10,12 +10,13 @@
 
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 #include <carplanner_msgs/VehicleState.h>
 #include <carplanner_msgs/Command.h>
 #include <mesh_msgs/TriangleMeshStamped.h>
-// #include <MochaGui/MochaGui.h>
-// #include "/home/mike/code/MochaGui_ros/MochaGui.h"
-#include "/home/ohrad/code/mochagui/conversion_tools.h"
+
+#include "/home/mike/code/MochaGui_ros/conversion_tools.h"
+//#include "/home/ohrad/code/mochagui/conversion_tools.h"
 // #include <mochagui/conversion_tools.h>
 
 #include "btBulletDynamicsCommon.h"
@@ -394,13 +395,13 @@ struct VehicleState
       Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));
 
       carplanner_msgs::VehicleState state_msg;
-      state_msg.header.stamp.sec = (*this).GetTime();
-      state_msg.header.frame_id = "map";
+      // state_msg.header.stamp.sec = (*this).GetTime();
+      // state_msg.header.frame_id = "world";
 
       Sophus::SE3d Twv = rot_180_x*(*this).m_dTwv*rot_180_x;
       // Sophus::SE3d Twv = (*this).m_dTwv;
-      state_msg.pose.header.stamp = ros::Time::now();
-      state_msg.pose.header.frame_id = "map";
+      state_msg.pose.header.stamp.sec = (*this).GetTime();
+      state_msg.pose.header.frame_id = "world";
       state_msg.pose.child_frame_id = "base_link";
       state_msg.pose.transform.translation.x = Twv.translation()[0];
       state_msg.pose.transform.translation.y = Twv.translation()[1];
@@ -414,8 +415,8 @@ struct VehicleState
       {
           geometry_msgs::TransformStamped tf;
           tf.header.stamp = ros::Time::now();
-          tf.header.frame_id = "map";
-          tf.child_frame_id = "wheel" + std::to_string(i);
+          tf.header.frame_id = "world";
+          tf.child_frame_id = "wheel_link" + std::to_string(i);
 
           Sophus::SE3d Twv = (*this).m_vWheelStates[i];
           tf.transform.translation.x = Twv.translation()[0];
@@ -572,9 +573,11 @@ public:
     bool m_bEnableROS;
     ros::NodeHandle* m_nh;
     tf::TransformBroadcaster m_tfbr;
+    tf::TransformListener m_tflistener;
     ros::Publisher m_statePub;
     ros::Publisher m_meshPub;
     ros::Subscriber m_meshSub;
+    bool have_rxed_first_mesh;
     // ros::Subscriber m_meshSub2;
     // std::string m_meshSubTopic = "/infinitam/mesh";
     // std::string m_meshSubTopic = "/fake_mesh_publisher/mesh";

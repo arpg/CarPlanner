@@ -38,7 +38,7 @@ struct ApplyCommandsThreadFunctor {
     //const double m_startingCurvature;
     //const double m_dt;
     LocalProblem& m_Problem;
-    const int m_index;    
+    const int m_index;
     Eigen::Vector6d& m_poseOut;
     Eigen::VectorXd& m_dErrorOut;
     MotionSample& m_Sample;
@@ -247,7 +247,8 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, 
     int errorVecSize = problem.m_eCostMode == eCostPoint ? POINT_COST_ERROR_TERMS : TRAJ_UNIT_ERROR_TERMS*g_nTrajectoryCostSegments+TRAJ_EXTRA_ERROR_TERMS;
     Eigen::VectorXd error;
     if(sample.m_vStates.size() == 0 ){
-        DLOG(ERROR) << problem.m_nPlanId << ":Sample with size 0 detected. Aborting.";
+        // DLOG(ERROR) << problem.m_nPlanId << ":Sample with size 0 detected. Aborting.";
+        ROS_INFO_THROTTLE(.1, "%d:Sample with size 0 detected. Aborting.", problem.m_nPlanId);
         error = Eigen::VectorXd(errorVecSize);
         error.setOnes();
         error *= DBL_MAX;
@@ -489,7 +490,8 @@ void LocalPlanner::SampleAcceleration(std::vector<ControlCommand>& vCommands, Lo
     _GetAccelerationProfile(problem);
     //problem.m_dSegmentTime += problem.m_dSegmentTimeDelta;
     if(std::isfinite(problem.m_dSegmentTime) == false ){
-        DLOG(ERROR) << problem.m_nPlanId << ":Segment time of " << problem.m_dSegmentTime << " was not finite.";
+        // DLOG(ERROR) << problem.m_nPlanId << ":Segment time of " << problem.m_dSegmentTime << " was not finite.";
+        ROS_INFO_THROTTLE(.1,"%d:Segment time of %d was not finite.", problem.m_nPlanId, problem.m_dSegmentTime);
         return;
     }
     double t;
@@ -1094,5 +1096,3 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
     problem.m_eError = eSuccess;
     return true;
 }
-
-

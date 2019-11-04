@@ -180,7 +180,8 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
     m_dLastDelta = problem.m_CurrentSolution.m_dOptParams - problem.m_dInitOptParams;
 
     if(problem.m_CurrentSolution.m_dNorm > g_dMaxPlanNorm){
-        DLOG(ERROR) << "Planned control plan with norm too high -> " << problem.m_CurrentSolution.m_dNorm;
+        // DLOG(ERROR) << "Planned control plan with norm too high -> " << problem.m_CurrentSolution.m_dNorm;
+        ROS_INFO_THROTTLE(.1,"Planned control plan with norm too high -> %d", problem.m_CurrentSolution.m_dNorm);
         res = false;
     }
 
@@ -384,7 +385,8 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
         //solve the control plan
         if( _SolveControlPlan(pPlan,problem,trajectorySample) == false ) {
             //do not use the plan
-            DLOG(ERROR) << "Could not solve plan.";
+            // DLOG(ERROR) << "Could not solve plan.";
+            ROS_INFO_THROTTLE(.1,"Could not solve plan.");
             return false;
         }
 
