@@ -897,4 +897,3 @@ void* DefaultVehicleRaycaster::castRay(const btVector3& from,const btVector3& to
     }
     return 0;
 }
-
