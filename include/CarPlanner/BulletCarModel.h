@@ -9,14 +9,18 @@
 #define	BULLETCARMODEL_H
 
 #include <ros/ros.h>
-#include <tf/transform_broadcaster.h>
+// #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
+// #include <tf2_ros/transform_listener.h>
+// #include <tf2_ros/static_transform_broadcaster.h>
 #include <carplanner_msgs/VehicleState.h>
 #include <carplanner_msgs/Command.h>
+#include <carplanner_msgs/ResetMesh.h>
 #include <mesh_msgs/TriangleMeshStamped.h>
 
-#include "/home/mike/code/MochaGui_ros/conversion_tools.h"
-//#include "/home/ohrad/code/mochagui/conversion_tools.h"
+//#include "/home/mike/code/MochaGui_ros/conversion_tools.h"
+#include "/home/ohrad/code/mochagui/mesh_conversion_tools.hpp"
+#include "/home/ohrad/code/mochagui/tf_conversion_tools.hpp"
 // #include <mochagui/conversion_tools.h>
 
 #include "btBulletDynamicsCommon.h"
@@ -45,6 +49,7 @@
 #include <HAL/Messages/Matrix.h>
 #include <HAL/Messages/Pose.h>
 #include <exception>
+#include <ctime>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -245,7 +250,7 @@ struct VehicleState
     // x y z roll pitch yaw
     static Eigen::Vector6d VehicleStateToXYZRPY(const VehicleState& state)
     {
-        Eigen::Vector7d poseTmp = VehicleStateToXYZQuat(state);
+        // Eigen::Vector7d poseTmp = VehicleStateToXYZQuat(state);
         // Eigen::Quaterniond quatTmp(poseTmp[3],poseTmp[4],poseTmp[5],poseTmp[6]);
         Eigen::Quaterniond quatTmp = state.m_dTwv.unit_quaternion();
         // Eigen::Vector3d yprTmp = quatTmp.toYawPitchRoll();
@@ -294,6 +299,14 @@ struct VehicleState
     Sophus::SE3d ToSE3d()
     {
         return VehicleStateToSE3d(*this);
+    }
+
+    // This is used to flip between the coord convention between gl/viz and physical/ros
+    VehicleState FlipCoordFrame()
+    {
+        Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));    
+        m_dTwv = rot_180_x * (*this).m_dTwv * rot_180_x;
+        return *this;    
     }
 
     double GetNormalVelocity(const VehicleState& state)
@@ -391,15 +404,15 @@ struct VehicleState
 
     carplanner_msgs::VehicleState toROS() const
     {
-      Sophus::SE3d rot_180_y(Eigen::Quaterniond(0,0,1,0),Eigen::Vector3d(0,0,0)); // Quat(w,x,y,z) , Vec(x,y,z)
-      Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));
+    //   Sophus::SE3d rot_180_y(Eigen::Quaterniond(0,0,1,0),Eigen::Vector3d(0,0,0)); // Quat(w,x,y,z) , Vec(x,y,z)
+    //   Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));
 
       carplanner_msgs::VehicleState state_msg;
       // state_msg.header.stamp.sec = (*this).GetTime();
       // state_msg.header.frame_id = "world";
 
-      Sophus::SE3d Twv = rot_180_x*(*this).m_dTwv*rot_180_x;
-      // Sophus::SE3d Twv = (*this).m_dTwv;
+    //   Sophus::SE3d Twv = rot_180_x*(*this).m_dTwv*rot_180_x;
+      Sophus::SE3d Twv = (*this).m_dTwv;
       state_msg.pose.header.stamp.sec = (*this).GetTime();
       state_msg.pose.header.frame_id = "world";
       state_msg.pose.child_frame_id = "base_link";
@@ -572,12 +585,16 @@ public:
 
     bool m_bEnableROS;
     ros::NodeHandle* m_nh;
-    tf::TransformBroadcaster m_tfbr;
+    // tf::TransformBroadcaster m_tfbr;
     tf::TransformListener m_tflistener;
+    // tf2_ros::Buffer m_tfbuffer;
+    // tf2_ros::TransformListener m_tflistener(m_tfbuffer);
     ros::Publisher m_statePub;
-    ros::Publisher m_meshPub;
-    ros::Subscriber m_meshSub;
-    bool have_rxed_first_mesh;
+    ros::Publisher m_terrainMeshPub;
+    ros::Publisher m_chassisMeshPub;
+    ros::Subscriber m_terrainMeshSub;
+    bool reset_mesh_frame;
+    // ros::ServiceServer m_resetmeshSrv;
     // ros::Subscriber m_meshSub2;
     // std::string m_meshSubTopic = "/infinitam/mesh";
     // std::string m_meshSubTopic = "/fake_mesh_publisher/mesh";
@@ -587,17 +604,21 @@ public:
     // GUIHelperInterface* m_guiHelper;
 
     void InitROS();
-    // void _PublisherFunc();
+    void _PublisherFunc();
     // void _StatePublisherFunc();
-    void _MeshPublisherFunc();
+    void _TerrainMeshPublisherFunc();
     // void _pubState();
     // void _pubState(VehicleState&);
     void _pubMesh();
-    void _pubMesh(btCollisionShape*);
-    void _pubMesh(btCollisionShape*, btTransform*);
-    void _meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr&);
+    void _pubMesh(btCollisionShape*, ros::Publisher*);
+    void _pubMesh(btCollisionShape*, btTransform*, ros::Publisher*);
+    // void _meshCB(const mesh_msgs::TriangleMeshStamped::ConstPtr&);
+    // bool ResetMesh(carplanner_msgs::ResetMesh::Request&, carplanner_msgs::ResetMesh::Response&);
     // void _PoseThreadFunc();
     // void _CommandThreadFunc(const carplanner_msgs::Command::ConstPtr&);
+
+    void replaceMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm);
+    void appendMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm);
 
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -651,6 +672,8 @@ public:
     void UpdateParameters(const std::vector<RegressionParameter>& vNewParams,int index);
     void _InternalUpdateParameters(BulletWorldInstance* pWorld);
 
+    unsigned int GetNumWorlds(){ return m_nNumWorlds; }
+
 
 protected:
 
@@ -665,9 +688,9 @@ protected:
     //HeightMap *m_pHeightMap;
     // boost::thread* m_pPoseThread;
     // boost::thread* m_pCommandThread;
-    // boost::thread* m_pPublisherThread;
-    boost::thread* m_pStatePublisherThread;
-    boost::thread* m_pMeshPublisherThread;
+    boost::thread* m_pPublisherThread;
+    // boost::thread* m_pStatePublisherThread;
+    boost::thread* m_pTerrainMeshPublisherThread;
 
     Eigen::Vector3d m_dGravity;
     unsigned int m_nNumWorlds;

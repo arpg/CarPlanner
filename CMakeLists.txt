@@ -41,6 +41,7 @@ find_package( catkin REQUIRED
     roscpp
     std_msgs
     tf
+    tf2_ros
     message_generation
     nav_msgs
     carplanner_msgs

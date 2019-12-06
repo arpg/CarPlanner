@@ -633,7 +633,12 @@ void	RaycastVehicle::updateFriction(btScalar	timeStep)
 
                     //calculate the slip angle
                     btVector3 rel_pos1 = wheelInfo.m_raycastInfo.m_contactPointWS - m_chassisBody->getCenterOfMassPosition();
-                    btVector3 vel_dir = m_chassisBody->getVelocityInLocalPoint(rel_pos1).normalized();
+                    // btVector3 vel_dir = m_chassisBody->getVelocityInLocalPoint(rel_pos1).normalized();
+                    btVector3 vel_dir = m_chassisBody->getVelocityInLocalPoint(rel_pos1).safeNormalize();
+                    // if(!(i < m_forwardWS.size())){ // TODO: this similar command occasionally fails inside btAlignedObjectArray::operator[i] on the next line
+                    //     short int temp = 0;
+                    // }
+                    // usleep(100); // mike m 
                     double slip = fabs(acos(fabs(vel_dir.dot(m_forwardWS[i]))));
                     //DLOG(INFO) << "Current slip angle for wheel " << i << " is " << slip*180.0/M_PI << " degrees.";
 

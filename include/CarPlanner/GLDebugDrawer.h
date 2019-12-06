@@ -3,7 +3,7 @@
 
 #include "pangolin/pangolin.h"
 #include "SceneGraph/SceneGraph.h"
-#include <bullet/LinearMath/btIDebugDraw.h>
+#include <LinearMath/btIDebugDraw.h>
 
 class GLDebugDrawer : public btIDebugDraw
 {
