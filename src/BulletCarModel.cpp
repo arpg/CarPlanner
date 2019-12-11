@@ -478,7 +478,8 @@ void BulletCarModel::replaceMesh(uint worldId, btCollisionShape* meshShape, tf::
   // btAssert((!meshShape || meshShape->getShapeType() != INVALID_SHAPE_PROXYTYPE));
 
   BulletWorldInstance* pWorld = GetWorldInstance(worldId);
-  boost::mutex::scoped_lock lock(*pWorld);
+  // boost::unique_lock<boost::mutex> lock(*pWorld);
+  pWorld->lock();
 
   if(pWorld->m_pTerrainBody != NULL)
   {
@@ -491,6 +492,9 @@ void BulletCarModel::replaceMesh(uint worldId, btCollisionShape* meshShape, tf::
     btQuaternion(Twm.getRotation().getX(),Twm.getRotation().getY(),Twm.getRotation().getZ(),Twm.getRotation().getW()),
     btVector3(Twm.getOrigin().getX(),Twm.getOrigin().getY(),Twm.getOrigin().getZ())));
   pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pTerrainBody);
+  
+  // boost::unique_lock<boost::mutex> unlock(*pWorld);
+  pWorld->unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -499,11 +503,17 @@ void BulletCarModel::appendMesh(uint worldId, btCollisionShape* meshShape, tf::S
   btAssert((!meshShape || meshShape->getShapeType() != INVALID_SHAPE_PROXYTYPE));
 
   BulletWorldInstance* pWorld = GetWorldInstance(worldId);
-  boost::mutex::scoped_lock lock(*pWorld);
+  // boost::unique_lock<boost::mutex> lock(*pWorld);
+  pWorld->lock();
   
   uint max_num_coll_objs = 3;
   if( pWorld->m_pDynamicsWorld->getCollisionWorld()->getNumCollisionObjects() >= max_num_coll_objs )
+  {
+    // boost::unique_lock<boost::mutex> unlock(*pWorld);
+    pWorld->unlock();
+    replaceMesh(worldId, meshShape, Twm);
     return;
+  }
 
   btTransform tr;
   tr.setIdentity();
@@ -517,6 +527,9 @@ void BulletCarModel::appendMesh(uint worldId, btCollisionShape* meshShape, tf::S
     btVector3(Twm.getOrigin().getX(),Twm.getOrigin().getY(),Twm.getOrigin().getZ())));
   pWorld->m_pTerrainBody = body;
   pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pTerrainBody);
+
+  // boost::unique_lock<boost::mutex> unlock(*pWorld);
+  pWorld->unlock();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
