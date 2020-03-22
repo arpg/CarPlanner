@@ -18,9 +18,10 @@
 #include <carplanner_msgs/ResetMesh.h>
 #include <mesh_msgs/TriangleMeshStamped.h>
 
-//#include "/home/mike/code/MochaGui_ros/conversion_tools.h"
-#include "/home/ohrad/code/mochagui/mesh_conversion_tools.hpp"
-#include "/home/ohrad/code/mochagui/tf_conversion_tools.hpp"
+#include "/home/mike/code/mochagui/mesh_conversion_tools.hpp"
+#include "/home/mike/code/mochagui/tf_conversion_tools.hpp"
+//#include "/home/ohrad/code/mochagui/mesh_conversion_tools.hpp"
+//#include "/home/ohrad/code/mochagui/tf_conversion_tools.hpp"
 // #include <mochagui/conversion_tools.h>
 
 #include "btBulletDynamicsCommon.h"
@@ -632,7 +633,6 @@ public:
     double GetTotalWheelFriction(int worldId, double dt);
     double _CalculateWheelFriction(int wheelNum, BulletWorldInstance* pInstance, double dt);
     /////////////////////////////////////////////////////////////////////////////////////////
-    void UpdateStateFromNode();
     void UpdateState(const int &worldId,
                      const ControlCommand command,
                      const double forceDt = -1,

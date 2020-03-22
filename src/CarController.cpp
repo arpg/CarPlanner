@@ -35,6 +35,7 @@ void CarController::Init( std::vector<MotionSample>& segmentSamples, LocalPlanne
     m_bStopping = false;
     m_bStarted = false;
     m_bFirstPose = true;
+    m_bStillRun = true;
     //m_pCurrentPlan = NULL;
     m_dt = dt;
     m_bPoseUpdated = false;
@@ -146,7 +147,7 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
     res = true;
 
     boost::timer::cpu_timer timer;
-    while(1)
+    while(m_bStillRun)
     {
         //make sure the plan is not fully airborne
         //bool isAirborne = (pPlan->m_StartState.IsAirborne() && pPlan->m_GoalState.IsAirborne());

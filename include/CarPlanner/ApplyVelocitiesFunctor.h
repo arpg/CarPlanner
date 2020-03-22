@@ -47,11 +47,11 @@ struct MotionSample
         return dMax;
     }
 
-    CommandList GetDelayedCommandList(const double& delay, const int& nStartIndex)
+    CommandList GetDelayedCommandList(const double& delay, const int& nMotionStartIndex)
     {
         CommandList prevCommands;
         double totalDelay = delay;
-        for(int kk = nStartIndex ; kk >= 0 && totalDelay > 0 ; kk--) {
+        for(int kk = nMotionStartIndex ; kk >= 0 && totalDelay > 0 ; kk--) {
             prevCommands.push_back(m_vCommands[kk]);
             totalDelay -= m_vCommands[kk].m_dT;
         }
@@ -196,23 +196,23 @@ public:
 
     VehicleState ApplyVelocities(const VehicleState &startState,
                                  MotionSample& sample,
-                                 int nIndex = 0,
+                                 int nWorldId = 0,
                                  bool noCompensation = false);
 
     void ApplyVelocities(const VehicleState &startingState,
                          std::vector<ControlCommand> &m_vCommands,
                          std::vector<VehicleState>& vStatesOut,
-                         const int nStartIndex,
-                         const int nEndIndex,
-                         const int nIndex,
+                         const int nMotionStartIndex,
+                         const int nMotionEndIndex,
+                         const int nWorldId,
                          const bool noCompensation = false,
                          const CommandList *pPreviousCommands = NULL);
 
 
-    double GetMaxWheelTorque(const VehicleState& state, const int nIndex);
-    double GetGravityCompensation(int nIndex);
-    double GetSteeringCompensation(VehicleState& state, double phi, double curvature, int nIndex);
-    double GetFrictionCompensation(int nIndex, double dt);
+    double GetMaxWheelTorque(const VehicleState& state, const int nWorldId);
+    double GetGravityCompensation(int nWorldId);
+    double GetSteeringCompensation(VehicleState& state, double phi, double curvature, int nWorldId);
+    double GetFrictionCompensation(int nWorldId, double dt);
 
     BulletCarModel* GetCarModel(){ return m_pCarModel; }
     const BulletCarModel* GetCarModel() const{ return m_pCarModel; }

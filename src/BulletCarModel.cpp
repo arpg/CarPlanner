@@ -643,10 +643,10 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
         }
       }
     }else if(previousCommands.size() > 0){
-      DLOG(INFO) << "Command history list size < 2, using first command.";
+      dout("Command history list size < 2, using first command.");
       delayedCommands = previousCommands.front();
     }else{
-      DLOG(INFO) << "Command history list size == 0. Passing empty command";
+      dout("Command history list size == 0. Passing empty command");
       delayedCommands.m_dForce = pWorld->m_Parameters[CarParameters::AccelOffset]*SERVO_RANGE;
       delayedCommands.m_dCurvature = 0;
       delayedCommands.m_dPhi = pWorld->m_Parameters[CarParameters::SteeringOffset]*SERVO_RANGE;
@@ -903,6 +903,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
     }
     // printf("OK 2\n");
 
+    // update internal variables with produce of stepSim
     //do this in a critical section
     {
       boost::mutex::scoped_lock lock(*pWorld);

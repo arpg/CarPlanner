@@ -7,7 +7,7 @@ static double& g_dTimeTarget = CVarUtils::CreateGetUnsavedCVar("debug.TimeTarget
 //static bool& g_bUseGoalPoseStepping = CVarUtils::CreateGetCVar("debug.UseGoalPoseStepping",false);
 static bool& g_bDisableDamping = CVarUtils::CreateGetUnsavedCVar("debug.DisableDamping",false);
 static bool& g_bMonotonicCost(CVarUtils::CreateGetUnsavedCVar("debug.MonotonicCost", true,""));
-static bool& g_bVerbose(CVarUtils::CreateGetUnsavedCVar("debug.Verbose", false,""));
+static bool& g_bVerbose(CVarUtils::CreateGetUnsavedCVar("debug.Verbose", true,""));
 static bool& g_bTrajectoryCost(CVarUtils::CreateGetUnsavedCVar("debug.TrajectoryCost", true,""));
 static int& g_nTrajectoryCostSegments(CVarUtils::CreateGetUnsavedCVar("debug.TrajectoryCostSegments", 10,""));
 
@@ -528,7 +528,7 @@ void LocalPlanner::SampleAcceleration(std::vector<ControlCommand>& vCommands, Lo
     }
 
     //if there is control delay, add empty commands to the end, so that the control delay queue can be flushed out
-//    double totalDelay = problem.m_pFunctor->GetCarModel()->GetParameters(nIndex)[CarParameters::ControlDelay];
+//    double totalDelay = problem.m_pFunctor->GetCarModel()->GetParameters(iWorld)[CarParameters::ControlDelay];
 //    if(totalDelay > 0 && problem.m_pFunctor->GetPreviousCommand().size() != 0){
 //        CommandList::iterator it  = problem.m_pFunctor->GetPreviousCommand().begin();
 //        while(totalDelay > 0 && it != problem.m_pFunctor->GetPreviousCommand().end()){
@@ -543,7 +543,7 @@ void LocalPlanner::SampleAcceleration(std::vector<ControlCommand>& vCommands, Lo
 ///////////////////////////////////////////////////////////////////////
 Eigen::Vector6d LocalPlanner::SimulateTrajectory(MotionSample& sample,
                                                  LocalProblem& problem,
-                                                 const int nIndex /*= 0*/,
+                                                 const int iWorld /*= 0*/,
                                                  const bool& bBestSolution /* = false */)
 {
     sample.Clear();
@@ -559,7 +559,7 @@ Eigen::Vector6d LocalPlanner::SimulateTrajectory(MotionSample& sample,
     if(sample.m_vCommands.size() == 0){
         vState = problem.m_StartState;
     }else {
-        vState = problem.m_pFunctor->ApplyVelocities( problem.m_StartState, sample, nIndex, bUsingBestSolution);
+        vState = problem.m_pFunctor->ApplyVelocities( problem.m_StartState, sample, iWorld, bUsingBestSolution);
     }
     //transform the result back
     Eigen::Vector6d dRes = _Transform3dGoalPose(vState,problem);
@@ -757,7 +757,7 @@ bool LocalPlanner::Iterate(LocalProblem &problem )
         }
 
         if( m_dEps > 5 || problem.m_bInLocalMinimum == true) {
-            //DLOG(INFO) << "Failed to plan. Norm = " << problem.m_dCurrentNorm;
+            DLOG(INFO) << "Failed to plan. Norm = " << problem.m_dCurrentNorm;
             return true;
         }
 
@@ -1028,7 +1028,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
 
 
         if(g_bVerbose){
-            std::cout << "Damping norms are: [";
+            DLOG(INFO) << "Damping norms are: [";
         }
         //pick out the best damping by comparing the norms
         for(int ii = 0 ; ii < DAMPING_STEPS ; ii++) {
@@ -1036,7 +1036,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
             dout_cond("Final state is " << pDampingStates[ii].transpose().format(CleanFmt),g_bVerbose);
             norm = _CalculateErrorNorm(*vCubicProblems[ii],pDampingErrors[ii]);
             if(g_bVerbose){
-                std::cout << " " << norm;
+                DLOG(INFO) << " " << norm;
             }
             if(norm < dampedSolution.m_dNorm ) {
                 dampedSolution = vCubicProblems[ii]->m_CurrentSolution;
@@ -1047,7 +1047,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
         }
 
         if(g_bVerbose){
-            std::cout << "]" << std::endl;
+            DLOG(INFO) << "]" ;
         }
 
     }else{

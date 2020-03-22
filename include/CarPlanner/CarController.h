@@ -14,6 +14,10 @@ class CarController
 {
 public:
     CarController();
+    ~CarController()
+    { 
+        m_bStillRun = false;
+    }
 
     void Init(std::vector<MotionSample> &segmentSamples, LocalPlanner *pPlanner, BulletCarModel *pModel, double dt) ;
     void Reset();
@@ -59,6 +63,7 @@ private:
     bool m_bStopping;
     bool m_bPoseUpdated;
     bool m_bFirstPose;
+    bool m_bStillRun;
 
     float& m_dMaxControlPlanTime;
     float& m_dLookaheadTime; 

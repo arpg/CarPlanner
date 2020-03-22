@@ -78,7 +78,7 @@ struct LocalProblemSolution
 
     }
     //BezierBoundaryProblem m_Solution;
-    Eigen::Vector5d m_dOptParams;
+    Eigen::Vector5d m_dOptParams; // x, y, theta, acceleration, aggressiveness (OPT_DIM is used to selectively enable aggressiveness, currently set to 4)
     MotionSample m_Sample;
     double m_dMinTrajectoryTime;
     double m_dNorm;
@@ -198,8 +198,8 @@ public:
     /// Given the local problem struct, will simulate the vehicle physics and produce a motion sample
     Eigen::Vector6d SimulateTrajectory(MotionSample& sample,     //< The motion sample which will be filled by the function
                                       LocalProblem& problem,    //< The Local Problem structure which will define the trajectory
-                                      const int nIndex = 0      //< The index of the world to run the simulation in (this is to do with the thread)
-                                      , const bool &bBestSolution = false);
+                                      const int iWorld = 0,      //< The index of the world to run the simulation in (this is to do with the thread)
+                                      const bool &bBestSolution = false);
     /// Samples the acceleration and curvature of the current control law
     void SampleAcceleration(std::vector<ControlCommand>& vCommands, LocalProblem &problem) const;
     void StressTest(LocalProblem &problem);

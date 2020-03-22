@@ -28,8 +28,8 @@
 
 #define DEBUG 1
 #ifdef DEBUG
-#define dout(str) std::cout << __FUNCTION__ << " --  " << str << std::endl
-#define dout_cond(str,x) if(x)std::cout << __FUNCTION__ << " --  " << str << std::endl
+#define dout(str) DLOG(INFO) << __FUNCTION__ << " --  " << str
+#define dout_cond(str,x) if(x) DLOG(INFO) << __FUNCTION__ << " --  " << str
 #else
 #define dout(str)
 #endif
