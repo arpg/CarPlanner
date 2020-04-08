@@ -757,7 +757,7 @@ bool LocalPlanner::Iterate(LocalProblem &problem )
         }
 
         if( m_dEps > 5 || problem.m_bInLocalMinimum == true) {
-            DLOG(INFO) << "Failed to plan. Norm = " << problem.m_dCurrentNorm;
+            // DLOG(INFO) << "Failed to plan. Norm = " << problem.m_dCurrentNorm;
             return true;
         }
 
