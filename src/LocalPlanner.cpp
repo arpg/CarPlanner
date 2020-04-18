@@ -762,9 +762,9 @@ bool LocalPlanner::Iterate(LocalProblem &problem )
         }
 
         _IterateGaussNewton(problem);
-        if(problem.m_bInertialControlActive){
-            CalculateTorqueCoefficients(problem,&problem.m_CurrentSolution.m_Sample);
-        }
+        // if(problem.m_bInertialControlActive){
+        //     CalculateTorqueCoefficients(problem,&problem.m_CurrentSolution.m_Sample);
+        // }
         return false;
     }catch(...){
         return false;

@@ -278,7 +278,7 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
   pWorld->m_Tuning.m_maxSuspensionForce = pWorld->m_Parameters[CarParameters::MaxSuspForce];
   pWorld->m_Tuning.m_maxSuspensionTravelCm = pWorld->m_Parameters[CarParameters::MaxSuspTravel]*100.0;
 
-  pWorld->m_pVehicle = new RaycastVehicle(pWorld->m_Tuning,pWorld->m_pCarChassis,pWorld->m_pVehicleRayCaster,&pWorld->m_pDynamicsWorld->getSolverInfo());
+  pWorld->m_pVehicle = new btRaycastVehicle(pWorld->m_Tuning,pWorld->m_pCarChassis,pWorld->m_pVehicleRayCaster);
   pWorld->m_pVehicle->setCoordinateSystem(CAR_RIGHT_AXIS,CAR_UP_AXIS,CAR_FORWARD_AXIS);
   ///never deactivate the vehicle
   pWorld->m_pCarChassis->forceActivationState(DISABLE_DEACTIVATION);
@@ -301,7 +301,7 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
 
   for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
   {
-    WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
+    btWheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
     wheel.m_rollInfluence = pWorld->m_Parameters[CarParameters::RollInfluence];
     Sophus::SE3d wheelTransform(Sophus::SO3d(),
     Eigen::Vector3d(wheel.m_chassisConnectionPointCS[0],wheel.m_chassisConnectionPointCS[1],wheel.m_chassisConnectionPointCS[2] /*+ wheel.getSuspensionRestLength()/2*/));
@@ -332,7 +332,7 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
   }
 
 
-  pWorld->m_vehicleBackup.SaveState(pWorld->m_pVehicle);
+  // pWorld->m_vehicleBackup.SaveState(pWorld->m_pVehicle);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -757,7 +757,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 
     for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
     {
-      WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
+      btWheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
       pWorld->m_pVehicle->updateWheelTransformsWS(wheel);
       pWorld->m_pVehicle->updateWheelTransform(i);
       wheel.m_suspensionRestLength1 = pWorld->m_Parameters[CarParameters::SuspRestLength];
@@ -766,7 +766,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
       wheel.m_wheelsDampingRelaxation = pWorld->m_Parameters[CarParameters::ExpDamping];
     }
 
-    pWorld->m_pVehicle->updateSuspension();
+    pWorld->m_pVehicle->updateSuspension(0.0);
 
   }
 
@@ -801,7 +801,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
   {
     btVector3 gravityForce(0,0,-10*pWorld->m_Parameters[CarParameters::Mass]);
     for(size_t ii = 0; ii < pWorld->m_pVehicle->getNumWheels() ; ii++) {
-      WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(ii);
+      btWheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(ii);
       if(wheel.m_raycastInfo.m_isInContact)
       {
         gravityForce -= wheel.m_raycastInfo.m_contactNormalWS*wheel.m_wheelsSuspensionForce;
@@ -999,7 +999,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
     BulletWorldInstance *pWorld = GetWorldInstance(nWorldId);
     boost::mutex::scoped_lock lock(*pWorld);
     //load the backup onto the vehicle
-    pWorld->m_vehicleBackup.LoadState(pWorld->m_pVehicle);
+    // pWorld->m_vehicleBackup.LoadState(pWorld->m_pVehicle);
 
     //set the wheel positions and contact
     for(size_t ii = 0; ii < state.m_vWheelStates.size() ; ii++) {
@@ -1028,15 +1028,13 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
     pWorld->m_pVehicle->getRigidBody()->setLinearVelocity(vel);
     pWorld->m_pVehicle->getRigidBody()->setAngularVelocity(w);
 
-
     //set the steering
     pWorld->m_pVehicle->SetAckermanSteering(state.m_dSteering);
-
 
     //raycast all wheels so they are correctly positioned
     //    for (int i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
     //    {
-    //        WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
+    //        btWheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
     //        pWorld->m_pVehicle->rayCast(wheel);
     //    }
   }
@@ -1125,22 +1123,27 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 /////////////////////////////////////////////////////////////////////////////////////////
 bool BulletCarModel::RayCast(const Eigen::Vector3d& dSource,const Eigen::Vector3d& dRayVector, Eigen::Vector3d& dIntersect, const bool& biDirectional, int index /*= 0*/)
 {
-  btVector3 source(dSource[0],dSource[1],dSource[2]);
-  btVector3 vec(dRayVector[0],dRayVector[1],dRayVector[2]);
-  btVector3 target = source + vec;
   BulletWorldInstance*pInstance = GetWorldInstance(index);
+  btVector3 dInt;
+  pInstance->m_pVehicleRayCaster->castRay(btVector3(dSource[0],dSource[1],dSource[2]), btVector3(dRayVector[0],dRayVector[1],dRayVector[2]), biDirectional, dInt);
+  dIntersect = Eigen::Vector3d(dInt[0],dInt[1],dInt[2]);
 
-  btVehicleRaycaster::btVehicleRaycasterResult results,results2;
-  if( biDirectional ){
-    source = source - vec;
-  }
+  // btVector3 source(dSource[0],dSource[1],dSource[2]);
+  // btVector3 vec(dRayVector[0],dRayVector[1],dRayVector[2]);
+  // btVector3 target = source + vec;
+  // BulletWorldInstance*pInstance = GetWorldInstance(index);
 
-  if(pInstance->m_pVehicleRayCaster->castRay(source,target,results) == 0){
-    return false;
-  }else{
-    Eigen::Vector3d dNewSource(source[0],source[1],source[2]);
-    dIntersect = dNewSource + results.m_distFraction* (biDirectional ? (Eigen::Vector3d)(dRayVector*2) : dRayVector);
-    return true;
-  }
+  // btVehicleRaycaster::btVehicleRaycasterResult results,results2;
+  // if( biDirectional ){
+  //   source = source - vec;
+  // }
+
+  // if(pInstance->m_pVehicleRayCaster->castRay(source,target,results) == 0){
+  //   return false;
+  // }else{
+  //   Eigen::Vector3d dNewSource(source[0],source[1],source[2]);
+  //   dIntersect = dNewSource + results.m_distFraction* (biDirectional ? (Eigen::Vector3d)(dRayVector*2) : dRayVector);
+  //   return true;
+  // }
 }
 

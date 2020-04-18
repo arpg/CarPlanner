@@ -101,7 +101,7 @@ set( SRCS
         src/WheelInfo.cpp
         src/CarParameters.cpp
         src/GLDebugDrawer.cpp
-        src/RaycastVehicle.cpp
+        #src/RaycastVehicle.cpp
         src/BezierBoundarySolver.cpp
         src/MochaException.cpp
         src/CarController.cpp

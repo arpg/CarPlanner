@@ -25,12 +25,14 @@
 // #include <mochagui/conversion_tools.h>
 
 #include "btBulletDynamicsCommon.h"
-#include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
-#include "BulletDynamics/ConstraintSolver/btHingeConstraint.h"
-#include "BulletDynamics/ConstraintSolver/btSliderConstraint.h"
+// #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
+// #include "BulletDynamics/ConstraintSolver/btHingeConstraint.h"
+// #include "BulletDynamics/ConstraintSolver/btSliderConstraint.h"
 #include "BulletCollision/CollisionShapes/btShapeHull.h"
-// #include "ExampleBrowser/CollisionShape2TriangleMesh.h"
-#include "BulletCollision/CollisionShapes/btConvexPolyhedron.h"
+// // #include "ExampleBrowser/CollisionShape2TriangleMesh.h"
+// #include "BulletCollision/CollisionShapes/btConvexPolyhedron.h"
+
+#include <BulletDynamics/Vehicle/btRaycastVehicle.h>
 
 #include "GLDebugDrawer.h"
 
@@ -38,7 +40,7 @@
 #include <boost/signals2/mutex.hpp>
 
 #include "CarParameters.h"
-#include "RaycastVehicle.h"
+//#include "btRaycastVehicle.h"
 #include "sophus/se3.hpp"
 
 #include <stdio.h>
@@ -482,31 +484,31 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-class BulletVehicleState
-{
-public:
+// class BulletVehicleState
+// {
+// public:
 
-    BulletVehicleState() {}
-    ~BulletVehicleState() {}
+//     BulletVehicleState() {}
+//     ~BulletVehicleState() {}
 
-    void LoadState(RaycastVehicle *pVehicle)
-    {
-        //copy back the data
-        *pVehicle = m_pVehicleBuffer;
-        memcpy( (void*)pVehicle->getRigidBody(), m_pChassisBuffer,sizeof(RaycastVehicle));
-    }
+//     void LoadState(btRaycastVehicle *pVehicle)
+//     {
+//         //copy back the data
+//         *pVehicle = m_pVehicleBuffer;
+//         memcpy( (void*)pVehicle->getRigidBody(), m_pChassisBuffer,sizeof(btRaycastVehicle));
+//     }
 
-    void SaveState(RaycastVehicle *pVehicle)
-    {
-        //make a backup of the vhicle
-        m_pVehicleBuffer = *pVehicle;
-        memcpy(m_pChassisBuffer, (void*)pVehicle->getRigidBody(),sizeof(btRigidBody));
-    }
+//     void SaveState(btRaycastVehicle *pVehicle)
+//     {
+//         //make a backup of the vhicle
+//         m_pVehicleBuffer = *pVehicle;
+//         memcpy(m_pChassisBuffer, (void*)pVehicle->getRigidBody(),sizeof(btRigidBody));
+//     }
 
-private:
-    unsigned char m_pChassisBuffer[sizeof(btRigidBody)];
-    RaycastVehicle m_pVehicleBuffer;
-};
+// private:
+//     unsigned char m_pChassisBuffer[sizeof(btRigidBody)];
+//     btRaycastVehicle m_pVehicleBuffer;
+// };
 
 struct BulletWorldInstance : public boost::mutex
 {
@@ -542,9 +544,9 @@ struct BulletWorldInstance : public boost::mutex
     btScalar *m_pHeightfieldData;
     btCollisionShape *m_pTerrainShape;
     btRigidBody *m_pTerrainBody;
-    RaycastVehicle::btVehicleTuning	m_Tuning;
+    btRaycastVehicle::btVehicleTuning	m_Tuning;
     btVehicleRaycaster*	m_pVehicleRayCaster;
-    RaycastVehicle*	m_pVehicle;
+    btRaycastVehicle*	m_pVehicle;
     btCollisionShape* m_pVehicleChassisShape;
 
     btAlignedObjectArray<btCollisionShape*> m_vCollisionShapes;
@@ -558,7 +560,7 @@ struct BulletWorldInstance : public boost::mutex
 
     btRigidBody* m_pCarChassis;
     GLDebugDrawer	m_DebugDrawer;
-    BulletVehicleState m_vehicleBackup;
+    // BulletVehicleState m_vehicleBackup;
     VehicleState m_state;
 
     CommandList m_lPreviousCommands;    //< List holding the previous commands sent to the model (Newest commands at the front, oldest at the back)
