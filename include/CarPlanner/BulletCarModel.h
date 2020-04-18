@@ -24,13 +24,15 @@
 //#include "/home/ohrad/code/mochagui/tf_conversion_tools.hpp"
 // #include <mochagui/conversion_tools.h>
 
-#include "btBulletDynamicsCommon.h"
+// #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 #include "BulletDynamics/ConstraintSolver/btHingeConstraint.h"
 #include "BulletDynamics/ConstraintSolver/btSliderConstraint.h"
 #include "BulletCollision/CollisionShapes/btShapeHull.h"
 // #include "ExampleBrowser/CollisionShape2TriangleMesh.h"
 #include "BulletCollision/CollisionShapes/btConvexPolyhedron.h"
+#include "BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h"
+#include "BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h"
 
 #include "GLDebugDrawer.h"
 
