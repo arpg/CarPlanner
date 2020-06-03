@@ -23,12 +23,12 @@ set(BOOST_LIBS thread date_time system timer filesystem)
 
 find_package( PkgConfig REQUIRED )
 find_package( Eigen3 REQUIRED )
-find_package( Pangolin REQUIRED )
-find_package( SceneGraph REQUIRED )
+#find_package( Pangolin REQUIRED )
+#find_package( SceneGraph REQUIRED )
 find_package( CVars REQUIRED )
 find_package( Protobuf REQUIRED )
 find_package( Bullet REQUIRED )
-find_package( HAL REQUIRED )
+#find_package( HAL REQUIRED )
 find_package( Boost COMPONENTS ${BOOST_LIBS} REQUIRED)
 find_package( QUATLIB REQUIRED )
 find_package( Sophus REQUIRED)
@@ -51,7 +51,7 @@ find_package( catkin REQUIRED
 add_definitions(${EIGEN_DEFINITIONS})
 
 catkin_package(
-  INCLUDE_DIRS include
+  INCLUDE_DIRS
   CATKIN_DEPENDS roscpp std_msgs message_runtime nav_msgs carplanner_msgs
   )
 
@@ -59,9 +59,9 @@ set( _LIBRARIES
 	${BULLET_LIBRARIES}
 	${Boost_LIBRARIES}
 	${Sophus_LIBRARIES}
-	${SceneGraph_LIBRARIES}
+	#${SceneGraph_LIBRARIES}
 	${CVars_LIBRARIES}
-	${HAL_LIBRARIES}
+	#${HAL_LIBRARIES}
 	${assimp_LIBRARIES}
 	${YAML_CPP_LIBRARIES}
 	${GFLAGS_LIBRARIES}
@@ -74,9 +74,9 @@ set( _INCLUDE_DIRS
 	${CVars_INCLUDE_DIRS}
         ${BULLET_INCLUDE_DIR}
         ${assimp_INCLUDE_DIRS}
-        ${SceneGraph_INCLUDE_DIRS}
-        ${Pangolin_INCLUDE_DIRS}
-        ${HAL_INCLUDE_DIRS}
+        #${SceneGraph_INCLUDE_DIRS}
+        #${Pangolin_INCLUDE_DIRS}
+        #${HAL_INCLUDE_DIRS}
         ${YAML_CPP_INCLUDE_DIRS}
         ${GFLAGS_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -100,12 +100,12 @@ set( SRCS
         src/LocalPlannerNoCVar.cpp
         src/WheelInfo.cpp
         src/CarParameters.cpp
-        src/GLDebugDrawer.cpp
+        #src/GLDebugDrawer.cpp
         src/RaycastVehicle.cpp
         src/BezierBoundarySolver.cpp
         src/MochaException.cpp
         src/CarController.cpp
-        src/Localizer.cpp
+        #src/Localizer.cpp
         src/DirectBoundarySolver.cpp
 	#src/BulletPrim.cpp
    )
@@ -114,17 +114,19 @@ set( HDRS
         include/CarPlanner/ApplyVelocitiesFunctor.h
         include/CarPlanner/CarPlannerCommon.h
         include/CarPlanner/BulletCarModel.h
-        include/CarPlanner/Localizer.h
+        #include/CarPlanner/Localizer.h
         include/CarPlanner/CarWheel.h
         include/CarPlanner/CarRegressor.h
         include/CarPlanner/CarController.h
-        include/CarPlanner/GLDebugDrawer.h
+        #include/CarPlanner/GLDebugDrawer.h
         include/CarPlanner/CarParameters.h
         include/CarPlanner/DirectBoundarySolver.h
         include/CarPlanner/CVarHelpers.h
         include/CarPlanner/RpgUtils.h
 	#include/CarPlanner/BulletPrim.h
         include/CarPlanner/yaml_eig_conv.h
+        include/CarPlanner/mesh_conversion_tools.hpp
+        include/CarPlanner/tf_conversion_tools.hpp
    )
 
 add_library( ${LIBRARY_NAME} SHARED ${SRCS} ${HDRS} )
