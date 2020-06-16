@@ -18,8 +18,8 @@
 #include <carplanner_msgs/ResetMesh.h>
 #include <mesh_msgs/TriangleMeshStamped.h>
 
-#include "/home/mike/code/mochagui/mesh_conversion_tools.hpp"
-#include "/home/mike/code/mochagui/tf_conversion_tools.hpp"
+#include "mesh_conversion_tools.hpp"
+#include "tf_conversion_tools.hpp"
 //#include "/home/ohrad/code/mochagui/mesh_conversion_tools.hpp"
 //#include "/home/ohrad/code/mochagui/tf_conversion_tools.hpp"
 // #include <mochagui/conversion_tools.h>
@@ -34,7 +34,7 @@
 #include "BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h"
 #include "BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h"
 
-#include "GLDebugDrawer.h"
+//#include "GLDebugDrawer.h"
 
 #include <boost/thread.hpp>
 #include <boost/signals2/mutex.hpp>
@@ -48,9 +48,9 @@
 #include <thread>
 #include <string.h>
 #include <unistd.h>
-#include <HAL/Messages/Command.h>
-#include <HAL/Messages/Matrix.h>
-#include <HAL/Messages/Pose.h>
+// #include <HAL/Messages/Command.h>
+// #include <HAL/Messages/Matrix.h>
+// #include <HAL/Messages/Pose.h>
 #include <exception>
 #include <ctime>
 
@@ -307,9 +307,9 @@ struct VehicleState
     // This is used to flip between the coord convention between gl/viz and physical/ros
     VehicleState FlipCoordFrame()
     {
-        Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));    
+        Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));
         m_dTwv = rot_180_x * (*this).m_dTwv * rot_180_x;
-        return *this;    
+        return *this;
     }
 
     double GetNormalVelocity(const VehicleState& state)
@@ -559,7 +559,7 @@ struct BulletWorldInstance : public boost::mutex
     class btDiscreteDynamicsWorld* m_pDynamicsWorld;
 
     btRigidBody* m_pCarChassis;
-    GLDebugDrawer	m_DebugDrawer;
+    //GLDebugDrawer	m_DebugDrawer;
     BulletVehicleState m_vehicleBackup;
     VehicleState m_state;
 

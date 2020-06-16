@@ -182,8 +182,8 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
   pWorld->m_pOverlappingPairCache = new btAxisSweep3(dMin,dMax);
   pWorld->m_pConstraintSolver = new btSequentialImpulseConstraintSolver();
   pWorld->m_pDynamicsWorld = new btDiscreteDynamicsWorld(pWorld->m_pDispatcher,pWorld->m_pOverlappingPairCache,pWorld->m_pConstraintSolver,pWorld->m_pCollisionConfiguration);
-  pWorld->m_pDynamicsWorld->setDebugDrawer(&pWorld->m_DebugDrawer);
-  pWorld->m_pDynamicsWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe || btIDebugDraw::DBG_FastWireframe);
+  // pWorld->m_pDynamicsWorld->setDebugDrawer(&pWorld->m_DebugDrawer);
+  // pWorld->m_pDynamicsWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe || btIDebugDraw::DBG_FastWireframe);
   //pWorld->m_pDynamicsWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawAabb);
   //pWorld->m_pDynamicsWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_NoDebug);
 
@@ -380,7 +380,7 @@ void BulletCarModel::_pubMesh(btCollisionShape* collisionShape, btTransform* par
 
     time_t t1 = std::clock();
 
-    // ROS_INFO("pubbing mesh, %d faces, %d vertices, %.2f sec", mesh->triangles.size(), mesh->vertices.size(), std::difftime(t1,t0)/CLOCKS_PER_SEC); 
+    // ROS_INFO("pubbing mesh, %d faces, %d vertices, %.2f sec", mesh->triangles.size(), mesh->vertices.size(), std::difftime(t1,t0)/CLOCKS_PER_SEC);
     pub->publish(*mesh_stamped);
     ros::spinOnce();
     // ros::Rate(10).sleep();
@@ -492,7 +492,7 @@ void BulletCarModel::replaceMesh(uint worldId, btCollisionShape* meshShape, tf::
     btQuaternion(Twm.getRotation().getX(),Twm.getRotation().getY(),Twm.getRotation().getZ(),Twm.getRotation().getW()),
     btVector3(Twm.getOrigin().getX(),Twm.getOrigin().getY(),Twm.getOrigin().getZ())));
   pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pTerrainBody);
-  
+
   // boost::unique_lock<boost::mutex> unlock(*pWorld);
   pWorld->unlock();
 }
@@ -505,7 +505,7 @@ void BulletCarModel::appendMesh(uint worldId, btCollisionShape* meshShape, tf::S
   BulletWorldInstance* pWorld = GetWorldInstance(worldId);
   // boost::unique_lock<boost::mutex> lock(*pWorld);
   pWorld->lock();
-  
+
   uint max_num_coll_objs = 3;
   if( pWorld->m_pDynamicsWorld->getCollisionWorld()->getNumCollisionObjects() >= max_num_coll_objs )
   {
@@ -518,7 +518,7 @@ void BulletCarModel::appendMesh(uint worldId, btCollisionShape* meshShape, tf::S
   btTransform tr;
   tr.setIdentity();
   btDefaultMotionState* myMotionState = new btDefaultMotionState(tr);
-  
+
   btRigidBody::btRigidBodyConstructionInfo cInfo(0.0,myMotionState,meshShape,btVector3(0,0,0));
   btRigidBody* body = new btRigidBody(cInfo);
   body->setContactProcessingThreshold(BT_LARGE_FLOAT);
@@ -553,11 +553,11 @@ void BulletCarModel::_TerrainMeshPublisherFunc()
     time_t t0 = clock();
 
     _pubMesh(pWorld->m_pTerrainBody->getCollisionShape(), &(pWorld->m_pTerrainBody->getWorldTransform()), &m_terrainMeshPub);
-    
+
     time_t t1 = clock();
     uint num_tri = dynamic_cast<btTriangleMesh*>(dynamic_cast<btBvhTriangleMeshShape*>(pWorld->m_pTerrainBody->getCollisionShape())->getMeshInterface())->getNumTriangles();
-    ROS_INFO("pubbing mesh, %d triangles, %.2f sec", num_tri, std::difftime(t1,t0)/CLOCKS_PER_SEC); 
-     
+    ROS_INFO("pubbing mesh, %d triangles, %.2f sec", num_tri, std::difftime(t1,t0)/CLOCKS_PER_SEC);
+
     // btCollisionObjectArray objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
     // for(uint i=0; i<objarr.size(); i++)
     // {
@@ -566,13 +566,13 @@ void BulletCarModel::_TerrainMeshPublisherFunc()
     //     time_t t0 = clock();
 
     //     _pubMesh(objarr[i]->getCollisionShape(), &(objarr[i]->getWorldTransform()), &m_terrainMeshPub);
-    //     
+    //
     //     time_t t1 = clock();
     //     uint num_tri = dynamic_cast<btTriangleMesh*>(dynamic_cast<btBvhTriangleMeshShape*>(objarr[i]->getCollisionShape())->getMeshInterface())->getNumTriangles();
-    //     ROS_INFO("pubbing mesh, %d triangles, %.2f sec", num_tri, std::difftime(t1,t0)/CLOCKS_PER_SEC); 
+    //     ROS_INFO("pubbing mesh, %d triangles, %.2f sec", num_tri, std::difftime(t1,t0)/CLOCKS_PER_SEC);
     //   }
     // }
-    
+
     ros::Rate(100).sleep();
   }
 }
@@ -1143,4 +1143,3 @@ bool BulletCarModel::RayCast(const Eigen::Vector3d& dSource,const Eigen::Vector3
     return true;
   }
 }
-
