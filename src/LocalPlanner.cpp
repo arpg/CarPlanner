@@ -31,7 +31,15 @@ struct ApplyCommandsThreadFunctor {
             m_Problem.m_pBoundarySovler->Solve(&m_Problem.m_BoundaryProblem);
         }
         m_poseOut = m_pPlanner->SimulateTrajectory(m_Sample,m_Problem, m_index);
-        m_dErrorOut = m_pPlanner->_CalculateSampleError(m_Sample,m_Problem,m_Problem.m_CurrentSolution.m_dMinTrajectoryTime);
+        m_dErrorOut = m_pPlanner->_CalculateSampleError(m_Sample,m_Problem,m_Problem.m_CurrentSolution.m_dMinTrajectoryTime); 
+        
+        DLOG(ERROR) << "Ran ACF." 
+            << " Index " << m_index << "."
+        //     // << "|  SolveBoundary " << (m_bSolveBoundary ? "true" : "false") << ".\n"
+        //     // << "|  Problem OptParams " << m_Problem.m_CurrentSolution.m_dOptParams.format(Eigen::IOFormat(8, 0, ", ", "; ", "[", "]")) << ".\n"
+            << "\n PoseOut " << m_poseOut.format(Eigen::IOFormat(8, 0, ", ", "; ", "[", "]")) << "."
+            << "\n ErrorsOut " << m_dErrorOut.format(Eigen::IOFormat(8, 0, ", ", "; ", "[", "]")) << "."
+            ;
     }
 
     LocalPlanner *m_pPlanner;
@@ -74,7 +82,7 @@ inline Eigen::VectorXd GetPointLineError(const Eigen::Vector6d& line1,const Eige
 }
 
 LocalPlanner::LocalPlanner() :
-    m_dEps(CVarUtils::CreateUnsavedCVar("planner.Epsilon", 1e-6, "Epsilon value used in finite differences.")),
+    m_dEps(CVarUtils::CreateUnsavedCVar("planner.Epsilon", 100e-6, "Epsilon value used in finite differences.")),
     m_dPointWeight(CVarUtils::CreateUnsavedCVar("planner.PointCostWeights",Eigen::MatrixXd(1,1))),
     m_dTrajWeight(CVarUtils::CreateUnsavedCVar("planner.TrajCostWeights",Eigen::MatrixXd(1,1))),
     m_nPlanCounter(0)
@@ -93,6 +101,7 @@ LocalPlanner::LocalPlanner() :
     m_dPointWeight(3) = THETA_WEIGHT;
     m_dPointWeight(4) = VEL_WEIGHT_POINT;
     //m_dPointWeight(5) = CURV_WEIGHT;
+    m_dPointWeight(5) = TILT_WEIGHT;
 
     m_dTrajWeight(0) = XYZ_WEIGHT;
     m_dTrajWeight(1) = XYZ_WEIGHT;
@@ -275,7 +284,7 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, 
         error[4] = problem.m_dTransformedGoal[5] - endPose[5];
         //error[5] = state.m_dV.norm()*dW_goal[2] - problem.m_GoalState.m_dCurvature;
 
-        //error[5] = sample.GetBadnessCost();
+        error[5] = sample.GetBadnessCost();
         //error[5] = -std::log(problem.m_BoundaryProblem.m_dAggressiveness);
         //error.array() *= m_dPointWeight.block<POINT_COST_ERROR_TERMS,1>(0,0).array();
         //DLOG(INFO) << "Error vector is " << error.transpose() << " weights are " << m_dPointWeight.transpose();
@@ -350,6 +359,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
     Eigen::Vector6d pPoses[OPT_DIM*2],dCurrentPose;
 
     const double dEps = m_dEps;// * problem.m_CurrentSolution.m_dNorm;
+    DLOG(ERROR) << "dEps " << dEps;
 
     //g_bUseCentralDifferences = false;
     for( int ii = 0; ii < OPT_DIM; ii++ ){
@@ -427,12 +437,22 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
         }
 
         if(g_bVerbose){
-            DLOG(INFO) << "Dimension " << ii << " norm " << norm << " error-> [" << errors[plusIdx].transpose().format(CleanFmt) << "] vs. ["  << dCurrentErrorVec.transpose().format(CleanFmt);
+            // DLOG(ERROR) << "Dimension " << ii << " norm " << norm << " error-> [" << errors[plusIdx].transpose().format(CleanFmt) << "] vs. ["  << dCurrentErrorVec.transpose().format(CleanFmt);
         }
 
         //now that we have all the error terms, we can set this column of the jacobians
 
         Eigen::VectorXd col = g_bUseCentralDifferences ? ((errors[plusIdx]) - (errors[minusIdx]))/(2.0*dEps) : ((errors[plusIdx]) - dCurrentErrorVec)/(dEps);
+
+        std::string str = "Col "+std::to_string(ii)+" ";
+        for(uint i=0; i<col.size(); i++){
+            str += std::to_string(col(ii)) + " ";
+        }
+        DLOG(ERROR) << str;
+        (g_bUseCentralDifferences ? 
+            DLOG(ERROR) << "with centraldiff. errors+ " << errors[plusIdx].format(Eigen::IOFormat(8, 0, ", ", "; ", "[", "]")) << " errors- " << errors[minusIdx].format(Eigen::IOFormat(8, 0, ", ", "; ", "[", "]")) << " dEps " << std::to_string(dEps) : 
+            DLOG(ERROR) << "without centraldiff. errors+ " << errors[plusIdx].format(Eigen::IOFormat(8, 0, ", ", "; ", "[", "]")) << " currerr " << dCurrentErrorVec.format(Eigen::IOFormat(8, 0, ", ", "; ", "[", "]")) << " dEps " << std::to_string(dEps) );
+
 
         J.col(ii) = -col;
         //if this term is NAN, sound the alarm
@@ -454,7 +474,7 @@ bool LocalPlanner::_CalculateJacobian(LocalProblem& problem,
 
 
     if(g_bVerbose){
-        DLOG(INFO) << "Jacobian:" << J.format(CleanFmt) << std::endl;
+        DLOG(ERROR) << "Jacobian:" << J.format(CleanFmt) << std::endl;
     }
     return true;
 }
@@ -607,25 +627,25 @@ bool LocalPlanner::InitializeLocalProblem(LocalProblem& problem,
 
     //if there are previous commands, apply them so we may make a more educated guess
     MotionSample delaySample;
-    double totalDelay = problem.m_pFunctor->GetCarModel()->GetParameters(0)[CarParameters::ControlDelay];
-    if(totalDelay > 0 && problem.m_pFunctor->GetPreviousCommand().size() != 0){
-        CommandList::iterator it  = problem.m_pFunctor->GetPreviousCommand().begin();
-        while(totalDelay > 0 && it != problem.m_pFunctor->GetPreviousCommand().end()){
-            delaySample.m_vCommands.insert(delaySample.m_vCommands.begin(),(*it));
-            //delaySample.m_vCommands.push_back((*it)  );
-            totalDelay -= (*it).m_dT;
-            ++it;
-        }
-        problem.m_pFunctor->ResetPreviousCommands();
-        problem.m_pFunctor->SetNoDelay(true);
-        problem.m_pFunctor->ApplyVelocities(problem.m_StartState,delaySample,0,true);
-        //and now set the starting state to this new value
-        problem.m_StartState = delaySample.m_vStates.back();
-    }
+    // double totalDelay = problem.m_pFunctor->GetCarModel()->GetParameters(0)[CarParameters::ControlDelay];
+    // if(totalDelay > 0 && problem.m_pFunctor->GetPreviousCommand().size() != 0){
+    //     CommandList::iterator it  = problem.m_pFunctor->GetPreviousCommand().begin();
+    //     while(totalDelay > 0 && it != problem.m_pFunctor->GetPreviousCommand().end()){
+    //         delaySample.m_vCommands.insert(delaySample.m_vCommands.begin(),(*it));
+    //         //delaySample.m_vCommands.push_back((*it)  );
+    //         totalDelay -= (*it).m_dT;
+    //         ++it;
+    //     }
+    //     problem.m_pFunctor->ResetPreviousCommands();
+    //     problem.m_pFunctor->SetNoDelay(true);
+    //     problem.m_pFunctor->ApplyVelocities(problem.m_StartState,delaySample,0,true);
+    //     //and now set the starting state to this new value
+    //     problem.m_StartState = delaySample.m_vStates.back();
+    // }
 
     //regardless of the delay, for local planning we always want to proceed with no delay and with no previous commands
     //as the previous section should take care of that
-    problem.m_pFunctor->ResetPreviousCommands();
+    // problem.m_pFunctor->ResetPreviousCommands();
     problem.m_pFunctor->SetNoDelay(true);
 
     Sophus::SE3d dTranslation(Sophus::SO3d(),-problem.m_StartState.m_dTwv.translation());
@@ -757,14 +777,14 @@ bool LocalPlanner::Iterate(LocalProblem &problem )
         }
 
         if( m_dEps > 5 || problem.m_bInLocalMinimum == true) {
-            // DLOG(INFO) << "Failed to plan. Norm = " << problem.m_dCurrentNorm;
+            DLOG(ERROR) << "Failed to plan. Norm = " << problem.m_CurrentSolution.m_dNorm;
             return true;
         }
 
         _IterateGaussNewton(problem);
-        if(problem.m_bInertialControlActive){
-            CalculateTorqueCoefficients(problem,&problem.m_CurrentSolution.m_Sample);
-        }
+        // if(problem.m_bInertialControlActive){
+        //     CalculateTorqueCoefficients(problem,&problem.m_CurrentSolution.m_Sample);
+        // }
         return false;
     }catch(...){
         return false;
@@ -931,9 +951,15 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
         return false;
     }
 
+    ROS_INFO("Errors:");
+    for (uint i=0; i<error.size(); i++)
+    {
+        ROS_INFO("%f",error[i]);
+    }
+
     problem.m_CurrentSolution.m_dNorm = _CalculateErrorNorm(problem,error);
     if(g_bVerbose){
-        DLOG(INFO) << "Calculated jacobian with base norm: " << problem.m_CurrentSolution.m_dNorm;
+        DLOG(ERROR) << "Calculated jacobian with base norm: " << problem.m_CurrentSolution.m_dNorm;
     }
 
     //if any of the columns are zero, reguralize
@@ -963,7 +989,7 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
     }
 
     if(g_bVerbose){
-        DLOG(INFO) << "Gauss newton delta: [" << dDeltaP.transpose().format(CleanFmt) << "]";
+        DLOG(ERROR) << "Gauss newton delta: [" << dDeltaP.transpose().format(CleanFmt) << "]";
     }
 
 
@@ -1061,14 +1087,14 @@ bool LocalPlanner::_IterateGaussNewton( LocalProblem& problem )
 
     if(coordinateDescent.m_dNorm > problem.m_CurrentSolution.m_dNorm && g_bMonotonicCost){
         problem.m_bInLocalMinimum = true;
-        DLOG(INFO) << problem.m_nPlanId << ":In local minimum with Norm = " << problem.m_CurrentSolution.m_dNorm;
+        DLOG(ERROR) << problem.m_nPlanId << ":In local minimum with Norm = " << problem.m_CurrentSolution.m_dNorm;
     }else if( dampedSolution.m_dNorm > problem.m_CurrentSolution.m_dNorm && g_bMonotonicCost) {
         //newSolution = coordinateDescent;
         problem.m_bInLocalMinimum = true;
-        DLOG(INFO) << problem.m_nPlanId << ":Accepted coordinate descent with norm = " << problem.m_CurrentSolution.m_dNorm;
+        DLOG(ERROR) << problem.m_nPlanId << ":Accepted coordinate descent with norm = " << problem.m_CurrentSolution.m_dNorm;
     }else{
         newSolution = dampedSolution;
-        DLOG(INFO) <<  problem.m_nPlanId << ":New norm from damped gauss newton = " << newSolution.m_dNorm << " with damping = " << bestDamping << " best damped traj error is " << pDampingErrors[nBestDampingIdx].transpose().format(CleanFmt);
+        DLOG(ERROR) <<  problem.m_nPlanId << ":New norm from damped gauss newton = " << newSolution.m_dNorm << " with damping = " << bestDamping << " best damped traj error is " << pDampingErrors[nBestDampingIdx].transpose().format(CleanFmt);
     }
 
 

@@ -73,19 +73,29 @@ struct MotionSample
     double GetBadnessCost() const
     {
         double cost = 0;
-        if(m_vCommands.size() != 0){
-            const ControlCommand* pPrevCommand = &m_vCommands.front();
-            for(size_t ii = 1; ii < m_vStates.size() ; ii++){
-                //const VehicleState& state = m_vStates[ii];
-                const ControlCommand& command = m_vCommands[ii];
-                //cost = std::max(state.m_dV.norm() * state.m_dW.norm(),cost);
-                //cost += fabs(state.m_dV.norm() * state.m_dW[2]) - fabs(m_vCommands[ii].m_dCurvature);
-                cost += fabs(command.m_dPhi - pPrevCommand->m_dPhi);
-                pPrevCommand = &m_vCommands[ii];
-                //cost += fabs(state.m_dSteering);
-            }
-            cost /= GetDistance();
+
+        // if(m_vCommands.size() != 0){
+        //     const ControlCommand* pPrevCommand = &m_vCommands.front();
+        //     for(size_t ii = 1; ii < m_vStates.size() ; ii++){
+        //         //const VehicleState& state = m_vStates[ii];
+        //         const ControlCommand& command = m_vCommands[ii];
+        //         //cost = std::max(state.m_dV.norm() * state.m_dW.norm(),cost);
+        //         //cost += fabs(state.m_dV.norm() * state.m_dW[2]) - fabs(m_vCommands[ii].m_dCurvature);
+        //         cost += fabs(command.m_dPhi - pPrevCommand->m_dPhi);
+        //         pPrevCommand = &m_vCommands[ii];
+        //         //cost += fabs(state.m_dSteering);
+        //     }
+        //     cost /= GetDistance();
+        // }
+
+
+        for(size_t ii = 1; ii < m_vStates.size() ; ii++){
+            const VehicleState& state = m_vStates[ii];
+            // cost += fabs(state.m_dW[0]*state.m_dW[1]); // ok
+            cost += fabs(state.m_dW[0]);
         }
+        cost /= GetDistance();
+
         return cost;
     }
 
