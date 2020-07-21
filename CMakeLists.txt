@@ -105,7 +105,7 @@ set( SRCS
         src/BezierBoundarySolver.cpp
         src/MochaException.cpp
         src/CarController.cpp
-        #src/Localizer.cpp
+        src/Localizer.cpp
         src/DirectBoundarySolver.cpp
 	#src/BulletPrim.cpp
    )
@@ -114,7 +114,7 @@ set( HDRS
         include/CarPlanner/ApplyVelocitiesFunctor.h
         include/CarPlanner/CarPlannerCommon.h
         include/CarPlanner/BulletCarModel.h
-        #include/CarPlanner/Localizer.h
+        include/CarPlanner/Localizer.h
         include/CarPlanner/CarWheel.h
         include/CarPlanner/CarRegressor.h
         include/CarPlanner/CarController.h

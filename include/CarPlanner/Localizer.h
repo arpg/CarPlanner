@@ -16,9 +16,9 @@
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
 
-#include <HAL/Messages.pb.h>
-#include <HAL/Messages/Pose.h>
-#include <HAL/Messages/Matrix.h>
+// #include <HAL/Messages.pb.h>
+// #include <HAL/Messages/Pose.h>
+// #include <HAL/Messages/Matrix.h>
 #include <vector>
 #include <string.h>
 #include <unistd.h>

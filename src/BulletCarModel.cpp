@@ -226,113 +226,165 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
+// void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& parameters)
+// {
+//   pWorld->m_Parameters = parameters;
+
+//   //delete any previous collision shapes
+//   for(int ii = 0 ; ii < pWorld->m_vVehicleCollisionShapes.size() ; ii++) {
+//     delete pWorld->m_vVehicleCollisionShapes[ii];
+//   }
+//   pWorld->m_vVehicleCollisionShapes.clear();
+
+//   pWorld->m_pVehicleChassisShape = new btBoxShape(btVector3(pWorld->m_Parameters[CarParameters::WheelBase],pWorld->m_Parameters[CarParameters::Width],pWorld->m_Parameters[CarParameters::Height]));
+//   // pWorld->m_pVehicleChassisShape = new btBoxShape(btVector3(0.5,0.7,0.7)*2);
+//   pWorld->m_vVehicleCollisionShapes.push_back(pWorld->m_pVehicleChassisShape);
+
+//   /*btCompoundShape* compound = new btCompoundShape();
+//   pWorld->m_vVehicleCollisionShapes.push_back(compound);
+//   btTransform localTrans;
+//   localTrans.setIdentity();
+//   //localTrans effectively shifts the center of mass with respect to the chassis
+//   localTrans.setOrigin(btVector3(0,0,0));
+
+//   compound->addChildShape(localTrans,pWorld->m_pVehicleChassisShape);*/
+
+//   btTransform tr;
+//   tr.setIdentity();
+//   tr.setOrigin(btVector3(0,0,0));
+//   btVector3 vWheelDirectionCS0(0,0,1); //wheel direction is z
+//   btVector3 vWheelAxleCS(0,1,0); //wheel axle in y direction
+
+//   if(pWorld->m_pCarChassis != NULL) {
+//     pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pCarChassis);
+//     delete pWorld->m_pCarChassis;
+//   }
+
+//   pWorld->m_pCarChassis = _LocalAddRigidBody(pWorld,pWorld->m_Parameters[CarParameters::Mass],tr,pWorld->m_pVehicleChassisShape, COL_CAR,COL_NOTHING);//chassisShape);
+//   //pWorld->m_pCarChassis = _LocalAddRigidBody(pWorld,pWorld->m_Parameters.m_dMass,tr,compound, COL_CAR,COL_GROUND);//chassisShape);
+
+//   /// create vehicle
+//   pWorld->m_pVehicleRayCaster = new DefaultVehicleRaycaster(pWorld->m_pDynamicsWorld);
+
+//   if( pWorld->m_pVehicle != NULL ) {
+//     pWorld->m_pDynamicsWorld->removeVehicle(pWorld->m_pVehicle);
+//     delete pWorld->m_pVehicle;
+//   }
+
+//   pWorld->m_Tuning.m_frictionSlip = pWorld->m_Parameters[CarParameters::TractionFriction];
+//   pWorld->m_Tuning.m_suspensionCompression = pWorld->m_Parameters[CarParameters::CompDamping];
+//   pWorld->m_Tuning.m_suspensionStiffness = pWorld->m_Parameters[CarParameters::Stiffness];
+//   pWorld->m_Tuning.m_suspensionDamping = pWorld->m_Parameters[CarParameters::ExpDamping];
+//   pWorld->m_Tuning.m_maxSuspensionForce = pWorld->m_Parameters[CarParameters::MaxSuspForce];
+//   pWorld->m_Tuning.m_maxSuspensionTravelCm = pWorld->m_Parameters[CarParameters::MaxSuspTravel]*100.0;
+
+//   pWorld->m_pVehicle = new RaycastVehicle(pWorld->m_Tuning,pWorld->m_pCarChassis,pWorld->m_pVehicleRayCaster,&pWorld->m_pDynamicsWorld->getSolverInfo());
+//   pWorld->m_pVehicle->setCoordinateSystem(CAR_RIGHT_AXIS,CAR_UP_AXIS,CAR_FORWARD_AXIS);
+//   ///never deactivate the vehicle
+//   pWorld->m_pCarChassis->forceActivationState(DISABLE_DEACTIVATION);
+//   pWorld->m_pDynamicsWorld->addVehicle(pWorld->m_pVehicle);
+
+//   // front right wheel
+//   bool bIsFrontWheel=true;
+//   btVector3 connectionPointCS0(pWorld->m_Parameters[CarParameters::WheelBase]/2,pWorld->m_Parameters[CarParameters::Width]/2-(0.3*pWorld->m_Parameters[CarParameters::WheelWidth]), pWorld->m_Parameters[CarParameters::SuspConnectionHeight]);
+//   pWorld->m_pVehicle->addWheel(connectionPointCS0,vWheelDirectionCS0,vWheelAxleCS,pWorld->m_Parameters[CarParameters::SuspRestLength],pWorld->m_Parameters[CarParameters::WheelRadius],pWorld->m_Tuning,bIsFrontWheel);
+//   // front left wheel
+//   connectionPointCS0 = btVector3(pWorld->m_Parameters[CarParameters::WheelBase]/2, -pWorld->m_Parameters[CarParameters::Width]/2+(0.3*pWorld->m_Parameters[CarParameters::WheelWidth]),pWorld->m_Parameters[CarParameters::SuspConnectionHeight]);
+//   pWorld->m_pVehicle->addWheel(connectionPointCS0,vWheelDirectionCS0,vWheelAxleCS,pWorld->m_Parameters[CarParameters::SuspRestLength],pWorld->m_Parameters[CarParameters::WheelRadius],pWorld->m_Tuning,bIsFrontWheel);
+//   // back left wheel
+//   bIsFrontWheel = false;
+//   connectionPointCS0 = btVector3(-pWorld->m_Parameters[CarParameters::WheelBase]/2,-pWorld->m_Parameters[CarParameters::Width]/2+(0.3*pWorld->m_Parameters[CarParameters::WheelWidth]), pWorld->m_Parameters[CarParameters::SuspConnectionHeight]);
+//   pWorld->m_pVehicle->addWheel(connectionPointCS0,vWheelDirectionCS0,vWheelAxleCS,pWorld->m_Parameters[CarParameters::SuspRestLength],pWorld->m_Parameters[CarParameters::WheelRadius],pWorld->m_Tuning,bIsFrontWheel);
+//   // back right wheel
+//   connectionPointCS0 = btVector3(-pWorld->m_Parameters[CarParameters::WheelBase]/2,pWorld->m_Parameters[CarParameters::Width]/2-(0.3*pWorld->m_Parameters[CarParameters::WheelWidth]), pWorld->m_Parameters[CarParameters::SuspConnectionHeight]);
+//   pWorld->m_pVehicle->addWheel(connectionPointCS0,vWheelDirectionCS0,vWheelAxleCS,pWorld->m_Parameters[CarParameters::SuspRestLength],pWorld->m_Parameters[CarParameters::WheelRadius],pWorld->m_Tuning,bIsFrontWheel);
+
+//   for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
+//   {
+//     WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
+//     wheel.m_rollInfluence = pWorld->m_Parameters[CarParameters::RollInfluence];
+//     Sophus::SE3d wheelTransform(Sophus::SO3d(),
+//     Eigen::Vector3d(wheel.m_chassisConnectionPointCS[0],wheel.m_chassisConnectionPointCS[1],wheel.m_chassisConnectionPointCS[2] /*+ wheel.getSuspensionRestLength()/2*/));
+//     pWorld->m_vWheelTransforms.push_back(wheelTransform);
+//   }
+
+//   pWorld->m_pVehicle->SetDynamicFrictionCoefficient(pWorld->m_Parameters[CarParameters::DynamicFrictionCoef]);
+//   pWorld->m_pVehicle->SetStaticSideFrictionCoefficient(pWorld->m_Parameters[CarParameters::StaticSideFrictionCoef]);
+//   pWorld->m_pVehicle->SetSlipCoefficient(pWorld->m_Parameters[CarParameters::SlipCoefficient]);
+//   pWorld->m_pVehicle->SetMagicFormulaCoefficients(pWorld->m_Parameters[CarParameters::MagicFormula_B],
+//     pWorld->m_Parameters[CarParameters::MagicFormula_C],
+//     pWorld->m_Parameters[CarParameters::MagicFormula_E]);
+
+
+//   //reset all parameters
+//   //m_pCarChassis->setCenterOfMassTransform(btTransform::getIdentity());
+//   pWorld->m_pCarChassis->setLinearVelocity(btVector3(0,0,0));
+//   pWorld->m_pCarChassis->setAngularVelocity(btVector3(0,0,0));
+//   pWorld->m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(pWorld->m_pCarChassis->getBroadphaseHandle(),pWorld->m_pDynamicsWorld->getDispatcher());
+//   if (pWorld->m_pVehicle)
+//   {
+//     pWorld->m_pVehicle->resetSuspension();
+//     for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
+//     {
+//       //synchronize the wheels with the (interpolated) chassis worldtransform
+//       pWorld->m_pVehicle->updateWheelTransform(i,true);
+//     }
+//   }
+
+
+//   pWorld->m_vehicleBackup.SaveState(pWorld->m_pVehicle);
+// }
+
 void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& parameters)
 {
-  pWorld->m_Parameters = parameters;
+    pWorld->m_Parameters = parameters;
 
-  //delete any previous collision shapes
-  for(int ii = 0 ; ii < pWorld->m_vVehicleCollisionShapes.size() ; ii++) {
-    delete pWorld->m_vVehicleCollisionShapes[ii];
-  }
-  pWorld->m_vVehicleCollisionShapes.clear();
+    pWorld->m_pVehicleRayCaster = new DefaultVehicleRaycaster(pWorld->m_pDynamicsWorld);
 
-  pWorld->m_pVehicleChassisShape = new btBoxShape(btVector3(pWorld->m_Parameters[CarParameters::WheelBase],pWorld->m_Parameters[CarParameters::Width],pWorld->m_Parameters[CarParameters::Height]));
-  // pWorld->m_pVehicleChassisShape = new btBoxShape(btVector3(0.5,0.7,0.7)*2);
-  pWorld->m_vVehicleCollisionShapes.push_back(pWorld->m_pVehicleChassisShape);
-
-  /*btCompoundShape* compound = new btCompoundShape();
-  pWorld->m_vVehicleCollisionShapes.push_back(compound);
-  btTransform localTrans;
-  localTrans.setIdentity();
-  //localTrans effectively shifts the center of mass with respect to the chassis
-  localTrans.setOrigin(btVector3(0,0,0));
-
-  compound->addChildShape(localTrans,pWorld->m_pVehicleChassisShape);*/
-
-  btTransform tr;
-  tr.setIdentity();
-  tr.setOrigin(btVector3(0,0,0));
-  btVector3 vWheelDirectionCS0(0,0,1); //wheel direction is z
-  btVector3 vWheelAxleCS(0,1,0); //wheel axle in y direction
-
-  if(pWorld->m_pCarChassis != NULL) {
-    pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pCarChassis);
-    delete pWorld->m_pCarChassis;
-  }
-
-  pWorld->m_pCarChassis = _LocalAddRigidBody(pWorld,pWorld->m_Parameters[CarParameters::Mass],tr,pWorld->m_pVehicleChassisShape, COL_CAR,COL_NOTHING);//chassisShape);
-  //pWorld->m_pCarChassis = _LocalAddRigidBody(pWorld,pWorld->m_Parameters.m_dMass,tr,compound, COL_CAR,COL_GROUND);//chassisShape);
-
-  /// create vehicle
-  pWorld->m_pVehicleRayCaster = new DefaultVehicleRaycaster(pWorld->m_pDynamicsWorld);
-
-  if( pWorld->m_pVehicle != NULL ) {
-    pWorld->m_pDynamicsWorld->removeVehicle(pWorld->m_pVehicle);
-    delete pWorld->m_pVehicle;
-  }
-
-  pWorld->m_Tuning.m_frictionSlip = pWorld->m_Parameters[CarParameters::TractionFriction];
-  pWorld->m_Tuning.m_suspensionCompression = pWorld->m_Parameters[CarParameters::CompDamping];
-  pWorld->m_Tuning.m_suspensionStiffness = pWorld->m_Parameters[CarParameters::Stiffness];
-  pWorld->m_Tuning.m_suspensionDamping = pWorld->m_Parameters[CarParameters::ExpDamping];
-  pWorld->m_Tuning.m_maxSuspensionForce = pWorld->m_Parameters[CarParameters::MaxSuspForce];
-  pWorld->m_Tuning.m_maxSuspensionTravelCm = pWorld->m_Parameters[CarParameters::MaxSuspTravel]*100.0;
-
-  pWorld->m_pVehicle = new RaycastVehicle(pWorld->m_Tuning,pWorld->m_pCarChassis,pWorld->m_pVehicleRayCaster,&pWorld->m_pDynamicsWorld->getSolverInfo());
-  pWorld->m_pVehicle->setCoordinateSystem(CAR_RIGHT_AXIS,CAR_UP_AXIS,CAR_FORWARD_AXIS);
-  ///never deactivate the vehicle
-  pWorld->m_pCarChassis->forceActivationState(DISABLE_DEACTIVATION);
-  pWorld->m_pDynamicsWorld->addVehicle(pWorld->m_pVehicle);
-
-  // front right wheel
-  bool bIsFrontWheel=true;
-  btVector3 connectionPointCS0(pWorld->m_Parameters[CarParameters::WheelBase]/2,pWorld->m_Parameters[CarParameters::Width]/2-(0.3*pWorld->m_Parameters[CarParameters::WheelWidth]), pWorld->m_Parameters[CarParameters::SuspConnectionHeight]);
-  pWorld->m_pVehicle->addWheel(connectionPointCS0,vWheelDirectionCS0,vWheelAxleCS,pWorld->m_Parameters[CarParameters::SuspRestLength],pWorld->m_Parameters[CarParameters::WheelRadius],pWorld->m_Tuning,bIsFrontWheel);
-  // front left wheel
-  connectionPointCS0 = btVector3(pWorld->m_Parameters[CarParameters::WheelBase]/2, -pWorld->m_Parameters[CarParameters::Width]/2+(0.3*pWorld->m_Parameters[CarParameters::WheelWidth]),pWorld->m_Parameters[CarParameters::SuspConnectionHeight]);
-  pWorld->m_pVehicle->addWheel(connectionPointCS0,vWheelDirectionCS0,vWheelAxleCS,pWorld->m_Parameters[CarParameters::SuspRestLength],pWorld->m_Parameters[CarParameters::WheelRadius],pWorld->m_Tuning,bIsFrontWheel);
-  // back left wheel
-  bIsFrontWheel = false;
-  connectionPointCS0 = btVector3(-pWorld->m_Parameters[CarParameters::WheelBase]/2,-pWorld->m_Parameters[CarParameters::Width]/2+(0.3*pWorld->m_Parameters[CarParameters::WheelWidth]), pWorld->m_Parameters[CarParameters::SuspConnectionHeight]);
-  pWorld->m_pVehicle->addWheel(connectionPointCS0,vWheelDirectionCS0,vWheelAxleCS,pWorld->m_Parameters[CarParameters::SuspRestLength],pWorld->m_Parameters[CarParameters::WheelRadius],pWorld->m_Tuning,bIsFrontWheel);
-  // back right wheel
-  connectionPointCS0 = btVector3(-pWorld->m_Parameters[CarParameters::WheelBase]/2,pWorld->m_Parameters[CarParameters::Width]/2-(0.3*pWorld->m_Parameters[CarParameters::WheelWidth]), pWorld->m_Parameters[CarParameters::SuspConnectionHeight]);
-  pWorld->m_pVehicle->addWheel(connectionPointCS0,vWheelDirectionCS0,vWheelAxleCS,pWorld->m_Parameters[CarParameters::SuspRestLength],pWorld->m_Parameters[CarParameters::WheelRadius],pWorld->m_Tuning,bIsFrontWheel);
-
-  for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
-  {
-    WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
-    wheel.m_rollInfluence = pWorld->m_Parameters[CarParameters::RollInfluence];
-    Sophus::SE3d wheelTransform(Sophus::SO3d(),
-    Eigen::Vector3d(wheel.m_chassisConnectionPointCS[0],wheel.m_chassisConnectionPointCS[1],wheel.m_chassisConnectionPointCS[2] /*+ wheel.getSuspensionRestLength()/2*/));
-    pWorld->m_vWheelTransforms.push_back(wheelTransform);
-  }
-
-  pWorld->m_pVehicle->SetDynamicFrictionCoefficient(pWorld->m_Parameters[CarParameters::DynamicFrictionCoef]);
-  pWorld->m_pVehicle->SetStaticSideFrictionCoefficient(pWorld->m_Parameters[CarParameters::StaticSideFrictionCoef]);
-  pWorld->m_pVehicle->SetSlipCoefficient(pWorld->m_Parameters[CarParameters::SlipCoefficient]);
-  pWorld->m_pVehicle->SetMagicFormulaCoefficients(pWorld->m_Parameters[CarParameters::MagicFormula_B],
-    pWorld->m_Parameters[CarParameters::MagicFormula_C],
-    pWorld->m_Parameters[CarParameters::MagicFormula_E]);
-
-
-  //reset all parameters
-  //m_pCarChassis->setCenterOfMassTransform(btTransform::getIdentity());
-  pWorld->m_pCarChassis->setLinearVelocity(btVector3(0,0,0));
-  pWorld->m_pCarChassis->setAngularVelocity(btVector3(0,0,0));
-  pWorld->m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(pWorld->m_pCarChassis->getBroadphaseHandle(),pWorld->m_pDynamicsWorld->getDispatcher());
-  if (pWorld->m_pVehicle)
-  {
-    pWorld->m_pVehicle->resetSuspension();
-    for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
-    {
-      //synchronize the wheels with the (interpolated) chassis worldtransform
-      pWorld->m_pVehicle->updateWheelTransform(i,true);
+    //delete any previous collision shapes
+    for(int ii = 0 ; ii < pWorld->m_vVehicleCollisionShapes.size() ; ii++) {
+        delete pWorld->m_vVehicleCollisionShapes[ii];
     }
+    pWorld->m_vVehicleCollisionShapes.clear();
+
+    if(pWorld->m_pCarChassis != NULL) {
+        pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pCarChassis);
+        delete pWorld->m_pCarChassis;
+    }
+
+    if( pWorld->m_pVehicle != NULL ) {
+        pWorld->m_pDynamicsWorld->removeVehicle(pWorld->m_pVehicle);
+        delete pWorld->m_pVehicle;
+    }
+
+    pWorld->m_pVehicle = new btDefaultHinge2Vehicle(
+      pWorld->m_Parameters[CarParameters::Width],
+      pWorld->m_Parameters[CarParameters::Height],
+      pWorld->m_Parameters[CarParameters::WheelBase]+pWorld->m_Parameters[CarParameters::WheelRadius],
+      pWorld->m_Parameters[CarParameters::Mass],
+      pWorld->m_Parameters[CarParameters::WheelRadius],
+      pWorld->m_Parameters[CarParameters::WheelWidth],
+      1.f,
+      pWorld->m_Parameters[CarParameters::Stiffness],
+      pWorld->m_Parameters[CarParameters::CompDamping],
+      pWorld->m_Parameters[CarParameters::MaxSteering]/2,
+      10.f/pWorld->m_Parameters[CarParameters::WheelRadius],
+      pWorld->m_Parameters[CarParameters::SuspRestLength],
+      1.f,
+      pWorld->m_Parameters[CarParameters::StallTorqueCoef]);
+dynamic_cast<btDefaultHinge2Vehicle*>(pWorld->m_pVehicle)->spawn(pWorld->m_pDynamicsWorld);
+  for (uint i=0; i<pWorld->m_pVehicle->getNumWheels(); i++)
+  {
+      pWorld->m_pVehicle->getWheel(i)->setMaxSteeringRate(pWorld->m_Parameters[CarParameters::MaxSteeringRate]);
   }
+  pWorld->m_pVehicle->updateConstraints();
 
+  pWorld->m_pCarChassis = pWorld->m_pVehicle->getChassisBody();
+  pWorld->m_pVehicleChassisShape = pWorld->m_pCarChassis->getCollisionShape();
+  btCollisionShape* wheelShape = pWorld->m_pVehicle->getWheel(0)->getShape();
 
-  pWorld->m_vehicleBackup.SaveState(pWorld->m_pVehicle);
+  pWorld->m_vVehicleCollisionShapes.push_back(pWorld->m_pVehicleChassisShape);
+	pWorld->m_vVehicleCollisionShapes.push_back(wheelShape);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -713,60 +765,60 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 
     // boost::mutex::scoped_lock lock(*pWorld);
 
-    pWorld->m_bParametersChanged = true;
+    // pWorld->m_bParametersChanged = true;
 
-    //dyanmic friction is slightly less
-    pWorld->m_pVehicle->SetDynamicFrictionCoefficient(pWorld->m_Parameters[CarParameters::DynamicFrictionCoef]);
-    //set side friction (for drifting)
-    pWorld->m_pVehicle->SetStaticSideFrictionCoefficient(pWorld->m_Parameters[CarParameters::StaticSideFrictionCoef]);
-    pWorld->m_pVehicle->SetSlipCoefficient(pWorld->m_Parameters[CarParameters::SlipCoefficient]);
-    pWorld->m_pVehicle->SetMagicFormulaCoefficients(pWorld->m_Parameters[CarParameters::MagicFormula_B],
-      pWorld->m_Parameters[CarParameters::MagicFormula_C],
-      pWorld->m_Parameters[CarParameters::MagicFormula_E]);
+    // //dyanmic friction is slightly less
+    // pWorld->m_pVehicle->SetDynamicFrictionCoefficient(pWorld->m_Parameters[CarParameters::DynamicFrictionCoef]);
+    // //set side friction (for drifting)
+    // pWorld->m_pVehicle->SetStaticSideFrictionCoefficient(pWorld->m_Parameters[CarParameters::StaticSideFrictionCoef]);
+    // pWorld->m_pVehicle->SetSlipCoefficient(pWorld->m_Parameters[CarParameters::SlipCoefficient]);
+    // pWorld->m_pVehicle->SetMagicFormulaCoefficients(pWorld->m_Parameters[CarParameters::MagicFormula_B],
+    //   pWorld->m_Parameters[CarParameters::MagicFormula_C],
+    //   pWorld->m_Parameters[CarParameters::MagicFormula_E]);
 
-    //set the mass and wheelbase of the car
-    //pWorld->m_Parameters[CarParameters::WheelBase] = pWorld->m_vParameters[eWheelBase];
-    //pWorld->m_Parameters.m_dMass = pWorld->m_vParameters[eMass];
+    // //set the mass and wheelbase of the car
+    // //pWorld->m_Parameters[CarParameters::WheelBase] = pWorld->m_vParameters[eWheelBase];
+    // //pWorld->m_Parameters.m_dMass = pWorld->m_vParameters[eMass];
 
-    // btCollisionObjectArray objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
-    // printf("%d collision objects before remove\n", objarr.size());
+    // // btCollisionObjectArray objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
+    // // printf("%d collision objects before remove\n", objarr.size());
 
-    pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pVehicle->getRigidBody());
+    // pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pVehicle->getRigidBody());
 
 
-    // objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
-    // printf("%d collision objects after remove\n", objarr.size());
+    // // objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
+    // // printf("%d collision objects after remove\n", objarr.size());
 
-    //change rigid body dimensions
-    btBoxShape *pBoxShape =  (btBoxShape *)pWorld->m_pVehicle->getRigidBody()->getCollisionShape();
-    pBoxShape->setImplicitShapeDimensions(btVector3(pWorld->m_Parameters[CarParameters::WheelBase],pWorld->m_Parameters[CarParameters::Width],pWorld->m_Parameters[CarParameters::Height]));
-    //calculate new inertia
-    btVector3 localInertia(0,0,0);
-    pBoxShape->calculateLocalInertia(pWorld->m_Parameters[CarParameters::Mass],localInertia);
-    pWorld->m_pVehicle->getRigidBody()->setMassProps(pWorld->m_Parameters[CarParameters::Mass],localInertia);
-    pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pVehicle->getRigidBody(),COL_CAR,COL_NOTHING);
+    // //change rigid body dimensions
+    // btBoxShape *pBoxShape =  (btBoxShape *)pWorld->m_pVehicle->getRigidBody()->getCollisionShape();
+    // pBoxShape->setImplicitShapeDimensions(btVector3(pWorld->m_Parameters[CarParameters::WheelBase],pWorld->m_Parameters[CarParameters::Width],pWorld->m_Parameters[CarParameters::Height]));
+    // //calculate new inertia
+    // btVector3 localInertia(0,0,0);
+    // pBoxShape->calculateLocalInertia(pWorld->m_Parameters[CarParameters::Mass],localInertia);
+    // pWorld->m_pVehicle->getRigidBody()->setMassProps(pWorld->m_Parameters[CarParameters::Mass],localInertia);
+    // pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pVehicle->getRigidBody(),COL_CAR,COL_NOTHING);
 
-    // objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
-    // printf("%d collision objects after add\n", objarr.size());
+    // // objarr = pWorld->m_pDynamicsWorld->getCollisionObjectArray();
+    // // printf("%d collision objects after add\n", objarr.size());
 
-    //change the position of the wheels
-    pWorld->m_pVehicle->getWheelInfo(0).m_chassisConnectionPointCS[0] = pWorld->m_Parameters[CarParameters::WheelBase]/2;
-    pWorld->m_pVehicle->getWheelInfo(1).m_chassisConnectionPointCS[0] = pWorld->m_Parameters[CarParameters::WheelBase]/2;
-    pWorld->m_pVehicle->getWheelInfo(2).m_chassisConnectionPointCS[0] = -pWorld->m_Parameters[CarParameters::WheelBase]/2;
-    pWorld->m_pVehicle->getWheelInfo(3).m_chassisConnectionPointCS[0] = -pWorld->m_Parameters[CarParameters::WheelBase]/2;
+    // //change the position of the wheels
+    // pWorld->m_pVehicle->getWheelInfo(0).m_chassisConnectionPointCS[0] = pWorld->m_Parameters[CarParameters::WheelBase]/2;
+    // pWorld->m_pVehicle->getWheelInfo(1).m_chassisConnectionPointCS[0] = pWorld->m_Parameters[CarParameters::WheelBase]/2;
+    // pWorld->m_pVehicle->getWheelInfo(2).m_chassisConnectionPointCS[0] = -pWorld->m_Parameters[CarParameters::WheelBase]/2;
+    // pWorld->m_pVehicle->getWheelInfo(3).m_chassisConnectionPointCS[0] = -pWorld->m_Parameters[CarParameters::WheelBase]/2;
 
-    for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
-    {
-      WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
-      pWorld->m_pVehicle->updateWheelTransformsWS(wheel);
-      pWorld->m_pVehicle->updateWheelTransform(i);
-      wheel.m_suspensionRestLength1 = pWorld->m_Parameters[CarParameters::SuspRestLength];
-      wheel.m_suspensionStiffness = pWorld->m_Parameters[CarParameters::Stiffness];
-      wheel.m_wheelsDampingCompression = pWorld->m_Parameters[CarParameters::CompDamping];
-      wheel.m_wheelsDampingRelaxation = pWorld->m_Parameters[CarParameters::ExpDamping];
-    }
+    // for (size_t i=0;i<pWorld->m_pVehicle->getNumWheels();i++)
+    // {
+    //   WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(i);
+    //   pWorld->m_pVehicle->updateWheelTransformsWS(wheel);
+    //   pWorld->m_pVehicle->updateWheelTransform(i);
+    //   wheel.m_suspensionRestLength1 = pWorld->m_Parameters[CarParameters::SuspRestLength];
+    //   wheel.m_suspensionStiffness = pWorld->m_Parameters[CarParameters::Stiffness];
+    //   wheel.m_wheelsDampingCompression = pWorld->m_Parameters[CarParameters::CompDamping];
+    //   wheel.m_wheelsDampingRelaxation = pWorld->m_Parameters[CarParameters::ExpDamping];
+    // }
 
-    pWorld->m_pVehicle->updateSuspension();
+    // pWorld->m_pVehicle->updateSuspension();
 
   }
 
@@ -784,37 +836,37 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
   /////////////////////////////////////////////////////////////////////////////////////////
   std::pair<double,double> BulletCarModel::GetSteeringRequiredAndMaxForce(const int nWorldId, const int nWheelId, const double dPhi, const double dt)
   {
-    BulletWorldInstance* pWorld = GetWorldInstance(nWorldId);
-    return pWorld->m_pVehicle->GetSteeringRequiredAndMaxForce(nWheelId,dPhi,dt);
+    // BulletWorldInstance* pWorld = GetWorldInstance(nWorldId);
+    // return pWorld->m_pVehicle->GetSteeringRequiredAndMaxForce(nWheelId,dPhi,dt);
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////
   double BulletCarModel::_CalculateWheelFriction(int wheelNum, BulletWorldInstance* pInstance, double dt)
   {
-    bool bDynamic;
-    double maxImpulse = pInstance->m_pVehicle->CalculateMaxFrictionImpulse(wheelNum,dt,bDynamic);
-    return maxImpulse / dt;
+    // bool bDynamic;
+    // double maxImpulse = pInstance->m_pVehicle->CalculateMaxFrictionImpulse(wheelNum,dt,bDynamic);
+    // return maxImpulse / dt;
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////
   double BulletCarModel::GetTotalGravityForce(BulletWorldInstance* pWorld)
   {
-    btVector3 gravityForce(0,0,-10*pWorld->m_Parameters[CarParameters::Mass]);
-    for(size_t ii = 0; ii < pWorld->m_pVehicle->getNumWheels() ; ii++) {
-      WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(ii);
-      if(wheel.m_raycastInfo.m_isInContact)
-      {
-        gravityForce -= wheel.m_raycastInfo.m_contactNormalWS*wheel.m_wheelsSuspensionForce;
-      }
-    }
-    //now get the component in the direction of the vehicle
-    const btTransform& chassisTrans = pWorld->m_pVehicle->getChassisWorldTransform();
-    btVector3 carFwd (
-      chassisTrans.getBasis()[0][CAR_FORWARD_AXIS],
-      chassisTrans.getBasis()[1][CAR_FORWARD_AXIS],
-      chassisTrans.getBasis()[2][CAR_FORWARD_AXIS]);
-    double force = gravityForce.dot(carFwd);
-    return -force;
+    // btVector3 gravityForce(0,0,-10*pWorld->m_Parameters[CarParameters::Mass]);
+    // for(size_t ii = 0; ii < pWorld->m_pVehicle->getNumWheels() ; ii++) {
+    //   WheelInfo& wheel = pWorld->m_pVehicle->getWheelInfo(ii);
+    //   if(wheel.m_raycastInfo.m_isInContact)
+    //   {
+    //     gravityForce -= wheel.m_raycastInfo.m_contactNormalWS*wheel.m_wheelsSuspensionForce;
+    //   }
+    // }
+    // //now get the component in the direction of the vehicle
+    // const btTransform& chassisTrans = pWorld->m_pVehicle->getChassisWorldTransform();
+    // btVector3 carFwd (
+    //   chassisTrans.getBasis()[0][CAR_FORWARD_AXIS],
+    //   chassisTrans.getBasis()[1][CAR_FORWARD_AXIS],
+    //   chassisTrans.getBasis()[2][CAR_FORWARD_AXIS]);
+    // double force = gravityForce.dot(carFwd);
+    // return -force;
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////
@@ -869,7 +921,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
     dCorrectedPhi *= -1;
 
     //rate-limit the steering
-    double dCurrentSteering = pWorld->m_pVehicle->GetAckermanSteering();
+    double dCurrentSteering = pWorld->m_pVehicle->getEnabledSteeringAngle();
     double dRate = (dCorrectedPhi-dCurrentSteering)/dT;
     //clamp the rate
     dRate = sgn(dRate) * std::min(fabs(dRate),pWorld->m_Parameters[CarParameters::MaxSteeringRate]);
@@ -878,14 +930,16 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 
     double wheelForce = dCorrectedForce/2;
 
-    int wheelIndex = 2;
-    pWorld->m_pVehicle->applyEngineForce(wheelForce,wheelIndex);
-    wheelIndex = 3;
-    pWorld->m_pVehicle->applyEngineForce(wheelForce,wheelIndex);
+    // int wheelIndex = 2;
+    // pWorld->m_pVehicle->applyEngineForce(wheelForce,wheelIndex);
+    // wheelIndex = 3;
+    // ROS_INFO("force: %f", -wheelForce);
+    pWorld->m_pVehicle->setEnabledAngularAcceleration(command.m_dForce, command.m_dT);
 
-    wheelIndex = 0;
+    // wheelIndex = 0;
     //set the steering value
-    pWorld->m_pVehicle->SetAckermanSteering(dCorrectedPhi);
+    // pWorld->m_pVehicle->SetAckermanSteering(dCorrectedPhi);
+    pWorld->m_pVehicle->setEnabledSteeringAngle(-command.m_dPhi);
 
     // Simulation mode -> this causes the car to move on the screen
     // Experiment mode + SIL -> this causes the car to go +z forever and spin on it's y-axis (through the length of the car)
@@ -894,11 +948,12 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
     if (pWorld->m_pDynamicsWorld && bNoUpdate==false)
     {
       // boost::mutex::scoped_lock lock(*pWorld);
-      Eigen::Vector3d T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
-      btVector3 bTorques( T_w[0], T_w[1], T_w[2] );
-      pWorld->m_pVehicle->getRigidBody()->applyTorque( bTorques );
+      // Eigen::Vector3d T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
+      // btVector3 bTorques( T_w[0], T_w[1], T_w[2] );
+      // pWorld->m_pVehicle->getRigidBody()->applyTorque( bTorques );
       //DLOG(INFO) << "Sending torque vector " << T_w.transpose() << " to car.";
       // printf("OK 1\n");
+      pWorld->m_pVehicle->updateConstraints();
       pWorld->m_pDynamicsWorld->stepSimulation(dT,1,dT);
     }
     // printf("OK 2\n");
@@ -919,9 +974,9 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 
       for(size_t ii = 0; ii < pWorld->m_pVehicle->getNumWheels() ; ii++) {
         //m_pVehicle->updateWheelTransform(ii,true);
-        pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.getOpenGLMatrix(Twv.data());
+        pWorld->m_pVehicle->getWheel(ii)->getWorldTransform().getOpenGLMatrix(Twv.data());
         pWorld->m_state.m_vWheelStates[ii] = Sophus::SE3d(Twv);
-        pWorld->m_state.m_vWheelContacts[ii] = pWorld->m_pVehicle->getWheelInfo(ii).m_raycastInfo.m_isInContact;
+        // pWorld->m_state.m_vWheelContacts[ii] = pWorld->m_pVehicle->getWheelInfo(ii).m_raycastInfo.m_isInContact;
       }
 
       //get the velocity
@@ -929,7 +984,7 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
       pWorld->m_state.m_dW << pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[0], pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[1], pWorld->m_pVehicle->getRigidBody()->getAngularVelocity()[2];
 
       //set the steering
-      pWorld->m_state.m_dSteering = pWorld->m_pVehicle->GetAckermanSteering();
+      pWorld->m_state.m_dSteering = pWorld->m_pVehicle->getEnabledSteeringAngle();
     }
 
   }
@@ -999,14 +1054,14 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
     BulletWorldInstance *pWorld = GetWorldInstance(nWorldId);
     boost::mutex::scoped_lock lock(*pWorld);
     //load the backup onto the vehicle
-    pWorld->m_vehicleBackup.LoadState(pWorld->m_pVehicle);
+    // pWorld->m_vehicleBackup.LoadState(pWorld->m_pVehicle);
 
     //set the wheel positions and contact
-    for(size_t ii = 0; ii < state.m_vWheelStates.size() ; ii++) {
-      //m_pVehicle->updateWheelTransform(ii,true);
-      pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.setFromOpenGLMatrix(state.m_vWheelStates[ii].data());
-      pWorld->m_pVehicle->getWheelInfo(ii).m_raycastInfo.m_isInContact = state.m_vWheelContacts[ii];
-    }
+    // for(size_t ii = 0; ii < state.m_vWheelStates.size() ; ii++) {
+    //   //m_pVehicle->updateWheelTransform(ii,true);
+    //   pWorld->m_pVehicle->getWheelInfo(ii).m_worldTransform.setFromOpenGLMatrix(state.m_vWheelStates[ii].data());
+    //   pWorld->m_pVehicle->getWheelInfo(ii).m_raycastInfo.m_isInContact = state.m_vWheelContacts[ii];
+    // }
 
     //update the parameters since they will have been overwritten
     _InternalUpdateParameters(pWorld);
@@ -1030,7 +1085,8 @@ void BulletCarModel::PushDelayedControl(int worldId, ControlCommand& delayedComm
 
 
     //set the steering
-    pWorld->m_pVehicle->SetAckermanSteering(state.m_dSteering);
+    // pWorld->m_pVehicle->SetAckermanSteering(state.m_dSteering);
+    pWorld->m_pVehicle->setEnabledSteeringAngle(-state.m_dSteering);
 
 
     //raycast all wheels so they are correctly positioned
