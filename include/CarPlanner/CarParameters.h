@@ -43,6 +43,7 @@ public:
          Mass = 7,
 
         //wheel options
+         WheelMass = 29,              //< Mass of the wheels
          WheelRadius = 8,              //< Radius of the wheels
          WheelWidth = 9,               //< Thickness of the wheels
          TractionFriction = 10,         //< Friction value of the wheels to the ground

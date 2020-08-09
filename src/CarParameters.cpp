@@ -10,7 +10,7 @@ const char * const CarParameters::Names[] = {"WheelBase", "Width", "Height", "Dy
                                              "SuspRestLength","CompDamping","ExpDamping","RollInfluence",
                                              "SteeringCoef","MaxSteering","MaxSteeringRate","AccelOffset",
                                              "SteeringOffset","StallTorqueCoef","TorqueSpeedSlope",
-                                             "Magic_B","Magic_C","Magic_E"};
+                                             "Magic_B","Magic_C","Magic_E", "WheelMass"};
 
 ////////////////////////////////////////////////////////////////
 bool CarParameters::SaveToFile(const std::string sFile,const CarParameterMap& map)
