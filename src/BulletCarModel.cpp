@@ -901,7 +901,7 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
     //pWorld->m_pCarChassis = _LocalCreateRigidBody(pWorld,pWorld->m_Parameters.m_dMass,tr,compound, COL_CAR,COL_GROUND);//chassisShape);
 
     /// create vehicle
-    pWorld->m_pVehicleRayCaster = new btDefaultVehicleRaycaster(pWorld->m_pDynamicsWorld);
+    pWorld->m_pVehicleRayCaster = new DefaultVehicleRaycaster(pWorld->m_pDynamicsWorld);
 
     if( pWorld->m_pVehicle != NULL ) {
         pWorld->m_pDynamicsWorld->removeVehicle(pWorld->m_pVehicle);
