@@ -14,7 +14,7 @@
 #include <CarPlanner/RpgUtils.h>
 
 //////////////////////////////////////////////////////////////////
-Localizer::Localizer()
+Localizer::Localizer() : m_pThread(0), m_bIsStarted(false)
 {
   LOG(INFO) << "New Localizer created.";
 }
@@ -22,6 +22,7 @@ Localizer::Localizer()
 //////////////////////////////////////////////////////////////////
 Localizer::~Localizer()
 {
+    Stop();
 }
 
 //////////////////////////////////////////////////////////////////
@@ -115,7 +116,20 @@ Sophus::SE3d Localizer::GetPose(const std::string &sObjectName, bool blocking /*
   if (rate != NULL)
   {
     *rate = m_mObjects[sObjectName].m_dPoseRate;
-  }
+  } 
+
+  // LOG(INFO) << "Got pose: " 
+  //   << "map" 
+  //   << "->" << sObjectName.c_str() 
+  //   << " @ " << (*time) 
+  //   << ", px" << pose.translation().x() 
+  //   << " py " << pose.translation().y() 
+  //   << " pz " << pose.translation().z() 
+  //   << " qx " << pose.unit_quaternion().x()
+  //   << " qy " << pose.unit_quaternion().y()
+  //   << " qz " << pose.unit_quaternion().z()
+  //   << " qw " << pose.unit_quaternion().w();
+
   return pose;
 }
 

@@ -129,11 +129,13 @@ Sophus::SE3d TFLocalizer::GetPose( const std::string& sObjectName, bool blocking
 //////////////////////////////////////////////////////////////////////////////
 Sophus::SE3d TFLocalizer::LookupPose(std::string objectName)
 {
+    // ROS_INFO("Looking up pose...");
+    std::string parent_frame = "map";
     tf::StampedTransform Tmv;
     try
     {
-        m_tflistener.waitForTransform("map", objectName, ros::Time::now(), ros::Duration(0.1));
-        m_tflistener.lookupTransform("map", objectName, ros::Time(0), Tmv);
+        m_tflistener.waitForTransform(parent_frame, objectName, ros::Time::now(), ros::Duration(0.1));
+        m_tflistener.lookupTransform(parent_frame, objectName, ros::Time(0), Tmv);
     }
     catch (const tf::TransformException& ex)
     {
@@ -146,6 +148,11 @@ Sophus::SE3d TFLocalizer::LookupPose(std::string objectName)
     Sophus::SE3d T( Sophus::SO3d(Quat), Pos );
 
     m_lastTime = Tmv.stamp_.toSec();
+
+    // ROS_INFO("Got pose: %s->%s @ %f, px %f py %f pz %f qx %f qy %f qz %f qw %f", 
+    //     parent_frame.c_str(), objectName.c_str(), m_lastTime, 
+    //     T.translation().x(), T.translation().y(), T.translation().z(),
+    //     T.unit_quaternion().x(), T.unit_quaternion().y(), T.unit_quaternion().z(), T.unit_quaternion().w());
 
     return T;
 }
