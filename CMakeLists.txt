@@ -94,6 +94,7 @@ set( SRCS
         src/TFLocalizer.cpp
         src/HALLocalizer.cpp
         src/Localizer.cpp
+        src/HALCommander.cpp
         src/DirectBoundarySolver.cpp
 #        src/BulletPrim.cpp
    )
@@ -105,6 +106,7 @@ set( HDRS
         include/CarPlanner/TFLocalizer.h
         include/CarPlanner/HALLocalizer.h
         include/CarPlanner/Localizer.h
+        include/CarPlanner/HALCommander.h
         include/CarPlanner/CarWheel.h
         include/CarPlanner/CarRegressor.h
         include/CarPlanner/CarController.h
