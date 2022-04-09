@@ -13,11 +13,11 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 
-class TFLocalizer : Localizer
+class ROSLocalizer : Localizer
 {
 public:
-    TFLocalizer();
-    virtual ~TFLocalizer();
+    ROSLocalizer();
+    virtual ~ROSLocalizer();
     void TrackObject(const std::string& sObjectName, bool bRobotFrame = true);
     void TrackObject(const std::string& sObjectName, Sophus::SE3d dToffset, bool bRobotFrame = true);
     void Start();

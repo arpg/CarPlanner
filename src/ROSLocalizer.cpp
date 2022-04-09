@@ -5,7 +5,7 @@
  * Created on February 16, 2012, 5:07 PM
  */
 
-#include <CarPlanner/TFLocalizer.h>
+#include <CarPlanner/ROSLocalizer.h>
 
 #include <math.h>
 
@@ -14,13 +14,13 @@
 #include <CarPlanner/RpgUtils.h>
 
 //////////////////////////////////////////////////////////////////
-TFLocalizer::TFLocalizer()
+ROSLocalizer::ROSLocalizer()
 {
-    LOG(INFO) << "New TFLocalizer created.";
+    LOG(INFO) << "New ROSLocalizer created.";
 }
 
 //////////////////////////////////////////////////////////////////
-void TFLocalizer::TrackObject(
+void ROSLocalizer::TrackObject(
         const std::string& sObjectName,
         bool bRobotFrame /*= true*/
         ){
@@ -28,7 +28,7 @@ void TFLocalizer::TrackObject(
 }
 
 //////////////////////////////////////////////////////////////////
-void TFLocalizer::TrackObject(
+void ROSLocalizer::TrackObject(
         const std::string& sObjectName,
         Sophus::SE3d dToffset,
         bool bRobotFrame /*= true*/
@@ -44,29 +44,29 @@ void TFLocalizer::TrackObject(
 }
 
 //////////////////////////////////////////////////////////////////
-TFLocalizer::~TFLocalizer()
+ROSLocalizer::~ROSLocalizer()
 {
 }
 
 //////////////////////////////////////////////////////////////////
-void TFLocalizer::Start()
+void ROSLocalizer::Start()
 {
-    LOG(INFO) << "Starting TFLocalizer.";
+    LOG(INFO) << "Starting ROSLocalizer.";
 
     if( m_bIsStarted == true ) {
-        LOG(ERROR) << "TFLocalizer thread already started";
+        LOG(ERROR) << "ROSLocalizer thread already started";
         //throw MochaException("The Localizer thread has already started.");
         return;
     }
 
-    m_pThread = new boost::thread([this] () { TFLocalizer::_ThreadFunction(this); } );
+    m_pThread = new boost::thread([this] () { ROSLocalizer::_ThreadFunction(this); } );
     m_bIsStarted = true;
 
     //LOG(INFO) << "Localizer thread started.";
 }
 
 //////////////////////////////////////////////////////////////////
-void TFLocalizer::Stop()
+void ROSLocalizer::Stop()
 {
     if( m_bIsStarted == false ) {
         LOG(ERROR) << "No thread running!";
@@ -79,12 +79,12 @@ void TFLocalizer::Stop()
 
     m_bIsStarted = false;
 
-    LOG(INFO) << "TFLocalizer thread stopped.";
+    LOG(INFO) << "ROSLocalizer thread stopped.";
 }
 
 //////////////////////////////////////////////////////////////////
 //
-Sophus::SE3d TFLocalizer::GetPose( const std::string& sObjectName, bool blocking/* = false */,
+Sophus::SE3d ROSLocalizer::GetPose( const std::string& sObjectName, bool blocking/* = false */,
                                           double* time /*= NULL*/, double* rate /*= NULL*/)
 {
     if( m_mObjects.find( sObjectName ) == m_mObjects.end() ){
@@ -107,12 +107,18 @@ Sophus::SE3d TFLocalizer::GetPose( const std::string& sObjectName, bool blocking
     if(rate != NULL){
         *rate = m_mObjects[sObjectName].m_dPoseRate;
     }
+
+    // ROS_INFO("Got pose: %s->%s @ %f, px %f py %f pz %f qx %f qy %f qz %f qw %f", 
+    //     "map", sObjectName.c_str(), *time, 
+    //     pose.translation().x(), pose.translation().y(), pose.translation().z(),
+    //     pose.unit_quaternion().x(), pose.unit_quaternion().y(), pose.unit_quaternion().z(), pose.unit_quaternion().w());
+
     return pose;
 }
 
 //////////////////////////////////////////////////////////////////
 //
-//Eigen::Matrix<double,6,1> TFLocalizer::GetdPose( const std::string& sObjectName )
+//Eigen::Matrix<double,6,1> ROSLocalizer::GetdPose( const std::string& sObjectName )
 //{
 //    if( m_mObjects.find( sObjectName ) == m_mObjects.end() ){
 //        throw MochaException("Invalid object name.");
@@ -127,7 +133,7 @@ Sophus::SE3d TFLocalizer::GetPose( const std::string& sObjectName, bool blocking
 //}
 
 //////////////////////////////////////////////////////////////////////////////
-Sophus::SE3d TFLocalizer::LookupPose(std::string objectName)
+Sophus::SE3d ROSLocalizer::LookupPose(std::string objectName)
 {
     // ROS_INFO("Looking up pose...");
     std::string parent_frame = "map";
@@ -157,7 +163,7 @@ Sophus::SE3d TFLocalizer::LookupPose(std::string objectName)
     return T;
 }
 
-double TFLocalizer::LookupTime()
+double ROSLocalizer::LookupTime()
 {
     return m_lastTime;
 }

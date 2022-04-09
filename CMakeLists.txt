@@ -91,7 +91,7 @@ set( SRCS
         src/BezierBoundarySolver.cpp
         src/MochaException.cpp
         src/CarController.cpp
-        src/TFLocalizer.cpp
+        src/ROSLocalizer.cpp
         src/HALLocalizer.cpp
         src/Localizer.cpp
         src/HALCommander.cpp
@@ -103,7 +103,7 @@ set( HDRS
         include/CarPlanner/ApplyVelocitiesFunctor.h
         include/CarPlanner/CarPlannerCommon.h
         include/CarPlanner/BulletCarModel.h
-        include/CarPlanner/TFLocalizer.h
+        include/CarPlanner/ROSLocalizer.h
         include/CarPlanner/HALLocalizer.h
         include/CarPlanner/Localizer.h
         include/CarPlanner/HALCommander.h
