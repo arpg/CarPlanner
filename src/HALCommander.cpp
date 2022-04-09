@@ -1,7 +1,7 @@
 #include <CarPlanner/HALCommander.h>
 
 ///////////////////////////////////////////////////////
-HALCommander::HALCommander() : m_pThread(0), m_bIsStarted(false)
+HALCommander::HALCommander()
 {
     m_MochaPort = 1643;
     m_ComPort = 1642;
@@ -30,43 +30,7 @@ HALCommander::HALCommander() : m_pThread(0), m_bIsStarted(false)
 /////////////////////////////////////////////////////////////
 HALCommander::~HALCommander()
 {
-    Stop();
-}
-
-////////////////////////////////////////////////////////////
-void HALCommander::Start()
-{
-    LOG(INFO) << "Starting HALCommander thread.";
-
-    if( m_bIsStarted == true ) {
-        LOG(ERROR) << "HALCommander thread already started";
-        //throw MochaException("The Localizer thread has already started.");
-        return;
-    }
-
-    // m_pThread = new boost::thread([this] () { HALCommander::_ThreadFunction(this); } );
-    m_bIsStarted = true;
-
-    //LOG(INFO) << "HALCommander thread started.";
-}
-
-//////////////////////////////////////////////////////////////
-void HALCommander::Stop()
-{
-    if( m_bIsStarted == false ) {
-        LOG(ERROR) << "No thread running!";
-        //throw MochaException("No thread is running!");
-        return;
-    }
-
-    m_pThread->interrupt();
-    m_pThread->join();
-
     close(sockFD);
-
-    m_bIsStarted = false;
-
-    LOG(INFO) << "HALCommander thread stopped.";
 }
 
 ///////////////////////////////////////////////////////////////

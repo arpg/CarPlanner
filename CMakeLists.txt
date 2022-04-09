@@ -39,6 +39,7 @@ find_package(catkin REQUIRED
     COMPONENTS
         roscpp
         tf
+        carplanner_msgs
 )
 
 set( _LIBRARIES

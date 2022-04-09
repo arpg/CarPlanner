@@ -40,6 +40,7 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 
+#include <carplanner_msgs/Command.h>
 
 #define CAR_UP_AXIS 2   //this is the index for the bullet Z axis
 #define CAR_FORWARD_AXIS 0   //this is the index for the bullet X axis
@@ -84,6 +85,42 @@ public:
         m_dTorque = torques;
         m_dT = dt;
         m_dPhi = dPhi;
+    }
+
+    carplanner_msgs::Command toROS()
+    {
+        carplanner_msgs::Command msg;
+
+        msg.force = m_dForce;
+        msg.curvature = m_dCurvature;
+        msg.dt = m_dT;
+        msg.dphi = m_dPhi;
+        // msg.torques.clear();
+        // msg.torques.push_back(m_dTorque[0]);
+        // msg.torques.push_back(m_dTorque[1]);
+        // msg.torques.push_back(m_dTorque[2]);
+        msg.torques[0] = m_dTorque[0];
+        msg.torques[1] = m_dTorque[1];
+        msg.torques[2] = m_dTorque[2];
+        msg.time = m_dTime;
+
+        return msg;
+    }
+
+    void fromROS(const carplanner_msgs::Command& msg)
+    {
+        m_dForce = msg.force;
+        m_dCurvature = msg.curvature;
+        m_dT = msg.dt;
+        m_dPhi = msg.dphi;
+        assert(msg.torques.size() <= m_dTorque.size());
+        for (uint i=0; i<msg.torques.size(); i++)
+        {
+            m_dTorque[i] = msg.torques[i];
+        }
+        m_dTime = msg.time;
+
+        return;
     }
 
     //double m_dControlAccel;

@@ -30,14 +30,9 @@ class HALCommander
 public:
     HALCommander();
     ~HALCommander();
-    void Start();
-    void Stop();
     void SendCommand(ControlCommand command, bool sil=false);
 
 private:
-    bool m_bIsStarted;
-    boost::thread* m_pThread;
-
     // UDP values
     unsigned m_MochaPort; // UDP port for this gui
     unsigned m_ComPort; // UDP port for m_bSIL (unused)
