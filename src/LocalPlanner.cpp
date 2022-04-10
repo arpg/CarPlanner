@@ -93,6 +93,8 @@ LocalPlanner::LocalPlanner() :
     m_dPointWeight(3) = THETA_WEIGHT;
     m_dPointWeight(4) = VEL_WEIGHT_POINT;
     //m_dPointWeight(5) = CURV_WEIGHT;
+    m_dPointWeight(5) = TILT_WEIGHT_POINT;
+    m_dPointWeight(6) = CONTACT_WEIGHT_POINT;
 
     m_dTrajWeight(0) = XYZ_WEIGHT;
     m_dTrajWeight(1) = XYZ_WEIGHT;
@@ -278,6 +280,9 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, 
         //error[5] = -std::log(problem.m_BoundaryProblem.m_dAggressiveness);
         //error.array() *= m_dPointWeight.block<POINT_COST_ERROR_TERMS,1>(0,0).array();
         //DLOG(INFO) << "Error vector is " << error.transpose() << " weights are " << m_dPointWeight.transpose();
+
+        error[5] = sample.GetTiltCost();
+        error[6] = sample.GetContactCost();
     }else if(problem.m_eCostMode == eCostTrajectory){
         error =Eigen::VectorXd(errorVecSize);
 

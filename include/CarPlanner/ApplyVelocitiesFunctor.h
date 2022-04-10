@@ -70,6 +70,41 @@ struct MotionSample
         return vPoses;
     }
 
+    double GetTiltCost() const
+    {
+        double cost = 0;
+        
+        for(size_t ii = 1; ii < m_vStates.size() ; ii++){
+            Eigen::Vector3d dWCS(m_vStates[ii].m_dW.transpose() * m_vStates[ii].m_dTwv.rotationMatrix()); // current velocity in body coordinates
+            Eigen::Vector3d last_dWCS(m_vStates[ii-1].m_dW.transpose() * m_vStates[ii-1].m_dTwv.rotationMatrix()); // previous velocity in body coordinates
+            // for(uint i=0; i<dWCS.size(); i++) { dWCS[i] = fabs(dWCS[i]); }
+            // Eigen::Vector3d error_weights(1,.25,0); // roll pitch yaw
+            // cost += error_weights.dot(dWCS);
+            cost += fabs(dWCS[0]-last_dWCS[0]); // roll acceleration
+            // cost += dWCS[1]*0.5;
+            // cost += dWCS[0]*dWCS[0];
+        }
+        cost /= GetDistance();
+
+        return cost;
+    }
+
+    double GetContactCost() const
+    {
+        double cost = 0;
+
+        for(size_t ii = 0; ii < m_vStates.size() ; ii++){
+            const VehicleState& state = m_vStates[ii];
+            for(size_t jj = 0; jj < state.m_vWheelContacts.size(); jj++)
+            {
+                cost += (state.m_vWheelContacts[jj] ? 0.0 : 1.0/state.m_vWheelContacts.size()); // add cost normalized by num wheels
+            }
+        }
+        cost /= m_vStates.size();
+
+        return cost;
+    }
+
     double GetBadnessCost() const
     {
         double cost = 0;
