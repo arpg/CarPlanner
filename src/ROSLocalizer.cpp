@@ -20,28 +20,28 @@ ROSLocalizer::ROSLocalizer()
 }
 
 //////////////////////////////////////////////////////////////////
-void ROSLocalizer::TrackObject(
-        const std::string& sObjectName,
-        bool bRobotFrame /*= true*/
-        ){
-    TrackObject(sObjectName,Sophus::SE3d(),bRobotFrame);
-}
+// void ROSLocalizer::TrackObject(
+//         const std::string& sObjectName,
+//         bool bRobotFrame /*= true*/
+//         ){
+//     TrackObject(sObjectName,Sophus::SE3d(),bRobotFrame);
+// }
 
-//////////////////////////////////////////////////////////////////
-void ROSLocalizer::TrackObject(
-        const std::string& sObjectName,
-        Sophus::SE3d dToffset,
-        bool bRobotFrame /*= true*/
-        )
-{
-    LOG(INFO) << "Tracking object " << sObjectName << ".";
+// //////////////////////////////////////////////////////////////////
+// void ROSLocalizer::TrackObject(
+//         const std::string& sObjectName,
+//         Sophus::SE3d dToffset,
+//         bool bRobotFrame /*= true*/
+//         )
+// {
+//     LOG(INFO) << "Tracking object " << sObjectName << ".";
 
-    TrackerObject* pObj = &m_mObjects[ sObjectName ];
+//     TrackerObject* pObj = &m_mObjects[ sObjectName ];
 
-    pObj->m_dToffset = dToffset;
-    pObj->m_bRobotFrame = bRobotFrame;
-    pObj->m_pLocalizerObject = this;
-}
+//     pObj->m_dToffset = dToffset;
+//     pObj->m_bRobotFrame = bRobotFrame;
+//     pObj->m_pLocalizerObject = this;
+// }
 
 //////////////////////////////////////////////////////////////////
 ROSLocalizer::~ROSLocalizer()
