@@ -24,13 +24,13 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 
-class HALLocalizer : Localizer
+class HALLocalizer : public Localizer
 {
 public:
     HALLocalizer();
     virtual ~HALLocalizer();
-    void TrackObject(const std::string& sObjectName, bool bRobotFrame = true);
-    void TrackObject(const std::string& sObjectName, Sophus::SE3d dToffset, bool bRobotFrame = true);
+    // void TrackObject(const std::string& sObjectName, bool bRobotFrame = true);
+    // void TrackObject(const std::string& sObjectName, Sophus::SE3d dToffset, bool bRobotFrame = true);
     void Start();
     void Stop();
     Sophus::SE3d GetPose(const std::string& sObjectName , bool blocking = false, double *time = NULL, double *rate = NULL);

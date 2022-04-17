@@ -47,29 +47,29 @@ HALLocalizer::~HALLocalizer()
 }
 
 //////////////////////////////////////////////////////////////////
-void HALLocalizer::TrackObject(
-        const std::string& sObjectName,
-        bool bRobotFrame /*= true*/
-        ){
-    TrackObject(sObjectName,Sophus::SE3d(),bRobotFrame);
-}
+// void HALLocalizer::TrackObject(
+//         const std::string& sObjectName,
+//         bool bRobotFrame /*= true*/
+//         ){
+//     TrackObject(sObjectName,Sophus::SE3d(),bRobotFrame);
+// }
 
-//////////////////////////////////////////////////////////////////
-void HALLocalizer::TrackObject(
-        const std::string& sObjectName,
-        Sophus::SE3d dToffset,
-        bool bRobotFrame /*= true*/
-        )
-{
+// //////////////////////////////////////////////////////////////////
+// void HALLocalizer::TrackObject(
+//         const std::string& sObjectName,
+//         Sophus::SE3d dToffset,
+//         bool bRobotFrame /*= true*/
+//         )
+// {
 
-    LOG(INFO) << "Tracking object " << sObjectName << ".";
+//     LOG(INFO) << "Tracking object " << sObjectName << ".";
 
-    TrackerObject* pObj = &m_mObjects[ sObjectName ];
+//     TrackerObject* pObj = &m_mObjects[ sObjectName ];
 
-    pObj->m_dToffset = dToffset;
-    pObj->m_bRobotFrame = bRobotFrame;
-    pObj->m_pLocalizerObject = this;
-}
+//     pObj->m_dToffset = dToffset;
+//     pObj->m_bRobotFrame = bRobotFrame;
+//     pObj->m_pLocalizerObject = this;
+// }
 
 //////////////////////////////////////////////////////////////////
 void HALLocalizer::Start()
@@ -301,6 +301,24 @@ Sophus::SE3d HALLocalizer::LookupPose(std::string objectName)
 
     // get the pose and transform it as necessary
     Sophus::SE3d Twc( Sophus::SO3d(Quat), Pos );
+
+    boost::mutex::scoped_lock lock(m_mObjects[objectName].m_Mutex);
+
+    Eigen::Matrix4d T;
+    if (m_mObjects[objectName].m_bRobotFrame)
+    {
+        T << 1, 0, 0, 0,
+            0, -1, 0, 0,
+            0, 0, -1, 0,
+            0, 0, 0, 1;
+    }
+    else
+    {
+      T = Eigen::Matrix4d::Identity();
+    }
+
+    Twc = Sophus::SE3d(T) * (m_mObjects[objectName].m_dToffset * Twc);
+
     return Twc;
 }
 

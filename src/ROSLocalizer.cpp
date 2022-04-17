@@ -20,28 +20,28 @@ ROSLocalizer::ROSLocalizer()
 }
 
 //////////////////////////////////////////////////////////////////
-void ROSLocalizer::TrackObject(
-        const std::string& sObjectName,
-        bool bRobotFrame /*= true*/
-        ){
-    TrackObject(sObjectName,Sophus::SE3d(),bRobotFrame);
-}
+// void ROSLocalizer::TrackObject(
+//         const std::string& sObjectName,
+//         bool bRobotFrame /*= true*/
+//         ){
+//     TrackObject(sObjectName,Sophus::SE3d(),bRobotFrame);
+// }
 
-//////////////////////////////////////////////////////////////////
-void ROSLocalizer::TrackObject(
-        const std::string& sObjectName,
-        Sophus::SE3d dToffset,
-        bool bRobotFrame /*= true*/
-        )
-{
-    LOG(INFO) << "Tracking object " << sObjectName << ".";
+// //////////////////////////////////////////////////////////////////
+// void ROSLocalizer::TrackObject(
+//         const std::string& sObjectName,
+//         Sophus::SE3d dToffset,
+//         bool bRobotFrame /*= true*/
+//         )
+// {
+//     LOG(INFO) << "Tracking object " << sObjectName << ".";
 
-    TrackerObject* pObj = &m_mObjects[ sObjectName ];
+//     TrackerObject* pObj = &m_mObjects[ sObjectName ];
 
-    pObj->m_dToffset = dToffset;
-    pObj->m_bRobotFrame = bRobotFrame;
-    pObj->m_pLocalizerObject = this;
-}
+//     pObj->m_dToffset = dToffset;
+//     pObj->m_bRobotFrame = bRobotFrame;
+//     pObj->m_pLocalizerObject = this;
+// }
 
 //////////////////////////////////////////////////////////////////
 ROSLocalizer::~ROSLocalizer()
@@ -159,6 +159,18 @@ Sophus::SE3d ROSLocalizer::LookupPose(std::string objectName)
     //     parent_frame.c_str(), objectName.c_str(), m_lastTime, 
     //     T.translation().x(), T.translation().y(), T.translation().z(),
     //     T.unit_quaternion().x(), T.unit_quaternion().y(), T.unit_quaternion().z(), T.unit_quaternion().w());
+
+    Eigen::Matrix4d T1;
+    T1 << 1, 0, 0, 0,
+        0, -1, 0, 0,
+        0, 0, -1, 0,
+        0, 0, 0, 1;
+    Eigen::Matrix4d T2;
+    T2 << 0,-1, 0, 0,
+        -1, 0, 0, 0,
+        0, 0,-1, 0,
+        0, 0, 0, 1; 
+    T = Sophus::SE3d(T1) * T * Sophus::SE3d(T2);
 
     return T;
 }

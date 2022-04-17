@@ -175,27 +175,7 @@ void Localizer::_ThreadFunction(Localizer *pV)
       {
         boost::mutex::scoped_lock lock(it->second.m_Mutex);
 
-        Eigen::Matrix4d T;
-        if (it->second.m_bRobotFrame)
-        {
-          T << 1, 0, 0, 0,
-              0, -1, 0, 0,
-              0, 0, 1, 0,
-              0, 0, 0, 1;
-        }
-        else
-        {
-          T = Eigen::Matrix4d::Identity();
-        }
-
-        Eigen::Matrix4d Tlw;
-        Tlw << 1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, -1, 0,
-            0, 0, 0, 1;
-
-        it->second.m_dSensorPose = Sophus::SE3d(T) * (it->second.m_dToffset * Twc);
-        // ^^MochaGui.cpp/_LocalizerReadFunc()/m_Localizer.GetPose()
+        it->second.m_dSensorPose = Twc;
 
         // std::cout << it->second.m_dSensorPose << std::endl; //debugging
 
