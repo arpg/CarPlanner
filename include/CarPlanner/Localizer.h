@@ -32,11 +32,11 @@ class Localizer
 public:
     Localizer();
     virtual ~Localizer();
-    virtual void TrackObject(const std::string& sObjectName, bool bRobotFrame = true);
-    virtual void TrackObject(const std::string& sObjectName, Sophus::SE3d dToffset, bool bRobotFrame = true);
+    void TrackObject(const std::string& sObjectName, bool bRobotFrame = true);
+    void TrackObject(const std::string& sObjectName, Sophus::SE3d dToffset, bool bRobotFrame = true);
     virtual void Start();
     virtual void Stop();
-    virtual Sophus::SE3d GetPose(const std::string& sObjectName , bool blocking = false, double *time = NULL, double *rate = NULL);
+    Sophus::SE3d GetPose(const std::string& sObjectName , bool blocking = false, double *time = NULL, double *rate = NULL);
     // virtual //Eigen::Matrix<double,6,1> GetdPose( const std::string& sObjectName );
     // virtual eLocType WhereAmI( Eigen::Vector3d P );
     // virtual eLocType WhereAmI( Eigen::Vector6d P );
