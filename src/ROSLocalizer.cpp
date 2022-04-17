@@ -160,6 +160,18 @@ Sophus::SE3d ROSLocalizer::LookupPose(std::string objectName)
     //     T.translation().x(), T.translation().y(), T.translation().z(),
     //     T.unit_quaternion().x(), T.unit_quaternion().y(), T.unit_quaternion().z(), T.unit_quaternion().w());
 
+    Eigen::Matrix4d T1;
+    T1 << 1, 0, 0, 0,
+        0, -1, 0, 0,
+        0, 0, -1, 0,
+        0, 0, 0, 1;
+    Eigen::Matrix4d T2;
+    T2 << 0,-1, 0, 0,
+        -1, 0, 0, 0,
+        0, 0,-1, 0,
+        0, 0, 0, 1; 
+    T = Sophus::SE3d(T1) * T * Sophus::SE3d(T2);
+
     return T;
 }
 

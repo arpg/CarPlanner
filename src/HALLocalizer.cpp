@@ -301,6 +301,24 @@ Sophus::SE3d HALLocalizer::LookupPose(std::string objectName)
 
     // get the pose and transform it as necessary
     Sophus::SE3d Twc( Sophus::SO3d(Quat), Pos );
+
+    boost::mutex::scoped_lock lock(m_mObjects[objectName].m_Mutex);
+
+    Eigen::Matrix4d T;
+    if (m_mObjects[objectName].m_bRobotFrame)
+    {
+        T << 1, 0, 0, 0,
+            0, -1, 0, 0,
+            0, 0, -1, 0,
+            0, 0, 0, 1;
+    }
+    else
+    {
+      T = Eigen::Matrix4d::Identity();
+    }
+
+    Twc = Sophus::SE3d(T) * (m_mObjects[objectName].m_dToffset * Twc);
+
     return Twc;
 }
 
