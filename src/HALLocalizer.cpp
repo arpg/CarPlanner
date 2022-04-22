@@ -109,32 +109,32 @@ void HALLocalizer::Stop()
 
 //////////////////////////////////////////////////////////////////
 //
-Sophus::SE3d HALLocalizer::GetPose( const std::string& sObjectName, bool blocking/* = false */,
-                                          double* time /*= NULL*/, double* rate /*= NULL*/)
-{
+// Sophus::SE3d HALLocalizer::GetPose( const std::string& sObjectName, bool blocking/* = false */,
+//                                           double* time /*= NULL*/, double* rate /*= NULL*/)
+// {
 
-    if( m_mObjects.find( sObjectName ) == m_mObjects.end() ){
-        throw MochaException("Invalid object name.");
-    }
+//     if( m_mObjects.find( sObjectName ) == m_mObjects.end() ){
+//         throw MochaException("Invalid object name.");
+//     }
 
-    TrackerObject& obj = m_mObjects[sObjectName];
-    boost::mutex::scoped_lock lock(obj.m_Mutex);
+//     TrackerObject& obj = m_mObjects[sObjectName];
+//     boost::mutex::scoped_lock lock(obj.m_Mutex);
 
-    //if blocking wait until we have a signal that the pose for this object has been updated
-    if(blocking && obj.m_bPoseUpdated == false){
-        obj.m_PoseUpdated.wait(lock);
-    }
-    obj.m_bPoseUpdated = false;
+//     //if blocking wait until we have a signal that the pose for this object has been updated
+//     if(blocking && obj.m_bPoseUpdated == false){
+//         obj.m_PoseUpdated.wait(lock);
+//     }
+//     obj.m_bPoseUpdated = false;
 
-    Sophus::SE3d pose = obj.m_dSensorPose;
-    if(time != NULL){
-        *time = m_mObjects[sObjectName].m_dTime;
-    }
-    if(rate != NULL){
-        *rate = m_mObjects[sObjectName].m_dPoseRate;
-    }
-    return pose;
-}
+//     Sophus::SE3d pose = obj.m_dSensorPose;
+//     if(time != NULL){
+//         *time = m_mObjects[sObjectName].m_dTime;
+//     }
+//     if(rate != NULL){
+//         *rate = m_mObjects[sObjectName].m_dPoseRate;
+//     }
+//     return pose;
+// }
 
 //////////////////////////////////////////////////////////////////
 //

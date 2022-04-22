@@ -40,6 +40,7 @@ public:
     // virtual //Eigen::Matrix<double,6,1> GetdPose( const std::string& sObjectName );
     // virtual eLocType WhereAmI( Eigen::Vector3d P );
     // virtual eLocType WhereAmI( Eigen::Vector6d P );
+    virtual std::string GetLocalizerType() = 0;
 
 protected:
     virtual Sophus::SE3d LookupPose(std::string objectName) = 0;

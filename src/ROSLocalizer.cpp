@@ -14,7 +14,7 @@
 #include <CarPlanner/RpgUtils.h>
 
 //////////////////////////////////////////////////////////////////
-ROSLocalizer::ROSLocalizer()
+ROSLocalizer::ROSLocalizer() : m_VelocityCalculator()
 {
     LOG(INFO) << "New ROSLocalizer created.";
 }
@@ -84,7 +84,41 @@ void ROSLocalizer::Stop()
 
 //////////////////////////////////////////////////////////////////
 //
-Sophus::SE3d ROSLocalizer::GetPose( const std::string& sObjectName, bool blocking/* = false */,
+// Sophus::SE3d ROSLocalizer::GetPose( const std::string& sObjectName, bool blocking/* = false */,
+//                                           double* time /*= NULL*/, double* rate /*= NULL*/)
+// {
+//     if( m_mObjects.find( sObjectName ) == m_mObjects.end() ){
+//         throw MochaException("Invalid object name.");
+//     }
+
+//     TrackerObject& obj = m_mObjects[sObjectName];
+//     boost::mutex::scoped_lock lock(obj.m_Mutex);
+
+//     //if blocking wait until we have a signal that the pose for this object has been updated
+//     if(blocking && obj.m_bPoseUpdated == false){
+//         obj.m_PoseUpdated.wait(lock);
+//     }
+//     obj.m_bPoseUpdated = false;
+
+//     Sophus::SE3d pose = obj.m_dSensorPose;
+//     if(time != NULL){
+//         *time = m_mObjects[sObjectName].m_dTime;
+//     }
+//     if(rate != NULL){
+//         *rate = m_mObjects[sObjectName].m_dPoseRate;
+//     }
+
+//     // ROS_INFO("Got pose: %s->%s @ %f, px %f py %f pz %f qx %f qy %f qz %f qw %f", 
+//     //     "map", sObjectName.c_str(), *time, 
+//     //     pose.translation().x(), pose.translation().y(), pose.translation().z(),
+//     //     pose.unit_quaternion().x(), pose.unit_quaternion().y(), pose.unit_quaternion().z(), pose.unit_quaternion().w());
+
+//     return pose;
+// }
+
+//////////////////////////////////////////////////////////////////
+//
+Sophus::Vector6d ROSLocalizer::GetVelocity( const std::string& sObjectName, bool blocking/* = false */,
                                           double* time /*= NULL*/, double* rate /*= NULL*/)
 {
     if( m_mObjects.find( sObjectName ) == m_mObjects.end() ){
@@ -100,12 +134,14 @@ Sophus::SE3d ROSLocalizer::GetPose( const std::string& sObjectName, bool blockin
     }
     obj.m_bPoseUpdated = false;
 
-    Sophus::SE3d pose = obj.m_dSensorPose;
+    carplanner_tools::VelocityCalculator::Velocity vel;
+    m_VelocityCalculator.CalculateVelocity(obj.m_dTime, obj.m_dSensorPose.translation(), obj.m_dSensorPose.unit_quaternion(), vel);
+
     if(time != NULL){
-        *time = m_mObjects[sObjectName].m_dTime;
+        *time = obj.m_dTime;
     }
     if(rate != NULL){
-        *rate = m_mObjects[sObjectName].m_dPoseRate;
+        *rate = obj.m_dPoseRate;
     }
 
     // ROS_INFO("Got pose: %s->%s @ %f, px %f py %f pz %f qx %f qy %f qz %f qw %f", 
@@ -113,7 +149,7 @@ Sophus::SE3d ROSLocalizer::GetPose( const std::string& sObjectName, bool blockin
     //     pose.translation().x(), pose.translation().y(), pose.translation().z(),
     //     pose.unit_quaternion().x(), pose.unit_quaternion().y(), pose.unit_quaternion().z(), pose.unit_quaternion().w());
 
-    return pose;
+    return vel;
 }
 
 //////////////////////////////////////////////////////////////////

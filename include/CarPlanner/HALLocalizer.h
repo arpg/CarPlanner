@@ -33,10 +33,11 @@ public:
     // void TrackObject(const std::string& sObjectName, Sophus::SE3d dToffset, bool bRobotFrame = true);
     void Start();
     void Stop();
-    Sophus::SE3d GetPose(const std::string& sObjectName , bool blocking = false, double *time = NULL, double *rate = NULL);
+    // Sophus::SE3d GetPose(const std::string& sObjectName , bool blocking = false, double *time = NULL, double *rate = NULL);
     //Eigen::Matrix<double,6,1> GetdPose( const std::string& sObjectName );
     eLocType WhereAmI( Eigen::Vector3d P );
     eLocType WhereAmI( Eigen::Vector6d P );
+    inline std::string GetLocalizerType() {return "HALLocalizer"; }
 
 private:
     Sophus::SE3d LookupPose(std::string objectName);
