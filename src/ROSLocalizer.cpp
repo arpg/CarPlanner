@@ -129,10 +129,10 @@ Sophus::Vector6d ROSLocalizer::GetVelocity( const std::string& sObjectName, bool
     boost::mutex::scoped_lock lock(obj.m_Mutex);
 
     //if blocking wait until we have a signal that the pose for this object has been updated
-    if(blocking && obj.m_bPoseUpdated == false){
-        obj.m_PoseUpdated.wait(lock);
-    }
-    obj.m_bPoseUpdated = false;
+    // if(blocking && obj.m_bPoseUpdated == false){
+    //     obj.m_PoseUpdated.wait(lock);
+    // }
+    // obj.m_bPoseUpdated = false;
 
     carplanner_tools::VelocityCalculator::Velocity vel;
     m_VelocityCalculator.CalculateVelocity(obj.m_dTime, obj.m_dSensorPose.translation(), obj.m_dSensorPose.unit_quaternion(), vel);
