@@ -464,9 +464,9 @@ void BulletCarModel::_GetDelayedControl(int worldId, double timeDelay, ControlCo
         delayedCommands = previousCommands.front();
     }else{
         DLOG(INFO) << "Command history list size == 0. Passing empty command";
-        delayedCommands.m_dForce = pWorld->m_Parameters[CarParameters::AccelOffset]*SERVO_RANGE;
+        delayedCommands.m_dForce = pWorld->m_Parameters[CarParameters::AccelOffset];//*SERVO_RANGE;
         delayedCommands.m_dCurvature = 0;
-        delayedCommands.m_dPhi = pWorld->m_Parameters[CarParameters::SteeringOffset]*SERVO_RANGE;
+        delayedCommands.m_dPhi = pWorld->m_Parameters[CarParameters::SteeringOffset];//*SERVO_RANGE;
         delayedCommands.m_dTorque << 0,0,0;
     }
 
@@ -651,8 +651,8 @@ void BulletCarModel::UpdateState(  const int& worldId,
         _GetDelayedControl(worldId, pWorld->m_Parameters[CarParameters::ControlDelay],delayedCommands);
     }
     //get the delayed commands for execution and remove the offsets
-    double dCorrectedForce = delayedCommands.m_dForce- pWorld->m_Parameters[CarParameters::AccelOffset]*SERVO_RANGE;
-    double dCorrectedPhi = delayedCommands.m_dPhi-pWorld->m_Parameters[CarParameters::SteeringOffset]*SERVO_RANGE;
+    double dCorrectedForce = delayedCommands.m_dForce- pWorld->m_Parameters[CarParameters::AccelOffset];//*SERVO_RANGE;
+    double dCorrectedPhi = delayedCommands.m_dPhi-pWorld->m_Parameters[CarParameters::SteeringOffset];//*SERVO_RANGE;
 
     //D.C. motor equations:
     //torque = Pwm*Ts - slope*V
@@ -662,7 +662,7 @@ void BulletCarModel::UpdateState(  const int& worldId,
                       pWorld->m_Parameters[CarParameters::TorqueSpeedSlope]*fabs(pWorld->m_state.m_dV.norm()));
 
     //now apply the offset and scale values to the force and steering commands
-    dCorrectedPhi = dCorrectedPhi/(pWorld->m_Parameters[CarParameters::SteeringCoef]*SERVO_RANGE);
+    dCorrectedPhi = dCorrectedPhi/(pWorld->m_Parameters[CarParameters::SteeringCoef]/*SERVO_RANGE*/);
 
     //clamp the steering
     dCorrectedPhi = SoftMinimum(pWorld->m_Parameters[CarParameters::MaxSteering],

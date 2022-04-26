@@ -93,9 +93,9 @@ bool CarController::_SampleControlPlan(ControlPlan* pPlan,LocalProblem& problem)
                 if(g_bFrontFlip){
                     pPlan->m_Sample.m_vCommands[ii].m_dForce = 0;
                 }else{
-                    pPlan->m_Sample.m_vCommands[ii].m_dForce = 0 + problem.m_pFunctor->GetCarModel()->GetParameters(0)[CarParameters::AccelOffset]*SERVO_RANGE;
+                    pPlan->m_Sample.m_vCommands[ii].m_dForce = 0 + problem.m_pFunctor->GetCarModel()->GetParameters(0)[CarParameters::AccelOffset];//*SERVO_RANGE;
                 }
-                pPlan->m_Sample.m_vCommands[ii].m_dPhi = 0 + problem.m_pFunctor->GetCarModel()->GetParameters(0)[CarParameters::SteeringOffset]*SERVO_RANGE;
+                pPlan->m_Sample.m_vCommands[ii].m_dPhi = 0 + problem.m_pFunctor->GetCarModel()->GetParameters(0)[CarParameters::SteeringOffset];//*SERVO_RANGE;
             }
         }
     }
@@ -498,8 +498,8 @@ void CarController::GetCurrentCommands(const double time,
     if( nCurrentSampleIndex == -1 || nCurrentPlanIndex == m_lControlPlans.end() ) {
 
         //DLOG(INFO) << "GetCurrentCommands returning last commands a:" << m_dLastAccel << " c:" << m_dLastTurnRate << " t:" << m_dLastTorques.transpose();
-        command.m_dForce = m_pModel->GetParameters(0)[CarParameters::AccelOffset]*SERVO_RANGE;
-        command.m_dPhi = m_pModel->GetParameters(0)[CarParameters::SteeringOffset]*SERVO_RANGE;
+        command.m_dForce = m_pModel->GetParameters(0)[CarParameters::AccelOffset];//*SERVO_RANGE;
+        command.m_dPhi = m_pModel->GetParameters(0)[CarParameters::SteeringOffset];//*SERVO_RANGE;
         command.m_dTorque = Eigen::Vector3d::Zero();//m_dLastTorques;
 
         //DLOG(INFO) << "Torque output of: [ " << torques.transpose() << "] from previous plan";

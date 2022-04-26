@@ -19,14 +19,14 @@ ApplyVelocitesFunctor5d::ApplyVelocitesFunctor5d(BulletCarModel *pCarModel, Eige
 ////////////////////////////////////////////////////////////////
 double ApplyVelocitesFunctor5d::GetGravityCompensation(int nIndex)
 {
-    double aExtra =  -(m_pCarModel->GetTotalGravityForce(m_pCarModel->GetWorldInstance(nIndex))/m_pCarModel->GetWorldInstance(nIndex)->m_Parameters[CarParameters::Mass])*1.1/*CAR_GRAVITY_COMPENSATION_COEFFICIENT*/;
+    double aExtra =  -(m_pCarModel->GetTotalGravityForce(m_pCarModel->GetWorldInstance(nIndex))/*m_pCarModel->GetWorldInstance(nIndex)->m_Parameters[CarParameters::Mass]*/)*1.1/*CAR_GRAVITY_COMPENSATION_COEFFICIENT*/;
     return aExtra;
 }
 
 ////////////////////////////////////////////////////////////////
 double ApplyVelocitesFunctor5d::GetFrictionCompensation(int nIndex, double dt)
 {
-    double aExtra = -m_pCarModel->GetTotalWheelFriction(nIndex,dt)/m_pCarModel->GetWorldInstance(nIndex)->m_Parameters[CarParameters::Mass];
+    double aExtra = -m_pCarModel->GetTotalWheelFriction(nIndex,dt);///m_pCarModel->GetWorldInstance(nIndex)->m_Parameters[CarParameters::Mass];
     return aExtra;
 }
 
@@ -116,13 +116,13 @@ void ApplyVelocitesFunctor5d::ApplyVelocities(const VehicleState& startingState,
 //            }
 
             //actually convert the accel (up to this point) to a force to be applied to the car
-            command.m_dForce = totalAccel*m_pCarModel->GetWorldInstance(nIndex)->m_Parameters[CarParameters::Mass];
+            command.m_dForce = totalAccel;//*m_pCarModel->GetWorldInstance(nIndex)->m_Parameters[CarParameters::Mass];
             //here Pwm = (torque+slope*V)/Ts
             command.m_dForce = sgn(command.m_dForce)* (fabs(command.m_dForce) + pWorld->m_Parameters[CarParameters::TorqueSpeedSlope]*pWorld->m_state.m_dV.norm())/pWorld->m_Parameters[CarParameters::StallTorqueCoef];
-            command.m_dForce += pWorld->m_Parameters[CarParameters::AccelOffset]*SERVO_RANGE;
+            command.m_dForce += pWorld->m_Parameters[CarParameters::AccelOffset];//*SERVO_RANGE;
 
             //offset and coef are in 0-1 range, so multiplying by SERVO_RANGE is necessary
-            command.m_dPhi = SERVO_RANGE*(command.m_dPhi*pWorld->m_Parameters[CarParameters::SteeringCoef] +
+            command.m_dPhi = /*SERVO_RANGE*/(command.m_dPhi*pWorld->m_Parameters[CarParameters::SteeringCoef] +
                                           pWorld->m_Parameters[CarParameters::SteeringOffset]);
 
             //save the command changes to the command array -- this is so we can apply
