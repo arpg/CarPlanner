@@ -181,7 +181,7 @@ Sophus::SE3d ROSLocalizer::LookupPose(std::string objectName)
     }
     catch (const tf::TransformException& ex)
     {
-        ROS_ERROR("%s",ex.what());
+        ROS_ERROR_THROTTLE(1.0, "%s",ex.what());
         return Sophus::SE3d();
     }
 
