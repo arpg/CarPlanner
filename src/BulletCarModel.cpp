@@ -6,6 +6,8 @@
 #include <assimp/postprocess.h>
 #include <assimp/material.h>
 #include <CarPlanner/BulletCarModel.h>
+#include <CarPlanner/HALCommandReceiver.h>
+#include <CarPlanner/ROSCommandReceiver.h>
 
 
 BulletCarModel::BulletCarModel()
@@ -98,36 +100,36 @@ void BulletCarModel::Init(btCollisionShape* pCollisionShape, const btVector3 &dM
 {
     if ( real ) {
         //////////////////
-        m_CarPort = 1640;
+        // m_CarPort = 1640;
         m_LocPort = 1641;
-        m_ComPort = 1642;
-        m_MochPort = 1643;
+        // m_ComPort = 1642;
+        // m_MochPort = 1643;
 
-        if ( ( comSockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
-        if ( ( sockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+        // if ( ( comSockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+        // if ( ( sockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
 
-        memset( (char*)&carAddr, 0, addrLen );
-        carAddr.sin_family = AF_INET;
-        carAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-        carAddr.sin_port = htons( m_CarPort );
+        // memset( (char*)&carAddr, 0, addrLen );
+        // carAddr.sin_family = AF_INET;
+        // carAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        // carAddr.sin_port = htons( m_CarPort );
 
-        memset( (char*)&comAddr, 0, addrLen );
-        comAddr.sin_family = AF_INET;
-        comAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-        comAddr.sin_port = htons( m_ComPort );
+        // memset( (char*)&comAddr, 0, addrLen );
+        // comAddr.sin_family = AF_INET;
+        // comAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        // comAddr.sin_port = htons( m_ComPort );
 
-        if ( bind( sockFD, (struct sockaddr*)&carAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_CarPort;
-        if ( bind( comSockFD, (struct sockaddr*)&comAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_ComPort;
+        // if ( bind( sockFD, (struct sockaddr*)&carAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_CarPort;
+        // if ( bind( comSockFD, (struct sockaddr*)&comAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_ComPort;
 
         memset( (char*)&locAddr, 0, addrLen );
         locAddr.sin_family = AF_INET;
         locAddr.sin_addr.s_addr = htonl( INADDR_ANY );
         locAddr.sin_port = htons( m_LocPort );
 
-        memset( (char*)&mochAddr, 0, addrLen );
-        mochAddr.sin_family = AF_INET;
-        mochAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-        mochAddr.sin_port = htons( m_MochPort );
+        // memset( (char*)&mochAddr, 0, addrLen );
+        // mochAddr.sin_family = AF_INET;
+        // mochAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        // mochAddr.sin_port = htons( m_MochPort );
         //////////////////
     }
 
@@ -157,36 +159,36 @@ void BulletCarModel::Init(const struct aiScene *pAIScene, CarParameterMap &param
 {
     if ( real ) {
         //////////////////
-        m_CarPort = 1640;
+        // m_CarPort = 1640;
         m_LocPort = 1641;
-        m_ComPort = 1642;
-        m_MochPort = 1643;
+        // m_ComPort = 1642;
+        // m_MochPort = 1643;
 
-        if ( ( comSockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
-        if ( ( sockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+        // if ( ( comSockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
+        // if ( ( sockFD = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) LOG(ERROR) << "Could not create socket";
 
-        memset( (char*)&carAddr, 0, addrLen );
-        carAddr.sin_family = AF_INET;
-        carAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-        carAddr.sin_port = htons( m_CarPort );
+        // memset( (char*)&carAddr, 0, addrLen );
+        // carAddr.sin_family = AF_INET;
+        // carAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        // carAddr.sin_port = htons( m_CarPort );
 
-        memset( (char*)&comAddr, 0, addrLen );
-        comAddr.sin_family = AF_INET;
-        comAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-        comAddr.sin_port = htons( m_ComPort );
+        // memset( (char*)&comAddr, 0, addrLen );
+        // comAddr.sin_family = AF_INET;
+        // comAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        // comAddr.sin_port = htons( m_ComPort );
 
-        if ( bind( sockFD, (struct sockaddr*)&carAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_CarPort;
-        if ( bind( comSockFD, (struct sockaddr*)&comAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_ComPort;
+        // if ( bind( sockFD, (struct sockaddr*)&carAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_CarPort;
+        // if ( bind( comSockFD, (struct sockaddr*)&comAddr, addrLen ) < 0 ) LOG(ERROR) << "Could not bind socket to port " << m_ComPort;
 
         memset( (char*)&locAddr, 0, addrLen );
         locAddr.sin_family = AF_INET;
         locAddr.sin_addr.s_addr = htonl( INADDR_ANY );
         locAddr.sin_port = htons( m_LocPort );
 
-        memset( (char*)&mochAddr, 0, addrLen );
-        mochAddr.sin_family = AF_INET;
-        mochAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-        mochAddr.sin_port = htons( m_MochPort );
+        // memset( (char*)&mochAddr, 0, addrLen );
+        // mochAddr.sin_family = AF_INET;
+        // mochAddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        // mochAddr.sin_port = htons( m_MochPort );
         //////////////////
     }
 
@@ -336,33 +338,17 @@ void BulletCarModel::_CommandThreadFunc()
 {
     // Read in current command using UDP
     //////////////////////////////
-    int worldId;
-    double force, curvature, dt, phi;
-    Eigen::Vector3d torques;
+
+    HALCommandReceiver command_receiver;
+    // ROSCommandReceiver command_receiver("command_in");
+    ControlCommand command;
     bool bNoDelay;
     bool bNoUpdate;
 
     while(1)
     {
-        cmd = new hal::CommanderMsg();
-
-        //UDP receive cmd from MochaGui
-        comRecvLen = recvfrom( comSockFD, comBuf, 2048, 0, (struct sockaddr*)&mochAddr, &addrLen );
-        if ( comRecvLen > 0 ) {
-            buf[comRecvLen] = 0;
-            google::protobuf::io::ArrayInputStream ais( comBuf, comRecvLen );
-            google::protobuf::io::CodedInputStream coded_input( &ais );
-            coded_input.ReadVarint32( &comMsgSize );
-            google::protobuf::io::CodedInputStream::Limit limit = coded_input.PushLimit( comMsgSize );
-            cmd->ParseFromCodedStream( &coded_input );
-            coded_input.PopLimit( limit );
-            LOG(INFO) << "Received Command";
-        }
-
-        hal::ReadCommand( *cmd, &worldId, &force, &curvature, &torques, &dt, &phi, &bNoDelay, &bNoUpdate);
-        ControlCommand command(force, curvature, torques, dt, phi);
-        UpdateState( 0, command, dt, bNoDelay, bNoUpdate );
-        //////////////////////////////
+        command_receiver.ReceiveCommand(command, bNoDelay, bNoUpdate);
+        UpdateState( 0, command, command.m_dT, bNoDelay, bNoUpdate );
     }
 }
 

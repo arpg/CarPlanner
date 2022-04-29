@@ -14,7 +14,7 @@ static bool& g_bPointCost(CVarUtils::CreateGetUnsavedCVar("debug.PointCost",fals
 static bool& g_bInertialControl = CVarUtils::CreateGetUnsavedCVar("debug.InertialControl",false);
 static bool& g_bInfiniteTime = CVarUtils::CreateGetUnsavedCVar("debug.InfiniteTime",false);
 static bool& g_bFrontFlip = CVarUtils::CreateGetUnsavedCVar("debug.FrontFlip",false);
-static double& g_dMaxPlanNorm = CVarUtils::CreateGetUnsavedCVar("debug.MaxPlanNorm",5.0);
+static double& g_dMaxPlanNorm = CVarUtils::CreateGetUnsavedCVar("debug.MaxPlanNorm",10.0);
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
