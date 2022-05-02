@@ -35,11 +35,6 @@ find_package( Sophus REQUIRED)
 find_package( assimp REQUIRED )
 find_package( yaml-cpp REQUIRED )
 find_package( GFlags REQUIRED )
-find_package(catkin REQUIRED
-    COMPONENTS
-        roscpp
-        tf
-)
 
 set( _LIBRARIES
   ${BULLET_LIBRARIES}
@@ -51,7 +46,6 @@ set( _LIBRARIES
   ${assimp_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
   ${GFLAGS_LIBRARIES}
-  ${catkin_LIBRARIES}
   )
 set( _INCLUDE_DIRS
         ${CMAKE_BINARY_DIR}
@@ -67,7 +61,6 @@ set( _INCLUDE_DIRS
         ${GFLAGS_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${catkin_INCLUDE_DIRS}
         )
 
 #link_libraries( CarPlanner   OpenGLSupport )
@@ -91,8 +84,6 @@ set( SRCS
         src/BezierBoundarySolver.cpp
         src/MochaException.cpp
         src/CarController.cpp
-        src/TFLocalizer.cpp
-        src/HALLocalizer.cpp
         src/Localizer.cpp
         src/DirectBoundarySolver.cpp
 #        src/BulletPrim.cpp
@@ -102,8 +93,6 @@ set( HDRS
         include/CarPlanner/ApplyVelocitiesFunctor.h
         include/CarPlanner/CarPlannerCommon.h
         include/CarPlanner/BulletCarModel.h
-        include/CarPlanner/TFLocalizer.h
-        include/CarPlanner/HALLocalizer.h
         include/CarPlanner/Localizer.h
         include/CarPlanner/CarWheel.h
         include/CarPlanner/CarRegressor.h
