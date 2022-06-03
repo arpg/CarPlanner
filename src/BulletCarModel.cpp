@@ -39,6 +39,30 @@ btVector3 BulletCarModel::GetUpVector(int upAxis,btScalar regularValue,btScalar 
     return v;
 }
 
+///////////////////////////////////////////////////////////////
+void BulletCarModel::setTerrainMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm)
+{
+    // btAssert((!meshShape || meshShape->getShapeType() != INVALID_SHAPE_PROXYTYPE));
+
+    BulletWorldInstance* pWorld = GetWorldInstance(worldId);
+    boost::unique_lock<boost::mutex> lock(*pWorld);
+
+    // ROS_INFO("Setting terrain mesh... currently have %d collision objects.", pWorld->m_pDynamicsWorld->getCollisionWorld()->getNumCollisionObjects());
+
+    if(pWorld->m_pTerrainBody != NULL)
+    {
+        // btVector3 pos = pWorld->m_pTerrainBody->getCenterOfMassPosition(); ROS_WARN_THROTTLE(1,"Removing terrain body at %.2f %.2f %.2f in replaceMesh.",pos[0],pos[1],pos[2]);
+        pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pTerrainBody);
+    }
+
+    pWorld->m_pTerrainShape = meshShape;
+    pWorld->m_pTerrainBody->setCollisionShape(pWorld->m_pTerrainShape);
+    pWorld->m_pTerrainBody->setWorldTransform(btTransform(
+      btQuaternion(Twm.getRotation().getX(),Twm.getRotation().getY(),Twm.getRotation().getZ(),Twm.getRotation().getW()),
+      btVector3(Twm.getOrigin().getX(),Twm.getOrigin().getY(),Twm.getOrigin().getZ())));
+    pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pTerrainBody);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::GenerateStaticHull( const struct aiScene *pAIScene, const struct aiNode *pAINode, const aiMatrix4x4 parentTransform, const float flScale, btTriangleMesh &triangleMesh, btVector3& dMin, btVector3& dMax )
 {
@@ -839,7 +863,7 @@ void BulletCarModel::SetState( int nWorldId,  const VehicleState& state )
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-btRigidBody*	BulletCarModel::_LocalCreateRigidBody(BulletWorldInstance *pWorld, double mass, const btTransform& startTransform, btCollisionShape* shape, short group, short mask)
+btRigidBody* BulletCarModel::_LocalCreateRigidBody(BulletWorldInstance *pWorld, double mass, const btTransform& startTransform, btCollisionShape* shape, short group, short mask)
 {
     btAssert((!shape || shape->getShapeType() != INVALID_SHAPE_PROXYTYPE));
 
@@ -848,13 +872,12 @@ btRigidBody*	BulletCarModel::_LocalCreateRigidBody(BulletWorldInstance *pWorld, 
 
     btVector3 localInertia(0,0,0);
     if (isDynamic)
-        shape->calculateLocalInertia(mass,localInertia);
+      shape->calculateLocalInertia(mass,localInertia);
 
     //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
     btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
 
     btRigidBody::btRigidBodyConstructionInfo cInfo(mass,myMotionState,shape,localInertia);
-
     btRigidBody* body = new btRigidBody(cInfo);
     body->setContactProcessingThreshold(BT_LARGE_FLOAT);
 
@@ -863,6 +886,18 @@ btRigidBody*	BulletCarModel::_LocalCreateRigidBody(BulletWorldInstance *pWorld, 
     return body;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+void BulletCarModel::_LocalDestroyRigidBody(BulletWorldInstance *pWorld, btCollisionShape* shape)
+{
+    std::cout << "removing rigid body" << std::endl;
+
+    btRigidBody* body = dynamic_cast<btRigidBody*>(shape);
+    // btCollisionObject* body = dynamic_cast<btCollisionObject*>(shape);
+    // body->setContactProcessingThreshold(BT_LARGE_FLOAT);
+
+    pWorld->m_pDynamicsWorld->removeRigidBody(body);
+}
+ 
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& parameters)
 {
@@ -898,7 +933,6 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
     }
 
     pWorld->m_pCarChassis = _LocalCreateRigidBody(pWorld,pWorld->m_Parameters[CarParameters::Mass],tr,pWorld->m_pVehicleChassisShape, COL_CAR,COL_NOTHING);//chassisShape);
-    //pWorld->m_pCarChassis = _LocalCreateRigidBody(pWorld,pWorld->m_Parameters.m_dMass,tr,compound, COL_CAR,COL_GROUND);//chassisShape);
 
     /// create vehicle
     pWorld->m_pVehicleRayCaster = new DefaultVehicleRaycaster(pWorld->m_pDynamicsWorld);
@@ -1048,8 +1082,7 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
     }
 
     //create the ground object
-    _LocalCreateRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL_CAR);
-    //_LocalCreateRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL_CAR);
+    pWorld->m_pTerrainBody = _LocalCreateRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL_CAR);
 
     //m_pHeightMap = pHeightMap;
 }

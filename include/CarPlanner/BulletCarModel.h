@@ -40,7 +40,10 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 
+#include <ros/ros.h>
+#include <carplanner_msgs/VehicleState.h>
 #include <carplanner_msgs/Command.h>
+#include <tf/tf.h>
 
 #define CAR_UP_AXIS 2   //this is the index for the bullet Z axis
 #define CAR_FORWARD_AXIS 0   //this is the index for the bullet X axis
@@ -162,6 +165,199 @@ struct VehicleState
         m_dSteering = 0;
     }
 
+    bool IsWheelInContact(uint i) const
+    {
+        return m_vWheelContacts[i];
+    }
+
+    std::vector<bool> GetWheelContacts() const
+    {
+      std::vector<bool> contacts;
+
+      for(uint ii=0; ii<m_vWheelContacts.size(); ii++)
+      {
+        bool contact = m_vWheelContacts[ii];
+        contacts.push_back(contact);
+      }
+
+      return contacts;
+    }
+
+    // bool IsChassisInCollision() const
+    // {
+    //     return m_bChassisInCollision;
+    // }
+
+    double GetCurvature() const
+    {
+       return m_dCurvature;
+    }
+
+    double GetSteering() const
+    {
+       return m_dSteering;
+    }
+
+    double GetTime() const
+    {
+       return m_dTime;
+    }
+
+    Eigen::Vector6d GetVels() const
+    {
+      Eigen::Vector6d vels;
+      vels << (*this).m_dV[0],
+              (*this).m_dV[1],
+              (*this).m_dV[2],
+              (*this).m_dW[0],
+              (*this).m_dW[1],
+              (*this).m_dW[2];
+      return vels;
+    }
+
+    VehicleState FlipCoordFrame()
+    {
+        Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));
+        m_dTwv = rot_180_x * (*this).m_dTwv * rot_180_x;
+
+        // (*this).m_dV = (*this).m_dTwv.so3() * (*this).m_dV;
+        m_dV = (rot_180_x * Sophus::SE3d(Eigen::Quaterniond(1,0,0,0), (*this).m_dV) * rot_180_x).translation();
+
+        return *this;
+    }
+
+    carplanner_msgs::VehicleState toROS(std::string map_frame="map", std::string base_link_frame="base_link", std::string wheel_link_frame="wheel_link") const
+    {
+    //   Sophus::SE3d rot_180_y(Eigen::Quaterniond(0,0,1,0),Eigen::Vector3d(0,0,0)); // Quat(w,x,y,z) , Vec(x,y,z)
+    //   Sophus::SE3d rot_180_x(Eigen::Quaterniond(0,1,0,0),Eigen::Vector3d(0,0,0));
+
+      carplanner_msgs::VehicleState state_msg;
+      // state_msg.header.stamp.sec = (*this).GetTime();
+      // state_msg.header.frame_id = "world";
+
+    //   Sophus::SE3d Twv = rot_180_x*(*this).m_dTwv*rot_180_x;
+      Sophus::SE3d Twv = (*this).m_dTwv;
+    //   state_msg.time = (*this).GetTime();
+      double time = (*this).GetTime();
+      state_msg.header.stamp.sec = floor(time);
+      state_msg.header.stamp.nsec = (time-state_msg.pose.header.stamp.sec)*1e9;
+      state_msg.pose.header.stamp = ros::Time::now();
+      state_msg.pose.header.frame_id = map_frame;
+      state_msg.pose.child_frame_id = base_link_frame;
+      state_msg.pose.transform.translation.x = Twv.translation()[0];
+      state_msg.pose.transform.translation.y = Twv.translation()[1];
+      state_msg.pose.transform.translation.z = Twv.translation()[2];
+      state_msg.pose.transform.rotation.w = Twv.unit_quaternion().w();
+      state_msg.pose.transform.rotation.x = Twv.unit_quaternion().x();
+      state_msg.pose.transform.rotation.y = Twv.unit_quaternion().y();
+      state_msg.pose.transform.rotation.z = Twv.unit_quaternion().z();
+
+      for( unsigned int i=0; i<(*this).m_vWheelStates.size(); i++ )
+      {
+          geometry_msgs::TransformStamped tf;
+          tf.header.stamp = ros::Time::now();
+          tf.header.frame_id = map_frame;
+          tf.child_frame_id = wheel_link_frame + "/" + std::to_string(i);
+
+          Sophus::SE3d Twv = (*this).m_vWheelStates[i];
+          tf.transform.translation.x = Twv.translation()[0];
+          tf.transform.translation.y = Twv.translation()[1];
+          tf.transform.translation.z = Twv.translation()[2];
+          tf.transform.rotation.w = Twv.unit_quaternion().w();
+          tf.transform.rotation.x = Twv.unit_quaternion().x();
+          tf.transform.rotation.y = Twv.unit_quaternion().y();
+          tf.transform.rotation.z = Twv.unit_quaternion().z();
+
+          state_msg.wheel_poses.push_back( tf );
+      }
+
+    //   std::vector<bool> wheel_contacts = (*this).GetWheelContacts();
+    //   for(uint ii=0; ii<wheel_contacts.size(); ii++)
+    //   {
+    //     bool contact = wheel_contacts[ii];
+    //     state_msg.wheel_contacts.push_back(contact);
+    //   }
+
+    //   state_msg.chassis_collision = m_bChassisInCollision;
+
+      Eigen::Vector6d vels = (*this).GetVels();
+      state_msg.lin_vel.x = vels[0];
+      state_msg.lin_vel.y = vels[1];
+      state_msg.lin_vel.z = vels[2];
+      state_msg.ang_vel.x = vels[3];
+      state_msg.ang_vel.y = vels[4];
+      state_msg.ang_vel.z = vels[5];
+
+      state_msg.curvature = (*this).GetCurvature();
+
+      state_msg.steering = (*this).GetSteering();
+
+      return state_msg;
+    }
+
+    void fromROS(const carplanner_msgs::VehicleState msg)
+    {  
+        Eigen::Quaterniond quat(msg.pose.transform.rotation.w, msg.pose.transform.rotation.x, msg.pose.transform.rotation.y, msg.pose.transform.rotation.z);
+
+        if (abs(sqrt(pow(quat.x(),2)+pow(quat.y(),2)+pow(quat.z(),2)+pow(quat.w(),2))-0.f) < 0.01f)
+        {
+            ROS_WARN("Got zero quaternion in fromROS. Setting to identity...");
+            quat.x() = 0.f;
+            quat.y() = 0.f;
+            quat.z() = 0.f;
+            quat.w() = 1.f;        
+        }
+
+        (*this).m_dTwv.translation() = Eigen::Vector3d(
+            msg.pose.transform.translation.x,
+            msg.pose.transform.translation.y,
+            msg.pose.transform.translation.z);
+        (*this).m_dTwv.setQuaternion(quat);
+
+        // if (msg.wheel_poses.size() != 4)
+        //     ResetWheels();
+        // else
+        {
+            for( unsigned int i=0; i<(*this).m_vWheelStates.size(); i++ )
+            {
+                (*this).m_vWheelStates[i].translation() = Eigen::Vector3d(
+                    msg.wheel_poses[i].transform.translation.x,
+                    msg.wheel_poses[i].transform.translation.y,
+                    msg.wheel_poses[i].transform.translation.z);
+                (*this).m_vWheelStates[i].setQuaternion(Eigen::Quaterniond(
+                    msg.wheel_poses[i].transform.rotation.w,
+                    msg.wheel_poses[i].transform.rotation.x,
+                    msg.wheel_poses[i].transform.rotation.y,
+                    msg.wheel_poses[i].transform.rotation.z));
+            }
+        }
+
+        // if (msg.wheel_contacts.size() != 4)
+        //     ResetContacts();
+        // else
+        {
+            for(uint i=0; i<m_vWheelContacts.size(); i++)
+            {
+                m_vWheelContacts[i] = msg.wheel_contacts[i];
+            }
+        }
+
+        // m_bChassisInCollision = msg.chassis_collision;
+
+        (*this).m_dV[0] = msg.lin_vel.x;
+        (*this).m_dV[1] = msg.lin_vel.y;
+        (*this).m_dV[2] = msg.lin_vel.z;
+        (*this).m_dW[0] = msg.ang_vel.x;
+        (*this).m_dW[1] = msg.ang_vel.y;
+        (*this).m_dW[2] = msg.ang_vel.z;
+
+        (*this).m_dCurvature = msg.curvature;
+
+        (*this).m_dSteering = msg.steering;
+
+        (*this).m_dTime = msg.header.stamp.sec + (double)msg.header.stamp.nsec*(double)1e-9;
+    }
+
     static VehicleState GetInterpolatedState(const std::vector<VehicleState>& vStates,
                                              const int nStartIndex,
                                              const double& time,
@@ -190,17 +386,84 @@ struct VehicleState
         return stateOut;
     }
 
+    // void ResetWheels(){
+    //     // std::cout << "Resetting wheels..." << std::endl;
+    //     std::vector<Sophus::SE3d> vWheelTransformsCS;
+    //     vWheelTransformsCS.resize(4);
+    //     for (size_t ii=0; ii<vWheelTransformsCS.size(); ii++)
+    //     {
+    //         // std::cout << "\t" << ii << std::endl;
+    //         bool bIsBackWheel = (ii==2 || ii==3);
+    //         bool bIsRightWheel = (ii==0 || ii==3);
+    //         // std::cout << "\t\t" << (bIsBackWheel?"back":"front") << " " << (bIsRightWheel?"right":"left") << std::endl;
+    //         Eigen::Vector3d connectionPointCS(m_dWheelBase, m_dChassisWidth+0.5*m_dWheelWidth, -m_dSuspConnectionHeight);
+    //         if (bIsBackWheel)
+    //             connectionPointCS[0] *= -1.f;
+    //         if (bIsRightWheel)
+    //             connectionPointCS[1] *= -1.f;
+    //         // std::cout << "\t\t" << connectionPointCS[0] << " " << connectionPointCS[1] << " " << connectionPointCS[2] << std::endl;
+    //         // Eigen::Vector4d connectionPointCSTemp; 
+    //         // connectionPointCSTemp << connectionPointCS[0], connectionPointCS[1], connectionPointCS[2], 1.f;
+    //         // Eigen::Vector4d connectionPointWSTemp = m_dTwv.matrix() * connectionPointCSTemp;
+    //         // Eigen::Vector3d connectionPointWS = connectionPointWSTemp.head(3);
+    //         // std::cout << "\t\t" << connectionPointWS[0] << " " << connectionPointWS[1] << " " << connectionPointWS[2] << std::endl;
+    //         Eigen::Vector3d vWheelDirectionWS = m_dTwv.rotationMatrix() * m_vWheelDirectionCS;
+    //         // std::cout << "\t\t" << vWheelDirectionWS[0] << " " << vWheelDirectionWS[1] << " " << vWheelDirectionWS[2] << std::endl;
+    //         // Eigen::Vector3d vWheelAxleWS = m_dTwv.rotationMatrix() * m_vWheelAxleCS;
+    //         // std::cout << "\t\t" << vWheelAxleWS[0] << " " << vWheelAxleWS[1] << " " << vWheelAxleWS[2] << std::endl;
+    //         double raylen = m_dSuspRestLength + m_dWheelRadius;
+    //         Eigen::Vector3d rayvector = m_vWheelDirectionCS * raylen;
+    //         Eigen::Vector3d vContactPointCS = connectionPointCS + rayvector;
+    //         // std::cout << "\t\t" << vContactPointCS[0] << " " << vContactPointCS[1] << " " << vContactPointCS[2] << std::endl;
+    //         vWheelTransformsCS[ii].translation() = vContactPointCS;
+            
+    //         Eigen::Vector3d up = -vWheelDirectionWS;
+    //         // Eigen::Vector3d right = vWheelAxleWS;
+    //         // Eigen::Vector3d fwd = right.cross(up);
+
+    //         Eigen::AngleAxisd aWheelSteer(m_dSteering, up);
+    //         // Eigen::Matrix3d basis;
+    //         // basis << fwd[0],right[0],up[0],
+    //         //          fwd[1],right[1],up[1],
+    //         //          fwd[2],right[2],up[2];
+    //         // Eigen::Matrix3d mWheelOrnWS = aWheelSteer.toRotationMatrix() * basis;
+    //         Eigen::Quaterniond qWheelOrnCS(aWheelSteer);
+    //         // std::cout << "\t\t" << qWheelOrnCS.x() << " " << qWheelOrnCS.y() << " " << qWheelOrnCS.z() << " " << qWheelOrnCS.w() << std::endl;
+    //         vWheelTransformsCS[ii].setQuaternion(qWheelOrnCS);
+    //     }
+    //     UpdateWheels(vWheelTransformsCS);
+    // }
+
+    // store CS wheel poses as WS states
     void UpdateWheels(const std::vector<Sophus::SE3d>& vWheelTransforms){
         Sophus::SE3d bodyT = m_dTwv;
         m_vWheelContacts.resize(4);
         m_vWheelStates.resize(4);
-        for(size_t ii = 0 ; ii < m_vWheelContacts.size() ; ii++){
+        for(size_t ii = 0 ; ii < m_vWheelStates.size() ; ii++){
             //position the wheels with respect to the body
             fflush(stdout);
             Sophus::SE3d T = bodyT* vWheelTransforms[ii];
             m_vWheelStates[ii] = T;
         }
     }
+
+    // void ResetContacts(){
+    //     std::vector<bool> vWheelContacts;
+    //     vWheelContacts.resize(4);
+    //     for (size_t ii=0; ii<vWheelContacts.size(); ii++)
+    //     {
+    //         vWheelContacts[ii] = false;
+    //     }
+    //     UpdateContacts(vWheelContacts);
+    // }
+
+    // void UpdateContacts(const std::vector<bool>& vWheelContacts){
+    //     m_vWheelContacts.resize(4);
+    //     for(size_t ii = 0 ; ii < vWheelContacts.size() ; ii++)
+    //     {
+    //         m_vWheelContacts[ii] = vWheelContacts[ii];
+    //     }
+    // }
 
     static void AlignWithVelocityVector(Sophus::SE3d& Twv, const Eigen::Vector3d& dV)
     {
@@ -332,6 +595,7 @@ struct BulletWorldInstance : public boost::mutex
 
     btScalar *m_pHeightfieldData;
     btCollisionShape *m_pTerrainShape;
+    btRigidBody *m_pTerrainBody;
     RaycastVehicle::btVehicleTuning	m_Tuning;
     btVehicleRaycaster*	m_pVehicleRayCaster;
     RaycastVehicle*	m_pVehicle;
@@ -399,6 +663,8 @@ public:
     hal::VectorMsg* pose;
     hal::MatrixMsg* covar;
 
+    void setTerrainMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm);
+
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);
     /////////////////////////////////////////////////////////////////////////////////////////
     static void GenerateStaticHull(const struct aiScene *pAIScene, const struct aiNode *pAINode, const aiMatrix4x4 parentTransform, const float flScale, btTriangleMesh &triangleMesh , btVector3& dMin, btVector3& dMax);
@@ -455,7 +721,8 @@ public:
 protected:
 
     void _GetDelayedControl(int worldId, double timeDelay, ControlCommand& delayedCommands);
-    btRigidBody*	_LocalCreateRigidBody(BulletWorldInstance *pWorld, double mass, const btTransform& startTransform, btCollisionShape* shape, short group, short mask);
+    btRigidBody* _LocalCreateRigidBody(BulletWorldInstance *pWorld, double mass, const btTransform& startTransform, btCollisionShape* shape, short group, short mask);
+    void _LocalDestroyRigidBody(BulletWorldInstance *, btCollisionShape* );
     void _InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& parameters);
     void _InitWorld(BulletWorldInstance* pWorld, btCollisionShape *pGroundShape, btVector3 dMin, btVector3 dMax, bool centerMesh);
 
