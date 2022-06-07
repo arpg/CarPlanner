@@ -63,6 +63,30 @@ void BulletCarModel::setTerrainMesh(uint worldId, btCollisionShape* meshShape, t
     pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pTerrainBody);
 }
 
+///////////////////////////////////////////////////////////////
+// void BulletCarModel::setGroundplaneMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm)
+// {
+//     // btAssert((!meshShape || meshShape->getShapeType() != INVALID_SHAPE_PROXYTYPE));
+
+//     BulletWorldInstance* pWorld = GetWorldInstance(worldId);
+//     boost::unique_lock<boost::mutex> lock(*pWorld);
+
+//     // ROS_INFO("Setting terrain mesh... currently have %d collision objects.", pWorld->m_pDynamicsWorld->getCollisionWorld()->getNumCollisionObjects());
+
+//     if(pWorld->m_pGroundplaneBody != NULL)
+//     {
+//         // btVector3 pos = pWorld->m_pTerrainBody->getCenterOfMassPosition(); ROS_WARN_THROTTLE(1,"Removing terrain body at %.2f %.2f %.2f in replaceMesh.",pos[0],pos[1],pos[2]);
+//         pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pGroundplaneBody);
+//     }
+
+//     pWorld->m_pGroundplaneShape = meshShape;
+//     pWorld->m_pGroundplaneBody->setCollisionShape(pWorld->m_pTerrainShape);
+//     pWorld->m_pGroundplaneBody->setWorldTransform(btTransform(
+//       btQuaternion(Twm.getRotation().getX(),Twm.getRotation().getY(),Twm.getRotation().getZ(),Twm.getRotation().getW()),
+//       btVector3(Twm.getOrigin().getX(),Twm.getOrigin().getY(),Twm.getOrigin().getZ())));
+//     pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pGroundplaneBody);
+// }
+
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::GenerateStaticHull( const struct aiScene *pAIScene, const struct aiNode *pAINode, const aiMatrix4x4 parentTransform, const float flScale, btTriangleMesh &triangleMesh, btVector3& dMin, btVector3& dMax )
 {
@@ -1051,11 +1075,6 @@ void BulletCarModel::SetCommandHistory(const int& worldId, const CommandList &pr
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *pGroundShape, btVector3 dMin, btVector3 dMax, bool centerMesh)
 {
-    //add this to the shapes
-    pWorld->m_pTerrainShape = pGroundShape;
-    pWorld->m_vCollisionShapes.push_back(pWorld->m_pTerrainShape);
-    //pWorld->m_vCollisionShapes.push_back(groundShape);
-
     pWorld->m_pCollisionConfiguration = new btDefaultCollisionConfiguration();
     pWorld->m_pDispatcher = new btCollisionDispatcher(pWorld->m_pCollisionConfiguration);
 
@@ -1071,7 +1090,6 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
     //pWorld->m_pDynamicsWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawAabb);
     //pWorld->m_pDynamicsWorld->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_NoDebug);
 
-
     //set the gravity vector
     pWorld->m_pDynamicsWorld->setGravity(btVector3(0,0,BULLET_MODEL_GRAVITY));
 
@@ -1081,8 +1099,24 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
         tr.setOrigin(btVector3((dMax[0] + dMin[0])/2,(dMax[1] + dMin[1])/2,(dMax[2] + dMin[2])/2));
     }
 
-    //create the ground object
+    pWorld->m_pTerrainShape = pGroundShape;
     pWorld->m_pTerrainBody = _LocalCreateRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL_CAR);
+
+    // double z_offset = -0.315;
+    // ros::param::param<double>("groundplane_z_offset", z_offset, z_offset);
+    // tr.setIdentity();
+    // if(centerMesh == true){
+    //     tr.setOrigin(btVector3((dMax[0] + dMin[0])/2,(dMax[1] + dMin[1])/2,(dMax[2] + dMin[2])/2));
+    // }
+    // tr.getOrigin().setZ(tr.getOrigin().z()+z_offset);
+
+    //add this to the shapes
+    pWorld->m_pGroundplaneShape = pGroundShape;
+    // pWorld->m_vCollisionShapes.push_back(pWorld->m_pGroundplaneShape);
+    //pWorld->m_vCollisionShapes.push_back(groundShape);
+
+    //create the ground object
+    pWorld->m_pGroundplaneBody = _LocalCreateRigidBody(pWorld,0,tr,pWorld->m_pGroundplaneShape,COL_GROUND,COL_RAY|COL_CAR);
 
     //m_pHeightMap = pHeightMap;
 }

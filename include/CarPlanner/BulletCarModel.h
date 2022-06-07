@@ -577,6 +577,7 @@ struct BulletWorldInstance : public boost::mutex
         m_pCarChassis = NULL;
         m_pVehicle = NULL;
         m_pTerrainShape = NULL;
+        m_pGroundplaneShape = NULL;
         m_pHeightfieldData = NULL;
         m_dTime = -1;
         m_bParametersChanged = false;
@@ -588,6 +589,9 @@ struct BulletWorldInstance : public boost::mutex
         if( m_pTerrainShape != NULL) {
             delete m_pTerrainShape;
         }
+        if( m_pGroundplaneShape != NULL) {
+            delete m_pGroundplaneShape;
+        }
     }
 
     std::vector<Sophus::SE3d> m_vWheelTransforms;
@@ -595,7 +599,9 @@ struct BulletWorldInstance : public boost::mutex
 
     btScalar *m_pHeightfieldData;
     btCollisionShape *m_pTerrainShape;
+    btCollisionShape *m_pGroundplaneShape;
     btRigidBody *m_pTerrainBody;
+    btRigidBody *m_pGroundplaneBody;
     RaycastVehicle::btVehicleTuning	m_Tuning;
     btVehicleRaycaster*	m_pVehicleRayCaster;
     RaycastVehicle*	m_pVehicle;
@@ -664,6 +670,7 @@ public:
     hal::MatrixMsg* covar;
 
     void setTerrainMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm);
+    // void setGroundplaneMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm);
 
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);
     /////////////////////////////////////////////////////////////////////////////////////////
