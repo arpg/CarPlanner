@@ -183,10 +183,10 @@ struct VehicleState
       return contacts;
     }
 
-    // bool IsChassisInCollision() const
-    // {
-    //     return m_bChassisInCollision;
-    // }
+    bool isChassisInCollision() const
+    {
+        return m_bChassisInCollision;
+    }
 
     double GetCurvature() const
     {
@@ -278,7 +278,7 @@ struct VehicleState
     //     state_msg.wheel_contacts.push_back(contact);
     //   }
 
-    //   state_msg.chassis_collision = m_bChassisInCollision;
+      state_msg.chassis_collision = m_bChassisInCollision;
 
       Eigen::Vector6d vels = (*this).GetVels();
       state_msg.lin_vel.x = vels[0];
@@ -342,7 +342,7 @@ struct VehicleState
             }
         }
 
-        // m_bChassisInCollision = msg.chassis_collision;
+        m_bChassisInCollision = msg.chassis_collision;
 
         (*this).m_dV[0] = msg.lin_vel.x;
         (*this).m_dV[1] = msg.lin_vel.y;
@@ -527,7 +527,7 @@ struct VehicleState
         return poseOut;
     }
 
-
+    bool m_bChassisInCollision;
 
     Sophus::SE3d m_dTwv;                     //< 4x4 matrix denoting the state of the car
     std::vector<Sophus::SE3d> m_vWheelStates;   //< 4x4 matrices which denote the pose of each wheel
@@ -669,7 +669,8 @@ public:
     hal::VectorMsg* pose;
     hal::MatrixMsg* covar;
 
-    void setTerrainMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm);
+    void setTerrainMesh(uint worldId, btCollisionShape* meshShape, const tf::StampedTransform& Twm);
+    void resetTerrainMesh(uint worldId);
     // void setGroundplaneMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm);
 
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);

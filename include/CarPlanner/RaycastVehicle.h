@@ -21,6 +21,10 @@ class btDynamicsWorld;
 #include <iostream>
 #include "BulletDynamics/ConstraintSolver/btConstraintSolver.h"
 
+// btCollisionShape User Indices
+#define CSI_CAR 2
+#define CSI_GROUNDPLANE 3
+#define CSI_TERRAIN 4
 
 class btVehicleTuning;
 
@@ -49,6 +53,28 @@ struct btWheelContactPoint
     }
 };
 
+// struct CollisionElement
+// {
+//     const btCollisionObject* body;
+//     const btVector3 point;
+//     const btVector3 normal;
+
+//     CollisionElement(const btCollisionObject*& body_, const btVector3& point_, const btVector3& normal_)
+//         : body(body_), point(point_), normal(normal_)
+//     {
+//     }
+// };
+
+// struct CollisionEvent
+// {
+//     CollisionElement elemA;
+//     CollisionElement elemB;
+
+//     CollisionEvent(btPersistentManifold*& manifold)
+//     {
+        
+//     }
+// };
 
 ///rayCast vehicle, very special constraint that turn a rigidbody into a vehicle.
 class RaycastVehicle : public btActionInterface
@@ -112,6 +138,8 @@ private:
     void _SetSteeringValue(btScalar steering,int wheel);
     btScalar _GetSteeringValue(int wheel) const;
 
+    bool m_bChassisInCollision;
+
 public:
     btScalar GetTotalGravityForce() { return m_dTotalGravityForce; }
     RaycastVehicle();
@@ -126,10 +154,13 @@ public:
     ///btActionInterface interface
     virtual void updateAction( btCollisionWorld* collisionWorld, btScalar step)
     {
-        (void) collisionWorld;
+        // (void) collisionWorld;
+        updateCollision(collisionWorld);
         updateVehicle(step);
     }
 
+    void updateCollision(btCollisionWorld* );
+    bool isChassisInCollision() { return m_bChassisInCollision; }
 
     ///btActionInterface interface
     void debugDraw(btIDebugDraw* debugDrawer);

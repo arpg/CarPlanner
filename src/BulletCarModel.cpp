@@ -40,7 +40,7 @@ btVector3 BulletCarModel::GetUpVector(int upAxis,btScalar regularValue,btScalar 
 }
 
 ///////////////////////////////////////////////////////////////
-void BulletCarModel::setTerrainMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm)
+void BulletCarModel::setTerrainMesh(uint worldId, btCollisionShape* meshShape, const tf::StampedTransform& Twm)
 {
     // btAssert((!meshShape || meshShape->getShapeType() != INVALID_SHAPE_PROXYTYPE));
 
@@ -53,14 +53,29 @@ void BulletCarModel::setTerrainMesh(uint worldId, btCollisionShape* meshShape, t
     {
         // btVector3 pos = pWorld->m_pTerrainBody->getCenterOfMassPosition(); ROS_WARN_THROTTLE(1,"Removing terrain body at %.2f %.2f %.2f in replaceMesh.",pos[0],pos[1],pos[2]);
         pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pTerrainBody);
+        // delete pWorld->m_pTerrainBody;
     }
 
     pWorld->m_pTerrainShape = meshShape;
+    pWorld->m_pTerrainShape->setUserIndex(CSI_TERRAIN);
     pWorld->m_pTerrainBody->setCollisionShape(pWorld->m_pTerrainShape);
     pWorld->m_pTerrainBody->setWorldTransform(btTransform(
       btQuaternion(Twm.getRotation().getX(),Twm.getRotation().getY(),Twm.getRotation().getZ(),Twm.getRotation().getW()),
       btVector3(Twm.getOrigin().getX(),Twm.getOrigin().getY(),Twm.getOrigin().getZ())));
     pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pTerrainBody);
+}
+
+void BulletCarModel::resetTerrainMesh(uint worldId)
+{
+    BulletWorldInstance* pWorld = GetWorldInstance(worldId);
+    boost::unique_lock<boost::mutex> lock(*pWorld);
+
+    if(pWorld->m_pTerrainBody != NULL)
+    {
+        // btVector3 pos = pWorld->m_pTerrainBody->getCenterOfMassPosition(); ROS_WARN_THROTTLE(1,"Removing terrain body at %.2f %.2f %.2f in replaceMesh.",pos[0],pos[1],pos[2]);
+        pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pTerrainBody);
+        delete pWorld->m_pTerrainBody;
+    }
 }
 
 ///////////////////////////////////////////////////////////////
@@ -598,7 +613,7 @@ void BulletCarModel::_InternalUpdateParameters(BulletWorldInstance* pWorld)
     btVector3 localInertia(0,0,0);
     pBoxShape->calculateLocalInertia(pWorld->m_Parameters[CarParameters::Mass],localInertia);
     pWorld->m_pVehicle->getRigidBody()->setMassProps(pWorld->m_Parameters[CarParameters::Mass],localInertia);
-    pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pVehicle->getRigidBody(),COL_CAR,COL_NOTHING);
+    pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pVehicle->getRigidBody(),COL_CAR,COL_GROUND);
 
     //change the position of the wheels
     pWorld->m_pVehicle->getWheelInfo(0).m_chassisConnectionPointCS[0] = pWorld->m_Parameters[CarParameters::WheelBase]/2;
@@ -743,6 +758,7 @@ void BulletCarModel::UpdateState(  const int& worldId,
     // if bNoUpdate is true, then car does not move in both modes
     if (pWorld->m_pDynamicsWorld && bNoUpdate==false)
     {
+        boost::mutex::scoped_lock lock(*pWorld);
         Eigen::Vector3d T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
         btVector3 bTorques( T_w[0], T_w[1], T_w[2] );
         pWorld->m_pVehicle->getRigidBody()->applyTorque( bTorques );
@@ -750,6 +766,10 @@ void BulletCarModel::UpdateState(  const int& worldId,
         pWorld->m_pDynamicsWorld->stepSimulation(dT,1,dT);
     }
 
+    {
+        boost::mutex::scoped_lock lock(*pWorld);
+        pWorld->m_state.m_bChassisInCollision = pWorld->m_pVehicle->isChassisInCollision();
+    }
 
     //do this in a critical section
     {
@@ -920,6 +940,7 @@ void BulletCarModel::_LocalDestroyRigidBody(BulletWorldInstance *pWorld, btColli
     // body->setContactProcessingThreshold(BT_LARGE_FLOAT);
 
     pWorld->m_pDynamicsWorld->removeRigidBody(body);
+    delete body;
 }
  
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -934,6 +955,7 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
     pWorld->m_vVehicleCollisionShapes.clear();
 
     pWorld->m_pVehicleChassisShape = new btBoxShape(btVector3(pWorld->m_Parameters[CarParameters::WheelBase],pWorld->m_Parameters[CarParameters::Width],pWorld->m_Parameters[CarParameters::Height]));
+    pWorld->m_pVehicleChassisShape->setUserIndex(CSI_CAR);
     pWorld->m_vVehicleCollisionShapes.push_back(pWorld->m_pVehicleChassisShape);
 
     /*btCompoundShape* compound = new btCompoundShape();
@@ -956,7 +978,7 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
         delete pWorld->m_pCarChassis;
     }
 
-    pWorld->m_pCarChassis = _LocalCreateRigidBody(pWorld,pWorld->m_Parameters[CarParameters::Mass],tr,pWorld->m_pVehicleChassisShape, COL_CAR,COL_NOTHING);//chassisShape);
+    pWorld->m_pCarChassis = _LocalCreateRigidBody(pWorld,pWorld->m_Parameters[CarParameters::Mass],tr,pWorld->m_pVehicleChassisShape, COL_CAR, COL_GROUND);//chassisShape);
 
     /// create vehicle
     pWorld->m_pVehicleRayCaster = new DefaultVehicleRaycaster(pWorld->m_pDynamicsWorld);
@@ -1075,6 +1097,13 @@ void BulletCarModel::SetCommandHistory(const int& worldId, const CommandList &pr
 /////////////////////////////////////////////////////////////////////////////////////////
 void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *pGroundShape, btVector3 dMin, btVector3 dMax, bool centerMesh)
 {
+    pWorld->m_pTerrainShape = pGroundShape;
+    pWorld->m_pTerrainShape->setUserIndex(CSI_TERRAIN);
+    pWorld->m_vCollisionShapes.push_back(pWorld->m_pTerrainShape);
+    pWorld->m_pGroundplaneShape = pGroundShape;
+    pWorld->m_pTerrainShape->setUserIndex(CSI_GROUNDPLANE);
+    pWorld->m_vCollisionShapes.push_back(pWorld->m_pGroundplaneShape);
+
     pWorld->m_pCollisionConfiguration = new btDefaultCollisionConfiguration();
     pWorld->m_pDispatcher = new btCollisionDispatcher(pWorld->m_pCollisionConfiguration);
 
@@ -1099,7 +1128,7 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
         tr.setOrigin(btVector3((dMax[0] + dMin[0])/2,(dMax[1] + dMin[1])/2,(dMax[2] + dMin[2])/2));
     }
 
-    pWorld->m_pTerrainShape = pGroundShape;
+    // pWorld->m_pTerrainShape = pGroundShape;
     pWorld->m_pTerrainBody = _LocalCreateRigidBody(pWorld,0,tr,pWorld->m_pTerrainShape,COL_GROUND,COL_RAY|COL_CAR);
 
     // double z_offset = -0.315;
@@ -1111,7 +1140,7 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
     // tr.getOrigin().setZ(tr.getOrigin().z()+z_offset);
 
     //add this to the shapes
-    pWorld->m_pGroundplaneShape = pGroundShape;
+    // pWorld->m_pGroundplaneShape = pGroundShape;
     // pWorld->m_vCollisionShapes.push_back(pWorld->m_pGroundplaneShape);
     //pWorld->m_vCollisionShapes.push_back(groundShape);
 

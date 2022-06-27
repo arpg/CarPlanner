@@ -73,18 +73,44 @@ struct MotionSample
     double GetTiltCost() const
     {
         double cost = 0;
-        
+
+        // if(m_vCommands.size() != 0){
+        //     const ControlCommand* pPrevCommand = &m_vCommands.front();
+        //     for(size_t ii = 1; ii < m_vStates.size() ; ii++){
+        //         //const VehicleState& state = m_vStates[ii];
+        //         const ControlCommand& command = m_vCommands[ii];
+        //         //cost = std::max(state.m_dV.norm() * state.m_dW.norm(),cost);
+        //         //cost += fabs(state.m_dV.norm() * state.m_dW[2]) - fabs(m_vCommands[ii].m_dCurvature);
+        //         cost += fabs(command.m_dPhi - pPrevCommand->m_dPhi);
+        //         pPrevCommand = &m_vCommands[ii];
+        //         //cost += fabs(state.m_dSteering);
+        //     }
+        //     cost /= GetDistance();
+        // }
+
         for(size_t ii = 1; ii < m_vStates.size() ; ii++){
+            // Eigen::Vector3d error_weights(1,.25,0); // roll pitch yaw
+
+            // const VehicleState& state = m_vStates[ii];
             Eigen::Vector3d dWCS(m_vStates[ii].m_dW.transpose() * m_vStates[ii].m_dTwv.rotationMatrix()); // current velocity in body coordinates
             Eigen::Vector3d last_dWCS(m_vStates[ii-1].m_dW.transpose() * m_vStates[ii-1].m_dTwv.rotationMatrix()); // previous velocity in body coordinates
             // for(uint i=0; i<dWCS.size(); i++) { dWCS[i] = fabs(dWCS[i]); }
-            // Eigen::Vector3d error_weights(1,.25,0); // roll pitch yaw
             // cost += error_weights.dot(dWCS);
             cost += fabs(dWCS[0]-last_dWCS[0]); // roll acceleration
             // cost += dWCS[1]*0.5;
             // cost += dWCS[0]*dWCS[0];
+
+            // Eigen::Vector3d z_proj = (m_vStates[0].m_dTwv.inverse() * state.m_dTwv).rotationMatrix().col(2);
+            // double off_up_normal =
+            // cost += z_proj[1]*z_proj[1]; //fabs(z_proj[1]); // roll only
+            // ROS_INFO("z proj cost of %f %f %f",z_proj[0],z_proj[1],z_proj[2]);
         }
+        // ROS_INFO("total z proj %f", cost);
+
         cost /= GetDistance();
+        // cost /= m_vStates.size();
+
+        // ROS_INFO("final z proj %f", cost);
 
         return cost;
     }
@@ -93,17 +119,86 @@ struct MotionSample
     {
         double cost = 0;
 
+        // if(m_vCommands.size() != 0){
+        //     const ControlCommand* pPrevCommand = &m_vCommands.front();
+        //     for(size_t ii = 1; ii < m_vStates.size() ; ii++){
+        //         //const VehicleState& state = m_vStates[ii];
+        //         const ControlCommand& command = m_vCommands[ii];
+        //         //cost = std::max(state.m_dV.norm() * state.m_dW.norm(),cost);
+        //         //cost += fabs(state.m_dV.norm() * state.m_dW[2]) - fabs(m_vCommands[ii].m_dCurvature);
+        //         cost += fabs(command.m_dPhi - pPrevCommand->m_dPhi);
+        //         pPrevCommand = &m_vCommands[ii];
+        //         //cost += fabs(state.m_dSteering);
+        //     }
+        //     cost /= GetDistance();
+        // }
+
         for(size_t ii = 0; ii < m_vStates.size() ; ii++){
             const VehicleState& state = m_vStates[ii];
+            // Eigen::Vector3d dWCS(state.m_dW.transpose() * state.m_dTwv.rotationMatrix());
+            // Eigen::Vector3d error_weights(1,.8,.4); // roll pitch yaw
+            // cost += error_weights.dot(dWCS);
+            // cost += fabs(state.m_dW[0]);
             for(size_t jj = 0; jj < state.m_vWheelContacts.size(); jj++)
             {
                 cost += (state.m_vWheelContacts[jj] ? 0.0 : 1.0/state.m_vWheelContacts.size()); // add cost normalized by num wheels
             }
         }
+        // cost /= GetDistance();
         cost /= m_vStates.size();
 
         return cost;
     }
+
+    double GetCollisionCost() const
+    {
+        for(size_t ii = 0; ii < m_vStates.size() ; ii++){
+            const VehicleState& state = m_vStates[ii];
+            if (state.m_bChassisInCollision)
+            {
+                // ROS_INFO("Detected collsion at state %d", ii);
+                return 1.0;
+            }
+        }
+        return 0.0;
+    }
+
+    /*
+    // double GetTiltCost() const
+    // {
+    //     double cost = 0;
+        
+    //     for(size_t ii = 1; ii < m_vStates.size() ; ii++){
+    //         Eigen::Vector3d dWCS(m_vStates[ii].m_dW.transpose() * m_vStates[ii].m_dTwv.rotationMatrix()); // current velocity in body coordinates
+    //         Eigen::Vector3d last_dWCS(m_vStates[ii-1].m_dW.transpose() * m_vStates[ii-1].m_dTwv.rotationMatrix()); // previous velocity in body coordinates
+    //         // for(uint i=0; i<dWCS.size(); i++) { dWCS[i] = fabs(dWCS[i]); }
+    //         // Eigen::Vector3d error_weights(1,.25,0); // roll pitch yaw
+    //         // cost += error_weights.dot(dWCS);
+    //         cost += fabs(dWCS[0]-last_dWCS[0]); // roll acceleration
+    //         // cost += dWCS[1]*0.5;
+    //         // cost += dWCS[0]*dWCS[0];
+    //     }
+    //     cost /= GetDistance();
+
+    //     return cost;
+    // }
+
+    // double GetContactCost() const
+    // {
+    //     double cost = 0;
+
+    //     for(size_t ii = 0; ii < m_vStates.size() ; ii++){
+    //         const VehicleState& state = m_vStates[ii];
+    //         for(size_t jj = 0; jj < state.m_vWheelContacts.size(); jj++)
+    //         {
+    //             cost += (state.m_vWheelContacts[jj] ? 0.0 : 1.0/state.m_vWheelContacts.size()); // add cost normalized by num wheels
+    //         }
+    //     }
+    //     cost /= m_vStates.size();
+
+    //     return cost;
+    // }
+    */
 
     double GetBadnessCost() const
     {

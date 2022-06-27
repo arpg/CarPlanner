@@ -13,17 +13,19 @@
 #define THETA_WEIGHT 0.5
 #define VEL_WEIGHT_TRAJ 0.5
 #define VEL_WEIGHT_POINT 1.0
-#define TILT_WEIGHT_POINT 0.02
-#define CONTACT_WEIGHT_POINT 0.5
+#define TILT_WEIGHT 0.02e-8
+#define CONTACT_WEIGHT 0.5e-8
+#define COLLISION_WEIGHT 100.0e-8
 #define TIME_WEIGHT 0.05
 #define CURV_WEIGHT 0.001
 #define BADNESS_WEIGHT 5e-8;
+
 #define DAMPING_STEPS 8
 #define DAMPING_DIVISOR 1.3
 
-#define POINT_COST_ERROR_TERMS 7
+#define POINT_COST_ERROR_TERMS 8 // x, y, z, heading, vel, tilt, contact, collision
 #define TRAJ_EXTRA_ERROR_TERMS 2
-#define TRAJ_UNIT_ERROR_TERMS 5
+#define TRAJ_UNIT_ERROR_TERMS 10 // x, y, z, heading, vel, tilt, contact, collision, time, curv
 
 #define OPT_ACCEL_DIM 3
 #define OPT_AGGR_DIM 4
@@ -212,7 +214,12 @@ public:
     Eigen::VectorXd _GetWeightVector(const LocalProblem& problem);
     double _CalculateErrorNorm(const LocalProblem &problem, const Eigen::VectorXd& dError);
     static int GetNumWorldsRequired(const int nOptParams) { return nOptParams*2+2;}
+
+    void UpdateWeightsFromROS();
+
 private:
+    ros::NodeHandle* m_nh;
+
     /// Calculates the jacobian of the trajectory at the current point in the trajectory
     bool _CalculateJacobian(LocalProblem &problem,          //< The problem struct defining the current trajectory and goals
                               Eigen::VectorXd& dCurrentErrorVec,          //< This is the current error vector
@@ -241,6 +248,9 @@ private:
     Eigen::MatrixXd& m_dPointWeight;                                       //< The matrix which holds the weighted Gauss-Newton weights
     Eigen::MatrixXd& m_dTrajWeight;
     int m_nPlanCounter;
+
+public:
+    void SetNodeHandle(ros::NodeHandle*& nh) { m_nh = nh; }
 };
 
 #endif // LOCALPLANNER_H

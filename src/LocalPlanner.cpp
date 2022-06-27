@@ -93,16 +93,20 @@ LocalPlanner::LocalPlanner() :
     m_dPointWeight(3) = THETA_WEIGHT;
     m_dPointWeight(4) = VEL_WEIGHT_POINT;
     //m_dPointWeight(5) = CURV_WEIGHT;
-    m_dPointWeight(5) = TILT_WEIGHT_POINT;
-    m_dPointWeight(6) = CONTACT_WEIGHT_POINT;
+    m_dPointWeight(5) = TILT_WEIGHT;
+    m_dPointWeight(6) = CONTACT_WEIGHT;
+    m_dPointWeight(7) = COLLISION_WEIGHT;
 
     m_dTrajWeight(0) = XYZ_WEIGHT;
     m_dTrajWeight(1) = XYZ_WEIGHT;
     m_dTrajWeight(2) = XYZ_WEIGHT;
     m_dTrajWeight(3) = THETA_WEIGHT;
     m_dTrajWeight(4) = VEL_WEIGHT_TRAJ;
-    m_dTrajWeight(5) = TIME_WEIGHT;
-    m_dTrajWeight(6) = CURV_WEIGHT;
+    m_dTrajWeight(5) = TILT_WEIGHT;
+    m_dTrajWeight(6) = CONTACT_WEIGHT;
+    m_dTrajWeight(7) = COLLISION_WEIGHT;
+    m_dTrajWeight(8) = TIME_WEIGHT;
+    m_dTrajWeight(9) = CURV_WEIGHT;
     //m_dTrajWeight(7) = BADNESS_WEIGHT;
 }
 
@@ -185,6 +189,10 @@ Eigen::VectorXd LocalPlanner::_GetTrajectoryError(const MotionSample& sample,
     error[3] = rpg::AngleWrap(minPose[3] - endPose[3]);
     error[4] = minPose[5] - endPose[5];
 
+    error[5] = sample.GetTiltCost();
+    error[6] = sample.GetContactCost();
+    error[7] = sample.GetCollisionCost();
+
     //now calculate the distance on both sides and find the minimum
     double dInterpolationFactor;
     Eigen::VectorXd beforeError;
@@ -213,6 +221,46 @@ Eigen::VectorXd LocalPlanner::_GetTrajectoryError(const MotionSample& sample,
 }
 
 ///////////////////////////////////////////////////////////////////////
+void LocalPlanner::UpdateWeightsFromROS()
+{
+    if (m_nh == nullptr)
+        return;
+
+    double xyz_weight, theta_weight, vel_weight_point, tilt_weight, contact_weight, collision_weight, vel_weight_traj, time_weight, curv_weight;
+    m_nh->param<double>("xyz_weight", xyz_weight, XYZ_WEIGHT);
+    m_nh->param<double>("theta_weight", theta_weight, THETA_WEIGHT);
+    m_nh->param<double>("vel_weight_point", vel_weight_point, VEL_WEIGHT_POINT);
+    m_nh->param<double>("tilt_weight", tilt_weight, TILT_WEIGHT);
+    m_nh->param<double>("contact_weight", contact_weight, CONTACT_WEIGHT);
+    m_nh->param<double>("collision_weight", collision_weight, COLLISION_WEIGHT);
+    m_nh->param<double>("vel_weight_traj", vel_weight_traj, VEL_WEIGHT_TRAJ);
+    m_nh->param<double>("time_weight", time_weight, TIME_WEIGHT);
+    m_nh->param<double>("curv_weight", curv_weight, CURV_WEIGHT);
+
+    m_dPointWeight(0) = xyz_weight;
+    m_dPointWeight(1) = xyz_weight;
+    m_dPointWeight(2) = xyz_weight;
+    m_dPointWeight(3) = theta_weight;
+    m_dPointWeight(4) = vel_weight_point;
+    m_dPointWeight(5) = tilt_weight;
+    m_dPointWeight(6) = contact_weight;
+    m_dPointWeight(7) = collision_weight;
+
+    m_dTrajWeight(0) = xyz_weight;
+    m_dTrajWeight(1) = xyz_weight;
+    m_dTrajWeight(2) = xyz_weight;
+    m_dTrajWeight(3) = theta_weight;
+    m_dTrajWeight(4) = vel_weight_traj;
+    m_dTrajWeight(5) = tilt_weight;
+    m_dTrajWeight(6) = contact_weight;
+    m_dTrajWeight(7) = collision_weight;
+    m_dTrajWeight(8) = time_weight;
+    m_dTrajWeight(9) = curv_weight;
+
+    // ROS_INFO("Updated weights from ROS.");
+}
+
+/////////////////////////////////////////////////////////////////////
 Eigen::VectorXd LocalPlanner::_GetWeightVector(const LocalProblem& problem)
 {
     int errorVecSize = problem.m_eCostMode == eCostPoint ? POINT_COST_ERROR_TERMS : TRAJ_UNIT_ERROR_TERMS*g_nTrajectoryCostSegments+TRAJ_EXTRA_ERROR_TERMS;
@@ -276,13 +324,15 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, 
         error[4] = problem.m_dTransformedGoal[5] - endPose[5];
         //error[5] = state.m_dV.norm()*dW_goal[2] - problem.m_GoalState.m_dCurvature;
 
+        error[5] = sample.GetTiltCost();
+        error[6] = sample.GetContactCost();
+        error[7] = sample.GetCollisionCost();
+
         //error[5] = sample.GetBadnessCost();
         //error[5] = -std::log(problem.m_BoundaryProblem.m_dAggressiveness);
         //error.array() *= m_dPointWeight.block<POINT_COST_ERROR_TERMS,1>(0,0).array();
         //DLOG(INFO) << "Error vector is " << error.transpose() << " weights are " << m_dPointWeight.transpose();
 
-        error[5] = sample.GetTiltCost();
-        error[6] = sample.GetContactCost();
     }else if(problem.m_eCostMode == eCostTrajectory){
         error =Eigen::VectorXd(errorVecSize);
 
@@ -728,6 +778,8 @@ bool LocalPlanner::InitializeLocalProblem(LocalProblem& problem,
 ///////////////////////////////////////////////////////////////////////
 bool LocalPlanner::Iterate(LocalProblem &problem )
 {
+    UpdateWeightsFromROS();
+
     try
     {
         if(problem.m_CurrentSolution.m_dNorm < g_dSuccessNorm) {

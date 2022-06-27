@@ -22,6 +22,8 @@
 #include "BulletDynamics/ConstraintSolver/btContactSolverInfo.h"
 #include <CarPlanner/CarPlannerCommon.h>
 
+#include "BulletCollision/CollisionShapes/btCollisionShape.h"
+
 #define ROLLING_INFLUENCE_FIX
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -321,6 +323,96 @@ const btTransform& RaycastVehicle::getChassisWorldTransform() const
 {
     return getRigidBody()->getCenterOfMassTransform();
 }
+
+/////////////////////////////////////////////////////////////
+void RaycastVehicle::updateCollision(btCollisionWorld* world)
+{
+    // std::cout << "*** CHecking for collision (" << std::to_string(world->getDispatcher()->getNumManifolds()) << " manifolds) ** " << std::endl;
+    m_bChassisInCollision = false;
+	for (int i = 0; i < world->getDispatcher()->getNumManifolds(); i++)
+	{
+		btPersistentManifold* manifold = world->getDispatcher()->getManifoldByIndexInternal(i);
+		if (!manifold->getNumContacts())
+			continue;
+
+		btScalar minDist = 0.01f;
+		for (int v = 0; v < manifold->getNumContacts(); v++)
+		{
+			minDist = btMin(minDist, manifold->getContactPoint(v).getDistance());
+		}
+		if (minDist > 0.)
+			continue;
+
+        
+        // std::cout << "**** DETECte COLLISION " << std::to_string(manifold->getNumContacts()) << " ****" << std::endl;
+
+		btCollisionObject* colObj0 = (btCollisionObject*)manifold->getBody0();
+		btCollisionObject* colObj1 = (btCollisionObject*)manifold->getBody1();
+
+        btCollisionObject* otherBody;
+        if (colObj0==m_chassisBody)
+            otherBody = colObj1;
+        else if (colObj1==m_chassisBody)
+            otherBody = colObj0;
+        else
+            continue;
+
+        // if we reach this point, at least one of the collision objects is the chassis
+
+        // std::cout << "*** chassis in collision ";
+        // if (otherBody->getCollisionShape()->getUserIndex()==CSI_GROUNDPLANE)
+        //     std::cout << "with groundplane ***" << std::endl;
+        // else if (otherBody->getCollisionShape()->getUserIndex()==CSI_TERRAIN)
+        //     std::cout << "with terrain ***" << std::endl;
+
+        // only set chassisincollision to true if the other body is the terrain
+        if (otherBody->getCollisionShape()->getUserIndex()==CSI_TERRAIN)
+        {
+            m_bChassisInCollision = true;
+            return;
+        }
+	}
+}
+
+// void RaycastVehicle::updateCollision(btCollisionWorld* world)
+// {
+//     std::vector<CollisionEvent> collisions;
+//     getCollisions(pWorld->m_pDynamicsWorld, collisions);
+// }
+
+// static
+// void RaycastVehicle::getCollisions(btCollisionWorld* world, std::vector<CollisionEvent> collisions)
+// {
+//     int numManifolds = world->getDispatcher()->getNumManifolds();
+//     for (int i=0;i<numManifolds;i++)
+//     {
+//         btPersistentManifold* contactManifold =  world->getDispatcher()->getManifoldByIndexInternal(i);
+//         const btCollisionObject* obA = static_cast<const btCollisionObject*>(contactManifold->getBody0());
+//         const btCollisionObject* obB = static_cast<const btCollisionObject*>(contactManifold->getBody1());
+
+//         btVector3 avgpt(0,0,0);
+
+//         int numContacts = contactManifold->getNumContacts();
+//         for (int j=0;j<numContacts;j++)
+//         {
+//             btManifoldPoint& pt = contactManifold->getContactPoint(j);
+//             if (pt.getDistance()<0.f)
+//             {
+//                 const btVector3& ptA = pt.getPositionWorldOnA();
+//                 const btVector3& ptB = pt.getPositionWorldOnB();
+//                 const btVector3& normalOnB = pt.m_normalWorldOnB;
+
+//                 avgpt += ptA + ptB;
+//             }
+//         }
+
+//         if (numContacts>0)
+//         {
+//             avgpt /= numContacts*2;
+//             collisions.push_back(CollisionEvent(obA, obB, avgpt));
+//         }
+//     }
+// }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void RaycastVehicle::updateVehicle( btScalar step )
