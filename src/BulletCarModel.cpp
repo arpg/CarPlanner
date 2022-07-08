@@ -613,7 +613,7 @@ void BulletCarModel::_InternalUpdateParameters(BulletWorldInstance* pWorld)
     btVector3 localInertia(0,0,0);
     pBoxShape->calculateLocalInertia(pWorld->m_Parameters[CarParameters::Mass],localInertia);
     pWorld->m_pVehicle->getRigidBody()->setMassProps(pWorld->m_Parameters[CarParameters::Mass],localInertia);
-    pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pVehicle->getRigidBody(),COL_CAR,COL_GROUND);
+    pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pVehicle->getRigidBody(),COL_CAR,COL_NOTHING);
 
     //change the position of the wheels
     pWorld->m_pVehicle->getWheelInfo(0).m_chassisConnectionPointCS[0] = pWorld->m_Parameters[CarParameters::WheelBase]/2;
@@ -978,7 +978,7 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
         delete pWorld->m_pCarChassis;
     }
 
-    pWorld->m_pCarChassis = _LocalCreateRigidBody(pWorld,pWorld->m_Parameters[CarParameters::Mass],tr,pWorld->m_pVehicleChassisShape, COL_CAR, COL_GROUND);//chassisShape);
+    pWorld->m_pCarChassis = _LocalCreateRigidBody(pWorld,pWorld->m_Parameters[CarParameters::Mass],tr,pWorld->m_pVehicleChassisShape, COL_CAR, COL_NOTHING);//chassisShape);
 
     /// create vehicle
     pWorld->m_pVehicleRayCaster = new DefaultVehicleRaycaster(pWorld->m_pDynamicsWorld);
