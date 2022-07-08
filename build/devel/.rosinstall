@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/arpg/mocha_ws/src/carplanner/build/devel/setup.sh

@@ -13,9 +13,9 @@
 #define THETA_WEIGHT 0.5
 #define VEL_WEIGHT_TRAJ 0.5
 #define VEL_WEIGHT_POINT 1.0
-#define TILT_WEIGHT 0.02e-8
-#define CONTACT_WEIGHT 0.5e-8
-#define COLLISION_WEIGHT 100.0e-8
+#define TILT_WEIGHT 0.02
+#define CONTACT_WEIGHT 0.5
+#define COLLISION_WEIGHT 100.0
 #define TIME_WEIGHT 0.05
 #define CURV_WEIGHT 0.001
 #define BADNESS_WEIGHT 5e-8;
@@ -23,9 +23,9 @@
 #define DAMPING_STEPS 8
 #define DAMPING_DIVISOR 1.3
 
-#define POINT_COST_ERROR_TERMS 8 // x, y, z, heading, vel, tilt, contact, collision
-#define TRAJ_EXTRA_ERROR_TERMS 2
-#define TRAJ_UNIT_ERROR_TERMS 10 // x, y, z, heading, vel, tilt, contact, collision, time, curv
+#define POINT_COST_ERROR_TERMS 8 //5 //8 // x, y, z, heading, vel, tilt, contact, collision
+#define TRAJ_EXTRA_ERROR_TERMS 2 // time, curv
+#define TRAJ_UNIT_ERROR_TERMS 8 //7 //10 // x, y, z, heading, vel, tilt, contact, collision
 
 #define OPT_ACCEL_DIM 3
 #define OPT_AGGR_DIM 4

@@ -14,7 +14,7 @@ static bool& g_bPointCost(CVarUtils::CreateGetUnsavedCVar("debug.PointCost",fals
 static bool& g_bInertialControl = CVarUtils::CreateGetUnsavedCVar("debug.InertialControl",false);
 static bool& g_bInfiniteTime = CVarUtils::CreateGetUnsavedCVar("debug.InfiniteTime",false);
 static bool& g_bFrontFlip = CVarUtils::CreateGetUnsavedCVar("debug.FrontFlip",false);
-static double& g_dMaxPlanNorm = CVarUtils::CreateGetUnsavedCVar("debug.MaxPlanNorm",50.0);
+static double& g_dMaxPlanNorm = CVarUtils::CreateGetUnsavedCVar("debug.MaxPlanNorm",30.0);
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -40,6 +40,17 @@ void CarController::Init( std::vector<MotionSample>& segmentSamples, LocalPlanne
     m_bPoseUpdated = false;
 }
 
+///////////////////////////////////////////////////////////////////////
+void CarController::UpdateParamsFromROS()
+{
+    if (m_nh == nullptr)
+        return;
+
+    // double max_plan_norm;
+    m_nh->param<double>("max_plan_norm", g_dMaxPlanNorm, g_dMaxPlanNorm);
+
+    // ROS_INFO("Updated params from ROS.");
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 void CarController::Reset()
@@ -189,6 +200,7 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
 
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
+    UpdateParamsFromROS();
     try
     {
         pPlanOut = NULL;

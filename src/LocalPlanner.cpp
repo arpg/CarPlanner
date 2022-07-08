@@ -86,28 +86,38 @@ LocalPlanner::LocalPlanner() :
     m_dTrajWeight = Eigen::MatrixXd(TRAJ_EXTRA_ERROR_TERMS+TRAJ_UNIT_ERROR_TERMS,1);
     m_dPointWeight.setIdentity();
     m_dTrajWeight.setIdentity();
-
+    
     m_dPointWeight(0) = XYZ_WEIGHT;
     m_dPointWeight(1) = XYZ_WEIGHT;
     m_dPointWeight(2) = XYZ_WEIGHT;
     m_dPointWeight(3) = THETA_WEIGHT;
     m_dPointWeight(4) = VEL_WEIGHT_POINT;
-    //m_dPointWeight(5) = CURV_WEIGHT;
+#if POINT_COST_ERROR_TERMS > 5
     m_dPointWeight(5) = TILT_WEIGHT;
+#endif
+#if POINT_COST_ERROR_TERMS > 6
     m_dPointWeight(6) = CONTACT_WEIGHT;
+#endif
+#if POINT_COST_ERROR_TERMS > 7
     m_dPointWeight(7) = COLLISION_WEIGHT;
+#endif
 
     m_dTrajWeight(0) = XYZ_WEIGHT;
     m_dTrajWeight(1) = XYZ_WEIGHT;
     m_dTrajWeight(2) = XYZ_WEIGHT;
     m_dTrajWeight(3) = THETA_WEIGHT;
     m_dTrajWeight(4) = VEL_WEIGHT_TRAJ;
+#if TRAJ_UNIT_ERROR_TERMS > 5
     m_dTrajWeight(5) = TILT_WEIGHT;
+#endif
+#if TRAJ_UNIT_ERROR_TERMS > 6
     m_dTrajWeight(6) = CONTACT_WEIGHT;
+#endif
+#if TRAJ_UNIT_ERROR_TERMS > 7
     m_dTrajWeight(7) = COLLISION_WEIGHT;
-    m_dTrajWeight(8) = TIME_WEIGHT;
-    m_dTrajWeight(9) = CURV_WEIGHT;
-    //m_dTrajWeight(7) = BADNESS_WEIGHT;
+#endif
+    m_dTrajWeight(TRAJ_UNIT_ERROR_TERMS+0) = TIME_WEIGHT;
+    m_dTrajWeight(TRAJ_UNIT_ERROR_TERMS+1) = CURV_WEIGHT;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -189,9 +199,15 @@ Eigen::VectorXd LocalPlanner::_GetTrajectoryError(const MotionSample& sample,
     error[3] = rpg::AngleWrap(minPose[3] - endPose[3]);
     error[4] = minPose[5] - endPose[5];
 
+#if TRAJ_UNIT_ERROR_TERMS > 5
     error[5] = sample.GetTiltCost();
+#endif
+#if TRAJ_UNIT_ERROR_TERMS > 6
     error[6] = sample.GetContactCost();
+#endif
+#if TRAJ_UNIT_ERROR_TERMS > 7
     error[7] = sample.GetCollisionCost();
+#endif
 
     //now calculate the distance on both sides and find the minimum
     double dInterpolationFactor;
@@ -242,20 +258,32 @@ void LocalPlanner::UpdateWeightsFromROS()
     m_dPointWeight(2) = xyz_weight;
     m_dPointWeight(3) = theta_weight;
     m_dPointWeight(4) = vel_weight_point;
+#if POINT_COST_ERROR_TERMS > 5
     m_dPointWeight(5) = tilt_weight;
+#endif
+#if POINT_COST_ERROR_TERMS > 6
     m_dPointWeight(6) = contact_weight;
+#endif
+#if POINT_COST_ERROR_TERMS > 7
     m_dPointWeight(7) = collision_weight;
+#endif
 
     m_dTrajWeight(0) = xyz_weight;
     m_dTrajWeight(1) = xyz_weight;
     m_dTrajWeight(2) = xyz_weight;
     m_dTrajWeight(3) = theta_weight;
     m_dTrajWeight(4) = vel_weight_traj;
+#if TRAJ_UNIT_ERROR_TERMS > 5
     m_dTrajWeight(5) = tilt_weight;
+#endif
+#if TRAJ_UNIT_ERROR_TERMS > 6
     m_dTrajWeight(6) = contact_weight;
+#endif
+#if TRAJ_UNIT_ERROR_TERMS > 7
     m_dTrajWeight(7) = collision_weight;
-    m_dTrajWeight(8) = time_weight;
-    m_dTrajWeight(9) = curv_weight;
+#endif
+    m_dTrajWeight(TRAJ_UNIT_ERROR_TERMS+0) = time_weight;
+    m_dTrajWeight(TRAJ_UNIT_ERROR_TERMS+1) = curv_weight;
 
     // ROS_INFO("Updated weights from ROS.");
 }
@@ -324,9 +352,15 @@ Eigen::VectorXd LocalPlanner::_CalculateSampleError(const MotionSample& sample, 
         error[4] = problem.m_dTransformedGoal[5] - endPose[5];
         //error[5] = state.m_dV.norm()*dW_goal[2] - problem.m_GoalState.m_dCurvature;
 
+#if POINT_COST_ERROR_TERMS > 5
         error[5] = sample.GetTiltCost();
+#endif
+#if POINT_COST_ERROR_TERMS > 6
         error[6] = sample.GetContactCost();
+#endif
+#if POINT_COST_ERROR_TERMS > 7
         error[7] = sample.GetCollisionCost();
+#endif
 
         //error[5] = sample.GetBadnessCost();
         //error[5] = -std::log(problem.m_BoundaryProblem.m_dAggressiveness);

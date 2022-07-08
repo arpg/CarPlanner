@@ -758,7 +758,7 @@ void BulletCarModel::UpdateState(  const int& worldId,
     // if bNoUpdate is true, then car does not move in both modes
     if (pWorld->m_pDynamicsWorld && bNoUpdate==false)
     {
-        boost::mutex::scoped_lock lock(*pWorld);
+        // boost::mutex::scoped_lock lock(*pWorld);
         Eigen::Vector3d T_w = pWorld->m_state.m_dTwv.so3()*command.m_dTorque;
         btVector3 bTorques( T_w[0], T_w[1], T_w[2] );
         pWorld->m_pVehicle->getRigidBody()->applyTorque( bTorques );
@@ -767,7 +767,7 @@ void BulletCarModel::UpdateState(  const int& worldId,
     }
 
     {
-        boost::mutex::scoped_lock lock(*pWorld);
+        // boost::mutex::scoped_lock lock(*pWorld);
         pWorld->m_state.m_bChassisInCollision = pWorld->m_pVehicle->isChassisInCollision();
     }
 

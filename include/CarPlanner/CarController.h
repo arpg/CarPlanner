@@ -39,7 +39,12 @@ public:
     static void PrepareLookaheadTrajectory(const std::vector<MotionSample>& vSegmentSamples,
                                            ControlPlan *pPlan, VelocityProfile &trajectoryProfile, MotionSample &trajectorySample, const double dLookaheadTime);
 
+    void SetNodeHandle(ros::NodeHandle*& nh) { m_nh = nh; }
+
 private:
+    ros::NodeHandle* m_nh;
+    void UpdateParamsFromROS();
+
     bool _SampleControlPlan(ControlPlan* pPlan,LocalProblem& problem);
     bool _SolveControlPlan(const ControlPlan* pPlan, LocalProblem& problem, const MotionSample &trajectory);
 
