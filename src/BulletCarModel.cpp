@@ -613,7 +613,7 @@ void BulletCarModel::_InternalUpdateParameters(BulletWorldInstance* pWorld)
     btVector3 localInertia(0,0,0);
     pBoxShape->calculateLocalInertia(pWorld->m_Parameters[CarParameters::Mass],localInertia);
     pWorld->m_pVehicle->getRigidBody()->setMassProps(pWorld->m_Parameters[CarParameters::Mass],localInertia);
-    pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pVehicle->getRigidBody(),COL_CAR,COL_GROUND);
+    pWorld->m_pDynamicsWorld->addRigidBody(pWorld->m_pVehicle->getRigidBody(),COL_CAR,COL_NOTHING);
 
     //change the position of the wheels
     pWorld->m_pVehicle->getWheelInfo(0).m_chassisConnectionPointCS[0] = pWorld->m_Parameters[CarParameters::WheelBase]/2;
@@ -978,10 +978,10 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
         delete pWorld->m_pCarChassis;
     }
 
-    pWorld->m_pCarChassis = _LocalCreateRigidBody(pWorld,pWorld->m_Parameters[CarParameters::Mass],tr,pWorld->m_pVehicleChassisShape, COL_CAR, COL_GROUND);//chassisShape);
+    pWorld->m_pCarChassis = _LocalCreateRigidBody(pWorld,pWorld->m_Parameters[CarParameters::Mass],tr,pWorld->m_pVehicleChassisShape, COL_CAR, COL_NOTHING);//chassisShape);
 
     /// create vehicle
-    pWorld->m_pVehicleRayCaster = new DefaultVehicleRaycaster(pWorld->m_pDynamicsWorld);
+    pWorld->m_pVehicleRaycaster = new DefaultVehicleRaycaster(pWorld->m_pDynamicsWorld);
 
     if( pWorld->m_pVehicle != NULL ) {
         pWorld->m_pDynamicsWorld->removeVehicle(pWorld->m_pVehicle);
@@ -995,7 +995,7 @@ void BulletCarModel::_InitVehicle(BulletWorldInstance* pWorld, CarParameterMap& 
     pWorld->m_Tuning.m_maxSuspensionForce = pWorld->m_Parameters[CarParameters::MaxSuspForce];
     pWorld->m_Tuning.m_maxSuspensionTravelCm = pWorld->m_Parameters[CarParameters::MaxSuspTravel]*100.0;
 
-    pWorld->m_pVehicle = new RaycastVehicle(pWorld->m_Tuning,pWorld->m_pCarChassis,pWorld->m_pVehicleRayCaster,&pWorld->m_pDynamicsWorld->getSolverInfo());
+    pWorld->m_pVehicle = new RaycastVehicle(pWorld->m_Tuning,pWorld->m_pCarChassis,pWorld->m_pVehicleRaycaster,&pWorld->m_pDynamicsWorld->getSolverInfo());
     pWorld->m_pVehicle->setCoordinateSystem(CAR_RIGHT_AXIS,CAR_UP_AXIS,CAR_FORWARD_AXIS);
     ///never deactivate the vehicle
     pWorld->m_pCarChassis->forceActivationState(DISABLE_DEACTIVATION);
@@ -1151,24 +1151,46 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-bool BulletCarModel::RayCast(const Eigen::Vector3d& dSource,const Eigen::Vector3d& dRayVector, Eigen::Vector3d& dIntersect, const bool& biDirectional, int index /*= 0*/)
+bool BulletCarModel::Raycast(const Eigen::Vector3d& dSource, const Eigen::Vector3d& dRayVector, Eigen::Vector3d& dIntersect, uint radial_num_rings /*= 2*/, double radius_spacing /*= 0.005*/, const bool& biDirectional /*= true*/, int index /*= 0*/)
+{
+    dIntersect = Eigen::Vector3d(std::numeric_limits<double>::max(),std::numeric_limits<double>::max(),std::numeric_limits<double>::max());
+    ROS_INFO("casting car ray... from %f %f %f in dir %f %f %f", dSource[0], dSource[1], dSource[2], dRayVector[0], dRayVector[1], dRayVector[2]);
+    for (std::size_t ring = 0; ring < radial_num_rings; ring++) {
+        double circumference = 2 * 3.14159265 * radius_spacing;
+        uint num_points_in_ring = round(circumference / radius_spacing);
+        double radius = circumference / num_points_in_ring;
+        for (std::size_t index_in_ring = 0; index_in_ring < num_points_in_ring; index_in_ring++) {
+            double alpha = radius*index_in_ring/num_points_in_ring*2*3.14159265;
+            double polar = acos(dRayVector[2]);
+            Eigen::Vector3d delta(radius*sin(polar)*cos(alpha), radius*sin(polar)*sin(alpha), radius*cos(polar));  
+            Eigen::Vector3d source = dSource + delta;
+            ROS_INFO("casting ray from %f %f %f in dir %f %f %f", source[0], source[1], source[2], dRayVector[0], dRayVector[1], dRayVector[2]);
+            Eigen::Vector3d intersect;
+            RaycastSingle(source, dRayVector, intersect, biDirectional, index);
+            if (intersect[2]<dIntersect[2])
+                dIntersect = intersect;
+        }
+    }
+}
+
+bool BulletCarModel::RaycastSingle(const Eigen::Vector3d& dSource,const Eigen::Vector3d& dRayVector, Eigen::Vector3d& dIntersect, const bool& biDirectional /*= true*/, int index /*= 0*/)
 {
     btVector3 source(dSource[0],dSource[1],dSource[2]);
     btVector3 vec(dRayVector[0],dRayVector[1],dRayVector[2]);
     btVector3 target = source + vec;
-    BulletWorldInstance*pInstance = GetWorldInstance(index);
+    BulletWorldInstance* pInstance = GetWorldInstance(index);
 
     btVehicleRaycaster::btVehicleRaycasterResult results,results2;
     if( biDirectional ){
         source = source - vec;
     }
 
-    if(pInstance->m_pVehicleRayCaster->castRay(source,target,results) == 0){
+    if(pInstance->m_pVehicleRaycaster->castRay(source,target,results) == 0){
         return false;
     }else{
         Eigen::Vector3d dNewSource(source[0],source[1],source[2]);
         dIntersect = dNewSource + results.m_distFraction* (biDirectional ? (Eigen::Vector3d)(dRayVector*2) : dRayVector);
         return true;
-    }  
+    }
 }
 

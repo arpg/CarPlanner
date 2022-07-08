@@ -155,7 +155,7 @@ public:
     virtual void updateAction( btCollisionWorld* collisionWorld, btScalar step)
     {
         // (void) collisionWorld;
-        updateCollision(collisionWorld);
+        // updateCollision(collisionWorld);
         updateVehicle(step);
     }
 

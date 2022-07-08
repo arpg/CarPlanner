@@ -603,7 +603,7 @@ struct BulletWorldInstance : public boost::mutex
     btRigidBody *m_pTerrainBody;
     btRigidBody *m_pGroundplaneBody;
     RaycastVehicle::btVehicleTuning	m_Tuning;
-    btVehicleRaycaster*	m_pVehicleRayCaster;
+    btVehicleRaycaster*	m_pVehicleRaycaster;
     RaycastVehicle*	m_pVehicle;
     btCollisionShape* m_pVehicleChassisShape;
 
@@ -718,7 +718,8 @@ public:
     CarParameterMap& GetParameters(int index) { return GetWorldInstance(index)->m_Parameters; }
     const CarParameterMap& GetParameters(int index) const  { return GetWorldInstance(index)->m_Parameters; }
     void                SetCommandHistory(const int &worldId, const CommandList &previousCommands);
-    bool RayCast(const Eigen::Vector3d& dSource, const Eigen::Vector3d& dRayVector, Eigen::Vector3d& dIntersect, const bool &biDirectional, int index = 0);
+    bool Raycast(const Eigen::Vector3d& dSource, const Eigen::Vector3d& dRayVector, Eigen::Vector3d& dIntersect, uint radial_num_rings = 2, double radius_spacing = 0.005, const bool& biDirectional = true, int index = 0);
+    bool RaycastSingle(const Eigen::Vector3d& dSource,const Eigen::Vector3d& dRayVector, Eigen::Vector3d& dIntersect, const bool& biDirectional = true, int index = 0);
 
     void UpdateParameters(const std::vector<RegressionParameter>& vNewParams);
     void UpdateParameters(const std::vector<RegressionParameter>& vNewParams, BulletWorldInstance *pWorld);
