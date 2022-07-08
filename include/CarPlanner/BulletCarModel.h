@@ -670,6 +670,7 @@ public:
     hal::MatrixMsg* covar;
 
     void setTerrainMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm);
+    void resetTerrainMesh(uint worldId);
     // void setGroundplaneMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm);
 
     static btVector3 GetUpVector(int upAxis,btScalar regularValue,btScalar upValue);

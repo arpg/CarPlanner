@@ -64,6 +64,20 @@ void BulletCarModel::setTerrainMesh(uint worldId, btCollisionShape* meshShape, t
 }
 
 ///////////////////////////////////////////////////////////////
+void BulletCarModel::resetTerrainMesh(uint worldId)
+{
+    BulletWorldInstance* pWorld = GetWorldInstance(worldId);
+    boost::unique_lock<boost::mutex> lock(*pWorld);
+
+    if(pWorld->m_pTerrainBody != NULL)
+    {
+        // btVector3 pos = pWorld->m_pTerrainBody->getCenterOfMassPosition(); ROS_WARN_THROTTLE(1,"Removing terrain body at %.2f %.2f %.2f in replaceMesh.",pos[0],pos[1],pos[2]);
+        pWorld->m_pDynamicsWorld->removeRigidBody(pWorld->m_pTerrainBody);
+        delete pWorld->m_pTerrainBody;
+    }
+}
+
+///////////////////////////////////////////////////////////////
 // void BulletCarModel::setGroundplaneMesh(uint worldId, btCollisionShape* meshShape, tf::StampedTransform& Twm)
 // {
 //     // btAssert((!meshShape || meshShape->getShapeType() != INVALID_SHAPE_PROXYTYPE));
