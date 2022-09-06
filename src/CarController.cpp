@@ -136,7 +136,13 @@ bool CarController::_SampleControlPlan(ControlPlan* pPlan,LocalProblem& problem)
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& problem,const MotionSample& trajectory)
 {
-    bool res = m_pPlanner->InitializeLocalProblem(problem,pPlan->m_dStartTime,&problem.m_vVelProfile,g_bPointCost ? eCostPoint : eCostTrajectory);
+    bool res;
+    {
+        auto tt = Tic();
+        res = m_pPlanner->InitializeLocalProblem(problem,pPlan->m_dStartTime,&problem.m_vVelProfile,g_bPointCost ? eCostPoint : eCostTrajectory);
+        auto uu = Toc(tt);
+        ROS_INFO("InitializeLocalProblem took %f sec.", uu);
+    }
     //double dLastDeltaNorm = m_dLastDelta.norm();
 //    if(std::isfinite(dLastDeltaNorm) && dLastDeltaNorm < 1.0 ){
 //        problem.m_CurrentSolution.m_dOptParams += m_dLastDelta;
@@ -162,10 +168,18 @@ bool CarController::_SolveControlPlan(const ControlPlan* pPlan,LocalProblem& pro
         //make sure the plan is not fully airborne
         //bool isAirborne = (pPlan->m_StartState.IsAirborne() && pPlan->m_GoalState.IsAirborne());
         if(g_bOptimize2DOnly /*|| isAirborne*/) {
-            m_pPlanner->SimulateTrajectory(m_MotionSample2dOnly,problem,0,true);
+            {
+                auto tt = Tic();
+                m_pPlanner->SimulateTrajectory(m_MotionSample2dOnly,problem,0,true);
+                auto uu = Toc(tt);
+                ROS_INFO("SimulateTrajectory took %f sec.", uu);
+            }
             break;
         }else{
+            auto tt = Tic();
             if( (m_pPlanner->Iterate(problem)) == true ) {
+                auto uu = Toc(tt);
+                ROS_INFO("Iterate took %f sec.", uu);
                 break;
             }
         }
@@ -385,19 +399,24 @@ bool CarController::PlanControl(double dPlanStartTime, ControlPlan*& pPlanOut) {
 
 
         //solve the control plan
+        auto t_solve = Tic();
         if( _SolveControlPlan(pPlan,problem,trajectorySample) == false ) {
             //do not use the plan
             DLOG(ERROR) << "Could not solve plan.";
             return false;
         }
-
+        auto u_solve = Toc(t_solve);
+        ROS_INFO("_SolveControlPlan took %f sec", u_solve);
 
 
         //only need to sample the planner if the plan is not airborne
+        auto t_sample = Tic();
         if( _SampleControlPlan(pPlan,problem) == false ) {
             DLOG(ERROR) << "Failed to sample plan.";
             return false;
         }
+        auto u_sample = Toc(t_sample);
+        ROS_INFO("_SampleControlPlan took %f sec", u_sample);
 
         //DLOG(INFO) << "Plan start heading is " << pPlan->m_StartState.GetTheta() << " and goal heading is " << pPlan->m_GoalState.GetTheta() <<
         //     " and traj end heading is " << pPlan->m_Sample.m_vStates.back().GetTheta();
@@ -513,6 +532,7 @@ void CarController::GetCurrentCommands(const double time,
         command.m_dForce = m_pModel->GetParameters(0)[CarParameters::AccelOffset]*SERVO_RANGE;
         command.m_dPhi = m_pModel->GetParameters(0)[CarParameters::SteeringOffset]*SERVO_RANGE;
         command.m_dTorque = Eigen::Vector3d::Zero();//m_dLastTorques;
+        command.m_dTargetVel = 0.;
 
         //DLOG(INFO) << "Torque output of: [ " << torques.transpose() << "] from previous plan";
     }else {
@@ -525,6 +545,7 @@ void CarController::GetCurrentCommands(const double time,
 
         command.m_dTorque = (1-interpolationAmount) * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex].m_dTorque + interpolationAmount * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex+1].m_dTorque;
 
+        command.m_dTargetVel = (1-interpolationAmount) * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex].m_dTargetVel + interpolationAmount * (*nCurrentPlanIndex)->m_Sample.m_vCommands[nCurrentSampleIndex+1].m_dTargetVel;
 
         //DLOG(INFO) << "v: " << m_vSegmentSamples[(*nCurrentPlanIndex)->m_nStartSegmentIndex].m_vStates[(*nCurrentPlanIndex)->m_nStartSampleIndex].m_dV.transpose();
         //calculate target values
@@ -544,6 +565,7 @@ void CarController::GetCurrentCommands(const double time,
         m_LastCommand.m_dCurvature = command.m_dCurvature;
         m_LastCommand.m_dPhi = command.m_dPhi;
         m_LastCommand.m_dTorque = command.m_dTorque;
+        m_LastCommand.m_dTargetVel = command.m_dTargetVel;
     }
 
 

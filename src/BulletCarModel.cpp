@@ -1154,7 +1154,7 @@ void BulletCarModel::_InitWorld(BulletWorldInstance* pWorld, btCollisionShape *p
 bool BulletCarModel::Raycast(const Eigen::Vector3d& dSource, const Eigen::Vector3d& dRayVector, Eigen::Vector3d& dIntersect, uint radial_num_rings /*= 2*/, double radius_spacing /*= 0.005*/, const bool& biDirectional /*= true*/, int index /*= 0*/)
 {
     dIntersect = Eigen::Vector3d(std::numeric_limits<double>::max(),std::numeric_limits<double>::max(),std::numeric_limits<double>::max());
-    ROS_INFO("casting car ray... from %f %f %f in dir %f %f %f", dSource[0], dSource[1], dSource[2], dRayVector[0], dRayVector[1], dRayVector[2]);
+    // ROS_INFO("casting car ray... from %f %f %f in dir %f %f %f", dSource[0], dSource[1], dSource[2], dRayVector[0], dRayVector[1], dRayVector[2]);
     for (std::size_t ring = 0; ring < radial_num_rings; ring++) {
         double circumference = 2 * 3.14159265 * radius_spacing;
         uint num_points_in_ring = round(circumference / radius_spacing);
@@ -1164,7 +1164,7 @@ bool BulletCarModel::Raycast(const Eigen::Vector3d& dSource, const Eigen::Vector
             double polar = acos(dRayVector[2]);
             Eigen::Vector3d delta(radius*sin(polar)*cos(alpha), radius*sin(polar)*sin(alpha), radius*cos(polar));  
             Eigen::Vector3d source = dSource + delta;
-            ROS_INFO("casting ray from %f %f %f in dir %f %f %f", source[0], source[1], source[2], dRayVector[0], dRayVector[1], dRayVector[2]);
+            // ROS_INFO("casting ray from %f %f %f in dir %f %f %f", source[0], source[1], source[2], dRayVector[0], dRayVector[1], dRayVector[2]);
             Eigen::Vector3d intersect;
             RaycastSingle(source, dRayVector, intersect, biDirectional, index);
             if (intersect[2]<dIntersect[2])

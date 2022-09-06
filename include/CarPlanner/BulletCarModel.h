@@ -75,12 +75,12 @@
 class ControlCommand
 {
 public:
-    ControlCommand(): m_dForce(0), m_dCurvature(0), m_dT(0),m_dPhi(0), m_dTorque(0,0,0),m_dTime(0)
+    ControlCommand(): m_dForce(0), m_dCurvature(0), m_dT(0),m_dPhi(0), m_dTorque(0,0,0),m_dTime(0), m_dTargetVel(0.)
     {
 
     }
     ControlCommand(const double& force,const double& curvature,
-                    const Eigen::Vector3d& torques, const double& dt, const double& dPhi){
+                    const Eigen::Vector3d& torques, const double& dt, const double& dPhi, const double& dTargetVel=0.){
 
         m_dForce = force;
         //m_dControlAccel = accel;
@@ -88,6 +88,7 @@ public:
         m_dTorque = torques;
         m_dT = dt;
         m_dPhi = dPhi;
+        m_dTargetVel = dTargetVel;
     }
 
     carplanner_msgs::Command toROS()
@@ -106,6 +107,7 @@ public:
         msg.torques[1] = m_dTorque[1];
         msg.torques[2] = m_dTorque[2];
         msg.time = m_dTime;
+        msg.target_vel = m_dTargetVel;
 
         return msg;
     }
@@ -122,6 +124,7 @@ public:
             m_dTorque[i] = msg.torques[i];
         }
         m_dTime = msg.time;
+        m_dTargetVel = msg.target_vel;
 
         return;
     }
@@ -133,6 +136,7 @@ public:
     double m_dPhi;
     Eigen::Vector3d m_dTorque;
     double m_dTime;
+    double m_dTargetVel;
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
